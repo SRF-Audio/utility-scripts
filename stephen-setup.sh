@@ -68,6 +68,8 @@ brew install kustomize
 
 brew install skaffold
 
+brew install derailed/k9s/k9s
+
 # Copy SSH key to clipboard
 xclip -sel clip < ~/.ssh/id_ed25519.pub
 
