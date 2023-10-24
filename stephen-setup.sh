@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# ------------------------------------------------------------------------------
+# Stephen's Ubuntu Setup Script
+#
+# Prior to running this script, ensure the following commands have been run:
+# git clone https://github.com/SRF-Audio/ubuntu-setup.git
+# cd ubuntu-setup && chmod +x stephen_setup.sh && ./stephen-setup.sh
+# ------------------------------------------------------------------------------
+
+# Get email for ssh key generation from the user
+read -p "Please enter your email for ssh key generation: " email_address
+
 # Update & Upgrade
 sudo apt update -y && sudo apt upgrade -y
 
@@ -13,8 +24,9 @@ chsh -s $(which zsh)
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
 # Install nerd fonts
+curl -OL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/FiraMono.tar.xz
 git clone https://github.com/ryanoasis/nerd-fonts.git
-cd nerd-fonts && ./install.sh
+cd nerd-fonts && ./install.sh FiraMono
 cd .. && rm -rf nerd-fonts
 
 # Update .zshrc with theme and settings
@@ -23,8 +35,8 @@ echo 'ZSH_THEME="agnoster"' >> ~/.zshrc
 # Source .zshrc to apply changes
 source ~/.zshrc
 
-# Generate SSH key
-ssh-keygen -t ed25519 -C "sfroeber@applied-insight.com" -N ""
+# Generate SSH key using provided email
+ssh-keygen -t ed25519 -C "$email_address" -N ""
 
 # Create directory
 mkdir -p ~/GitLab
