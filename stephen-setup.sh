@@ -49,11 +49,17 @@ mkdir -p ~/GitLab
 # Set default directory in .zshrc to GitLab
 echo 'cd ~/GitLab' >> ~/.zshrc
 
-# Install Python
+# Install software tools
 brew install python
 sudo apt install python3-pip -y
 echo "alias python='python3'" >> ~/.zshrc
 source ~/.zshrc
+
+brew install go
+
+brew install kustomize
+
+brew install skaffold
 
 # Copy SSH key to clipboard
 xclip -sel clip < ~/.ssh/id_ed25519.pub
