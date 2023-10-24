@@ -15,6 +15,10 @@ sudo apt update -y && sudo apt upgrade -y
 
 # install HomeBrew
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+(echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> /home/sfroeber/.zshrc
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+sudo apt-get install build-essential
+brew install gcc
 
 # Install necessary tools
 sudo apt install -y zsh git-all fonts-powerline xclip
@@ -26,7 +30,6 @@ chsh -s $(which zsh)
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
 # Install nerd fonts
-curl -OL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/FiraMono.tar.xz
 git clone https://github.com/ryanoasis/nerd-fonts.git
 cd nerd-fonts && ./install.sh FiraMono
 cd .. && rm -rf nerd-fonts
