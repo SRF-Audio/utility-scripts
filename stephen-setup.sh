@@ -4,7 +4,7 @@
 # Stephen's Ubuntu Setup Script
 #
 # Prior to running this script, ensure the following commands have been run:
-# git clone https://github.com/SRF-Audio/ubuntu-setup.git && cd ubuntu-setup && chmod +x stephen_setup.sh && ./stephen-setup.sh
+# chmod +x stephen_setup.sh && ./stephen-setup.sh
 # ------------------------------------------------------------------------------
 
 # Get email for ssh key generation from the user
