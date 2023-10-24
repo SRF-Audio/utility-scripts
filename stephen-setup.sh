@@ -13,8 +13,11 @@ read -p "Please enter your email for ssh key generation: " email_address
 # Update & Upgrade
 sudo apt update -y && sudo apt upgrade -y
 
+# install HomeBrew
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
 # Install necessary tools
-sudo apt install -y wget zsh git-all fonts-powerline xclip
+sudo apt install -y zsh git-all fonts-powerline xclip
 
 # Set zsh as default shell
 chsh -s $(which zsh)
