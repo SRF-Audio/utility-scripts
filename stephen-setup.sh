@@ -4,17 +4,24 @@
 # Stephen's Ubuntu Setup Script
 #
 # Prior to running this script, ensure the following commands have been run:
+# touch stephen-setup.sh
+# vim stephen-setup.sh
+# <paste this script into vim, and save/exit>
 # chmod +x stephen-setup.sh && ./stephen-setup.sh
 # ------------------------------------------------------------------------------
 
 # Get email for ssh key generation from the user
 read -p "Please enter your email for ssh key generation: " email_address
 
+# Get passphrase for ssh key securely
+read -sp "Enter passphrase for the ssh key (press enter for no passphrase): " ssh_passphrase
+echo # Insert a new line after the passphrase input for cleaner output
+
 # Update & Upgrade
 sudo apt update -y && sudo apt upgrade -y
 
 # Install necessary tools
-sudo apt install -y zsh git-all fonts-powerline xclip
+sudo apt install -y wget zsh git-all fonts-powerline xclip
 
 # Set zsh as default shell
 chsh -s $(which zsh)
@@ -40,8 +47,8 @@ git clone https://github.com/ryanoasis/nerd-fonts.git
 cd nerd-fonts && ./install.sh FiraMono
 cd .. && rm -rf nerd-fonts
 
-# Generate SSH key using provided email
-ssh-keygen -t ed25519 -C "$email_address" -N ""
+# Generate SSH key using provided email and passphrase
+ssh-keygen -t ed25519 -C "$email_address" -N "$ssh_passphrase"
 
 # Create directory
 mkdir -p ~/GitLab
@@ -66,4 +73,3 @@ xclip -sel clip < ~/.ssh/id_ed25519.pub
 
 # Notification
 echo "The GitLab ssh key has been copied to the clipboard. Please add it to your GitLab account."
-
