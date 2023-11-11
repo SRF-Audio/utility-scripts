@@ -23,8 +23,17 @@ wget "$VS_CODE_URL" -O vscode.rpm
 sudo dnf install ./vscode.rpm -y
 rm ./vscode.rpm
 
-
+# Slack
 SLACK_URL="https://downloads.slack-edge.com/releases/linux/4.35.126/prod/x64/slack-4.35.126-0.1.el8.x86_64.rpm"
 wget "$SLACK_URL" -O slack.rpm
 sudo dnf install ./slack.rpm -y
 rm ./slack.rpm
+
+# Homebrew
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+(echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> ~/.bashrc
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+sudo yum groupinstall 'Development Tools'
+brew install gcc
+
+
