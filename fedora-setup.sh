@@ -50,3 +50,12 @@ eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 # nerd-fonts
 mkdir -p ~/.local/share/fonts
 cd ~/.local/share/fonts && curl -fLO https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/FiraMono/Regular/FiraMonoNerdFontMono-Regular.otf
+
+# Brave
+sudo dnf install dnf-plugins-core -y
+sudo dnf config-manager --add-repo https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
+sudo rpm --import https://brave-browser-rpm-release.s3.brave.com/brave-core.asc
+sudo dnf install brave-browser -y
+
+# TigerVNC
+sudo dnf install tigervnc -y
