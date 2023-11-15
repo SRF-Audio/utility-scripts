@@ -58,3 +58,17 @@ sudo dnf install brave-browser -y
 
 # TigerVNC
 sudo dnf install tigervnc -y
+
+# Docker
+sudo dnf -y install dnf-plugins-core
+sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+sudo dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo systemctl start docker
+sudo usermod -aG docker $USER
+newgrp docker
+
+# Docker Desktop
+# NOTE: only works on bare metal, not VM's
+wget -O docker-desktop.rpm "https://desktop.docker.com/linux/main/amd64/docker-desktop-4.25.1-x86_64.rpm"
+sudo dnf install ./docker-desktop.rpm
+rm ./docker-desktop.rpm
