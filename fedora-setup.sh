@@ -67,8 +67,40 @@ sudo systemctl start docker
 sudo usermod -aG docker $USER
 newgrp docker
 
-# Docker Desktop
-# NOTE: only works on bare metal, not VM's
-wget -O docker-desktop.rpm "https://desktop.docker.com/linux/main/amd64/docker-desktop-4.25.1-x86_64.rpm"
-sudo dnf install ./docker-desktop.rpm
-rm ./docker-desktop.rpm
+is_vm() {
+    if command -v dmidecode >/dev/null 2>&1; then
+        if dmidecode -s system-manufacturer | grep -iqE 'vmware|virtualbox|kvm|xen|qemu|microsoft'; then
+            return 0 
+        fi
+    fi
+    return 1
+}
+
+if ! is_vm; then
+    echo "Not in a VM, proceeding with Docker Desktop installation..."
+    wget -O docker-desktop.rpm "https://desktop.docker.com/linux/main/amd64/docker-desktop-4.25.1-x86_64.rpm"
+    sudo dnf install ./docker-desktop.rpm
+    rm ./docker-desktop.rpm
+else
+    echo "Running in a VM. Skipping Docker Desktop installation."
+fi
+
+# Install developer tools
+brew install python
+echo "alias python='python3'" >> ~/.bashrc
+source ~/.bashrc
+python3 -m ensurepip --upgrade
+echo "alias pip='pip3'" >> ~/.bashrc
+source ~/.bashrc
+
+brew install go
+
+brew install kind
+
+brew install kustomize
+
+brew install skaffold
+
+brew install istioctl
+
+brew install derailed/k9s/k9s
