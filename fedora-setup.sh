@@ -4,7 +4,7 @@
 # Stephen's Fedora Setup Script
 #
 # To use, run: 
-# wget "https://github.com/SRF-Audio/utility-scripts/blob/main/fedora-setup.sh" -O setup.sh && chmod +x setup.sh && ./setup.sh
+# wget "https://raw.githubusercontent.com/SRF-Audio/utility-scripts/main/fedora-setup.sh" -O setup.sh && chmod +x setup.sh && ./setup.sh
 # ------------------------------------------------------------------------------
 
 sudo dnf update -y
