@@ -93,14 +93,4 @@ python3 -m ensurepip --upgrade
 echo "alias pip='pip3'" >> ~/.bashrc
 source ~/.bashrc
 
-brew install go
-
-brew install kind
-
-brew install kustomize
-
-brew install skaffold
-
-brew install istioctl
-
-brew install derailed/k9s/k9s
+brew install go kind kubectl helm kustomize skaffold istioctl derailed/k9s/k9s
