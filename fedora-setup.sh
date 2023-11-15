@@ -12,6 +12,12 @@ sudo dnf update -y
 # Git
 sudo dnf install git -y
 
+# Homebrew
+sudo dnf groupinstall 'Development Tools'
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" "" --unattended
+(echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> $HOME/.bashrc
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
 # 1password
 sudo rpm --import https://downloads.1password.com/linux/keys/1password.asc
 sudo sh -c 'echo -e "[1password]\nname=1Password Stable Channel\nbaseurl=https://downloads.1password.com/linux/rpm/stable/\$basearch\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=\"https://downloads.1password.com/linux/keys/1password.asc\"" > /etc/yum.repos.d/1password.repo'
@@ -28,13 +34,6 @@ SLACK_URL="https://downloads.slack-edge.com/releases/linux/4.35.126/prod/x64/sla
 wget "$SLACK_URL" -O slack.rpm
 sudo dnf install ./slack.rpm -y
 rm ./slack.rpm
-
-# Homebrew
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" "" --unattended
-(echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> $HOME/.bashrc
-    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-sudo yum groupinstall 'Development Tools'
-brew install gcc
 
 # zsh
 sudo dnf install zsh
