@@ -57,6 +57,11 @@ sudo dnf install brave-browser -y
 # TigerVNC
 sudo dnf install tigervnc -y
 
+# Obsidian
+flatpak remote-add --if-not-exists fedora oci+https://registry.fedoraproject.org
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak install flathub md.obsidian.Obsidian
+
 read -p "Do you want to install extra developer tools? (y/n) " install_devtools
 
 if [ "$install_devtools" = "y" ]; then
