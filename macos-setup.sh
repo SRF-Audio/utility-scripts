@@ -30,5 +30,11 @@ python3 -m ensurepip --upgrade
 echo "alias pip='pip3'" >> ~/.zshrc
 source ~/.zshrc
 
-brew install go kustomize helm kubectl skaffold istioctl derailed/k9s/k9s
+brew install go kustomize helm kubectl skaffold istioctl derailed/k9s/k9s 
+brew install --cask 1password 
+brew install --cask 1password-cli 
+brew install --cask brave-browser 
+brew install --cask iterm2
+brew install --cask visual-studio-code
+
 
