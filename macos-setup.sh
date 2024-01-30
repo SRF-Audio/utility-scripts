@@ -2,11 +2,11 @@
 
 # ------------------------------------------------------------------------------
 # 
-# START HERE if you're on MacOS
-# MacOS Development Environment Setup Script
+# 
+# Stephen's MacOS Setup Script
 #
-# Prior to running this script, ensure the following commands have been run:
-# chmod +x setup_mac.sh && ./setup_mac.sh
+# To use, run:
+# curl https://raw.githubusercontent.com/SRF-Audio/utility-scripts/main/macos-setup.sh > macos-setup.sh && chmod +x macos-setup.sh && ./macos-setup.sh
 # ------------------------------------------------------------------------------
 
 # Check if Homebrew is installed, if not, install it
