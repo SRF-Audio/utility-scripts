@@ -32,6 +32,7 @@ function brew_install_or_update {
 
 brew_formulae=(
     git
+    jq
     xclip
     gcc
     python
