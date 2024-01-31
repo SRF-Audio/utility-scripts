@@ -39,5 +39,9 @@ brew install --cask 1password-cli
 brew install --cask brave-browser 
 brew install --cask iterm2
 brew install --cask visual-studio-code
+brew install --cask moom
+brew install --cask microsoft-teams
+brew install --cask slack
+brew install --cask discord
 
 
