@@ -1,14 +1,34 @@
 #!/bin/bash
 
 # ------------------------------------------------------------------------------
-# Stephen's Ubuntu Setup Script
+# Stephen's Debian/Ubuntu Setup Script
 #
-# Prior to running this script, ensure the following commands have been run:
-# touch stephen-setup.sh
-# vim stephen-setup.sh
-# <paste this script into vim, and save/exit>
-# chmod +x stephen-setup.sh && ./stephen-setup.sh
+# To run this script use:
+# sudo apt install -y wget && wget "https://raw.githubusercontent.com/SRF-Audio/utility-scripts/main/debian-setup.sh" -O setup.sh && chmod +x setup.sh && ./setup.sh
 # ------------------------------------------------------------------------------
+
+# Ask the user for their choice of Git platform
+echo "Select your preferred Git hosting service:"
+echo "1) GitHub"
+echo "2) GitLab"
+
+while true; do
+    read -p "Enter your choice (1 or 2): " git_choice
+
+    case $git_choice in
+        1)
+            git_service="GitHub"
+            break
+            ;;
+        2)
+            git_service="GitLab"
+            break
+            ;;
+        *)
+            echo "Invalid input. Please enter 1 for GitHub or 2 for GitLab."
+            ;;
+    esac
+done
 
 # Get email for ssh key generation from the user
 read -p "Please enter your email for ssh key generation: " email_address
@@ -21,7 +41,7 @@ echo # Insert a new line after the passphrase input for cleaner output
 sudo apt update -y && sudo apt upgrade -y
 
 # Install necessary tools
-sudo apt install -y wget zsh git-all fonts-powerline xclip
+sudo apt install -y zsh git-all fonts-powerline xclip net-tools
 
 # Set zsh as default shell
 chsh -s $(which zsh)
@@ -47,14 +67,16 @@ git clone https://github.com/ryanoasis/nerd-fonts.git
 cd nerd-fonts && ./install.sh FiraMono
 cd .. && rm -rf nerd-fonts
 
-# Generate SSH key using provided email and passphrase
 ssh-keygen -t ed25519 -C "$email_address" -N "$ssh_passphrase"
 
-# Create directory
-mkdir -p ~/GitLab
+# Create directory based on user choice
+mkdir -p ~/"$git_service"
 
-# Set default directory in .zshrc to GitLab
-echo 'cd ~/GitLab' >> ~/.zshrc
+# Set default directory in .zshrc to the chosen platform
+echo "cd ~/$git_service" >> ~/.zshrc
+
+echo "Default directory set to $git_service in .zshrc."
+
 
 # Install software tools
 brew install python
@@ -74,4 +96,4 @@ brew install derailed/k9s/k9s
 xclip -sel clip < ~/.ssh/id_ed25519.pub
 
 # Notification
-echo "The GitLab ssh key has been copied to the clipboard. Please add it to your GitLab account."
+echo "Setup complete, and the $git_service ssh key has been copied to the clipboard. Please add it to your account now."
