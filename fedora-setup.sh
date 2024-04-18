@@ -115,6 +115,9 @@ if lspci | grep -iqE 'nvidia'; then
     # Update DNF repositories
     sudo dnf update -y
 
+    # DaVinci Resolve dependencies
+    sudo dnf install apr apr-util mesa-libGLU
+
     # Check if any NVIDIA packages are installed and remove them if found
     if dnf list installed '*nvidia*' &> /dev/null; then
         echo "Removing installed NVIDIA packages..."
