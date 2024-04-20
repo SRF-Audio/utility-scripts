@@ -96,7 +96,7 @@ if [ "$install_devtools" = "y" ]; then
     cd ~/.local/share/fonts && curl -fLO https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/FiraMono/Regular/FiraMonoNerdFontMono-Regular.otf
     
     # Install developer tools
-    sudo dnf install jq
+    sudo dnf install jq nmap htop -y
     brew install python go kind kubectl helm kustomize skaffold istioctl derailed/k9s/k9s fx yh
     echo "alias python='python3'" >> ~/.bashrc
     echo "alias python='python3'" >> ~/.zshrc
