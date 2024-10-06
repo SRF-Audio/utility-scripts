@@ -1,0 +1,131 @@
+- name: Stephen's Debian/Ubuntu Setup
+  hosts: all
+  become: true
+  gather_facts: true
+  vars_prompt:
+    - name: git_choice
+      prompt: "Select your preferred Git hosting service (1: GitHub, 2: GitLab):"
+      private: no
+    - name: email_address
+      prompt: "Please enter your email for SSH key generation:"
+      private: no
+    - name: ssh_passphrase
+      prompt: "Enter passphrase for the SSH key (press enter for no passphrase):"
+      private: yes
+
+  vars:
+    git_service: "{{ 'GitHub' if git_choice == '1' else 'GitLab' }}"
+    git_directory: "~/{{ git_service }}"
+
+  tasks:
+    - name: Update and upgrade apt packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+        force_apt_get: yes
+
+    - name: Install necessary packages
+      apt:
+        name:
+          - zsh
+          - git-all
+          - fonts-powerline
+          - xclip
+          - net-tools
+        state: present
+
+    - name: Change default shell to zsh
+      user:
+        name: "{{ ansible_user }}"
+        shell: /usr/bin/zsh
+
+    - name: Install Oh-My-Zsh
+      shell: |
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+      args:
+        executable: /bin/zsh
+
+    - name: Set ZSH theme to agnoster
+      lineinfile:
+        path: ~/.zshrc
+        regexp: '^ZSH_THEME'
+        line: 'ZSH_THEME="agnoster"'
+        create: yes
+
+    - name: Source .zshrc
+      shell: source ~/.zshrc
+      args:
+        executable: /bin/zsh
+
+    - name: Install Homebrew
+      shell: |
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.zshrc
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+      args:
+        executable: /bin/zsh
+
+    - name: Install build-essential and GCC via brew
+      apt:
+        name: build-essential
+        state: present
+
+    - name: Install additional software tools via Homebrew
+      homebrew:
+        name:
+          - gcc
+          - python
+          - go
+          - kustomize
+          - skaffold
+          - derailed/k9s/k9s
+
+    - name: Install Python3 and pip
+      apt:
+        name: python3-pip
+        state: present
+
+    - name: Set Python3 as default
+      lineinfile:
+        path: ~/.zshrc
+        line: "alias python='python3'"
+        create: yes
+
+    - name: Clone nerd fonts repo and install FiraMono font
+      git:
+        repo: https://github.com/ryanoasis/nerd-fonts.git
+        dest: ~/nerd-fonts
+        clone: yes
+
+    - name: Install FiraMono nerd font
+      shell: ./install.sh FiraMono
+      args:
+        chdir: ~/nerd-fonts
+
+    - name: Clean up nerd fonts folder
+      file:
+        path: ~/nerd-fonts
+        state: absent
+
+    - name: Generate SSH key with ed25519
+      openssh_keypair:
+        path: ~/.ssh/id_ed25519
+        type: ed25519
+        comment: "{{ email_address }}"
+        passphrase: "{{ ssh_passphrase }}"
+        force: no
+
+    - name: Create Git directory based on user choice
+      file:
+        path: "{{ git_directory }}"
+        state: directory
+
+    - name: Set default directory in .zshrc to chosen platform
+      lineinfile:
+        path: ~/.zshrc
+        line: "cd {{ git_directory }}"
+        create: yes
+
+    - name: Notify the user to add the SSH key to their account
+      debug:
+        msg: "Setup complete. Don't forget to add the {{ git_service }} SSH key to your account."
