@@ -1,4 +1,4 @@
-- name: Stephen's Debian/Ubuntu Setup
+- name: Stephen's Debian/Ubuntu Setup with 1Password SSH Key Injection
   hosts: all
   become: true
   gather_facts: true
@@ -16,8 +16,29 @@
   vars:
     git_service: "{{ 'GitHub' if git_choice == '1' else 'GitLab' }}"
     git_directory: "~/{{ git_service }}"
+    ssh_key_1password_reference: "op://HomeLab/coachlight-homelab SSH key/public key"
 
   tasks:
+    - name: Inject SSH key from 1Password and run ssh-add
+      local_action:  # This runs on the control machine (your local machine)
+        command: |
+          export SSH_KEY="{{ ssh_key_1password_reference }}"
+          op run -- ssh-add <(echo "$SSH_KEY")
+      ignore_errors: yes
+      register: op_ssh_result
+
+    - name: Check if SSH key was added successfully
+      fail:
+        msg: "Failed to add SSH key from 1Password"
+      when: op_ssh_result.rc != 0
+
+    - name: Copy SSH key to remote machine
+      authorized_key:
+        user: "{{ ansible_user }}"
+        state: present
+        key: "{{ lookup('file', '~/.ssh/id_ed25519.pub') }}"
+      delegate_to: "{{ inventory_hostname }}"
+
     - name: Update and upgrade apt packages
       apt:
         update_cache: yes
@@ -107,13 +128,14 @@
         path: ~/nerd-fonts
         state: absent
 
-    - name: Generate SSH key with ed25519
+    - name: Generate SSH key with ed25519 (fallback if 1Password fails)
       openssh_keypair:
         path: ~/.ssh/id_ed25519
         type: ed25519
         comment: "{{ email_address }}"
         passphrase: "{{ ssh_passphrase }}"
         force: no
+      when: op_ssh_result.rc != 0
 
     - name: Create Git directory based on user choice
       file:
