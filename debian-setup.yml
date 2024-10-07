@@ -1,6 +1,20 @@
+# I installed the internet edition of Debian in ProxMox. It required a few extra steps to get it up and running.
+# To run this playbook on a fresh Debian VM, the following steps are required:
+# ```
+# ssh sfroeber@192.168.226.103 'mkdir -p ~/.ssh && chmod 700 ~/.ssh' && scp /tmp/public_key_temp sfroeber@192.168.226.103:~/.ssh/authorized_keys && ssh sfroeber@192.168.226.103 'chmod 600 ~/.ssh/authorized_keys'
+# ```
+# Manually ssh into the VM and run the following commands:
+# su -
+# apt-get update && apt-get install sudo -y
+# usermod -aG sudo sfroeber
+# visudo
+# sfroeber ALL=(ALL) NOPASSWD: ALL
+# exit
+# Execute the playbook with the following command:
+# ansible-playbook -i 
+
 - name: Stephen's Debian/Ubuntu Setup with 1Password SSH Key Injection
   hosts: all
-  become: true
   gather_facts: true
   vars_prompt:
     - name: git_choice
@@ -17,38 +31,22 @@
     git_service: "{{ 'GitHub' if git_choice == '1' else 'GitLab' }}"
     git_directory: "~/{{ git_service }}"
     ssh_key_1password_reference: "op://HomeLab/coachlight-homelab SSH key/public key"
+    ansible_user: "sfroeber"
 
   tasks:
-    - name: Inject SSH key from 1Password and run ssh-add
-      local_action:  # This runs on the control machine (your local machine)
-        command: |
-          export SSH_KEY="{{ ssh_key_1password_reference }}"
-          op run -- ssh-add <(echo "$SSH_KEY")
-      ignore_errors: yes
-      register: op_ssh_result
-
-    - name: Check if SSH key was added successfully
-      fail:
-        msg: "Failed to add SSH key from 1Password"
-      when: op_ssh_result.rc != 0
-
-    - name: Copy SSH key to remote machine
-      authorized_key:
-        user: "{{ ansible_user }}"
-        state: present
-        key: "{{ lookup('file', '~/.ssh/id_ed25519.pub') }}"
-      delegate_to: "{{ inventory_hostname }}"
-
     - name: Update and upgrade apt packages
+      become: true
       apt:
         update_cache: yes
         upgrade: dist
         force_apt_get: yes
 
     - name: Install necessary packages
+      become: true
       apt:
         name:
           - zsh
+          - curl
           - git-all
           - fonts-powerline
           - xclip
@@ -60,7 +58,13 @@
         name: "{{ ansible_user }}"
         shell: /usr/bin/zsh
 
-    - name: Install Oh-My-Zsh
+    - name: Remove .oh-my-zsh directory if it exists
+      file:
+        path: ~/.oh-my-zsh
+        state: absent
+
+
+    - name: Install Oh-My-Zsh if not already installed
       shell: |
         sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
       args:
@@ -78,63 +82,17 @@
       args:
         executable: /bin/zsh
 
-    - name: Install Homebrew
-      shell: |
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-        echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.zshrc
-        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-      args:
-        executable: /bin/zsh
-
-    - name: Install build-essential and GCC via brew
-      apt:
-        name: build-essential
-        state: present
-
-    - name: Install additional software tools via Homebrew
-      homebrew:
-        name:
-          - gcc
-          - python
-          - go
-          - kustomize
-          - skaffold
-          - derailed/k9s/k9s
-
     - name: Install Python3 and pip
       apt:
         name: python3-pip
         state: present
+      become: true
 
     - name: Set Python3 as default
       lineinfile:
         path: ~/.zshrc
         line: "alias python='python3'"
         create: yes
-
-    - name: Clone nerd fonts repo and install FiraMono font
-      git:
-        repo: https://github.com/ryanoasis/nerd-fonts.git
-        dest: ~/nerd-fonts
-        clone: yes
-
-    - name: Install FiraMono nerd font
-      shell: ./install.sh FiraMono
-      args:
-        chdir: ~/nerd-fonts
-
-    - name: Clean up nerd fonts folder
-      file:
-        path: ~/nerd-fonts
-        state: absent
-
-    - name: Generate SSH key ed25519 for Git commits
-      openssh_keypair:
-        path: "~/.ssh/{{ inventory_hostname }}-{{ git_service }}"
-        type: ed25519
-        comment: "{{ email_address }}"
-        force: no
-      when: op_ssh_result.rc != 0
 
 
     - name: Create Git directory based on user choice
@@ -209,7 +167,3 @@
       command: docker run hello-world
       become: true
 
-
-    - name: Notify the user to add the SSH key to their account
-      debug:
-        msg: "Setup complete. Don't forget to add the {{ git_service }} SSH key to your account."
