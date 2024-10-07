@@ -128,14 +128,14 @@
         path: ~/nerd-fonts
         state: absent
 
-    - name: Generate SSH key with ed25519 (fallback if 1Password fails)
+    - name: Generate SSH key ed25519 for Git commits
       openssh_keypair:
-        path: ~/.ssh/id_ed25519
+        path: "~/.ssh/{{ inventory_hostname }}-{{ git_service }}"
         type: ed25519
         comment: "{{ email_address }}"
-        passphrase: "{{ ssh_passphrase }}"
         force: no
       when: op_ssh_result.rc != 0
+
 
     - name: Create Git directory based on user choice
       file:
