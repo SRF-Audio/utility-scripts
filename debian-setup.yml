@@ -148,6 +148,68 @@
         line: "cd {{ git_directory }}"
         create: yes
 
+    - name: Remove conflicting packages
+      apt:
+        name:
+          - docker.io
+          - docker-doc
+          - docker-compose
+          - podman-docker
+          - containerd
+          - runc
+        state: absent
+      become: true
+    
+    - name: Update apt cache and install prerequisites
+      apt:
+        name:
+          - ca-certificates
+          - curl
+        state: present
+        update_cache: yes
+      become: true
+    
+    - name: Create directory for Docker's GPG key
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+      become: true
+    
+    - name: Download Docker GPG key
+      get_url:
+        url: https://download.docker.com/linux/debian/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+      become: true
+    
+    - name: Add Docker repository to Apt sources
+      apt_repository:
+        repo: "deb [arch={{ ansible_architecture }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ ansible_lsb.codename }} stable"
+        filename: docker
+      become: true
+    
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      become: true
+    
+    - name: Install Docker and related packages
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+      become: true
+    
+    - name: Verify Docker installation by running hello-world
+      command: docker run hello-world
+      become: true
+
+
     - name: Notify the user to add the SSH key to their account
       debug:
         msg: "Setup complete. Don't forget to add the {{ git_service }} SSH key to your account."
