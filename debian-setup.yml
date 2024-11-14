@@ -1,0 +1,169 @@
+# I installed the internet edition of Debian in ProxMox. It required a few extra steps to get it up and running.
+# To run this playbook on a fresh Debian VM, the following steps are required:
+# ```
+# ssh sfroeber@192.168.226.103 'mkdir -p ~/.ssh && chmod 700 ~/.ssh' && scp /tmp/public_key_temp sfroeber@192.168.226.103:~/.ssh/authorized_keys && ssh sfroeber@192.168.226.103 'chmod 600 ~/.ssh/authorized_keys'
+# ```
+# Manually ssh into the VM and run the following commands:
+# su -
+# apt-get update && apt-get install sudo -y
+# usermod -aG sudo sfroeber
+# visudo
+# sfroeber ALL=(ALL) NOPASSWD: ALL
+# exit
+# Execute the playbook with the following command:
+# ansible-playbook -i 
+
+- name: Stephen's Debian/Ubuntu Setup with 1Password SSH Key Injection
+  hosts: all
+  gather_facts: true
+  vars_prompt:
+    - name: git_choice
+      prompt: "Select your preferred Git hosting service (1: GitHub, 2: GitLab):"
+      private: no
+    - name: email_address
+      prompt: "Please enter your email for SSH key generation:"
+      private: no
+    - name: ssh_passphrase
+      prompt: "Enter passphrase for the SSH key (press enter for no passphrase):"
+      private: yes
+
+  vars:
+    git_service: "{{ 'GitHub' if git_choice == '1' else 'GitLab' }}"
+    git_directory: "~/{{ git_service }}"
+    ssh_key_1password_reference: "op://HomeLab/coachlight-homelab SSH key/public key"
+    ansible_user: "sfroeber"
+
+  tasks:
+    - name: Update and upgrade apt packages
+      become: true
+      apt:
+        update_cache: yes
+        upgrade: dist
+        force_apt_get: yes
+
+    - name: Install necessary packages
+      become: true
+      apt:
+        name:
+          - zsh
+          - curl
+          - git-all
+          - fonts-powerline
+          - xclip
+          - net-tools
+        state: present
+
+    - name: Change default shell to zsh
+      user:
+        name: "{{ ansible_user }}"
+        shell: /usr/bin/zsh
+
+    - name: Remove .oh-my-zsh directory if it exists
+      file:
+        path: ~/.oh-my-zsh
+        state: absent
+
+
+    - name: Install Oh-My-Zsh if not already installed
+      shell: |
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+      args:
+        executable: /bin/zsh
+
+    - name: Set ZSH theme to agnoster
+      lineinfile:
+        path: ~/.zshrc
+        regexp: '^ZSH_THEME'
+        line: 'ZSH_THEME="agnoster"'
+        create: yes
+
+    - name: Source .zshrc
+      shell: source ~/.zshrc
+      args:
+        executable: /bin/zsh
+
+    - name: Install Python3 and pip
+      apt:
+        name: python3-pip
+        state: present
+      become: true
+
+    - name: Set Python3 as default
+      lineinfile:
+        path: ~/.zshrc
+        line: "alias python='python3'"
+        create: yes
+
+
+    - name: Create Git directory based on user choice
+      file:
+        path: "{{ git_directory }}"
+        state: directory
+
+    - name: Set default directory in .zshrc to chosen platform
+      lineinfile:
+        path: ~/.zshrc
+        line: "cd {{ git_directory }}"
+        create: yes
+
+    - name: Remove conflicting packages
+      apt:
+        name:
+          - docker.io
+          - docker-doc
+          - docker-compose
+          - podman-docker
+          - containerd
+          - runc
+        state: absent
+      become: true
+    
+    - name: Update apt cache and install prerequisites
+      apt:
+        name:
+          - ca-certificates
+          - curl
+        state: present
+        update_cache: yes
+      become: true
+    
+    - name: Create directory for Docker's GPG key
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+      become: true
+    
+    - name: Download Docker GPG key
+      get_url:
+        url: https://download.docker.com/linux/debian/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+      become: true
+    
+    - name: Add Docker repository to Apt sources
+      apt_repository:
+        repo: "deb [arch={{ ansible_architecture }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ ansible_lsb.codename }} stable"
+        filename: docker
+      become: true
+    
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      become: true
+    
+    - name: Install Docker and related packages
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+      become: true
+    
+    - name: Verify Docker installation by running hello-world
+      command: docker run hello-world
+      become: true
+
