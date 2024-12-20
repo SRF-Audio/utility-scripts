@@ -1,54 +1,38 @@
----
 - name: Stephen's Fedora Setup Playbook
   hosts: localhost
-  become: yes
   gather_facts: yes
   vars_prompt:
     - name: install_devtools
       prompt: "Do you want to install extra developer tools? (y/n)"
       private: no
+  
+  vars:
+    ansible_user: sfroeber
   tasks:
     - name: Update all packages to the latest version
       dnf:
         name: "*"
         state: latest
         update_cache: yes
+      become: yes
 
     - name: Install git
       dnf:
         name: git
         state: present
-
+      become: yes
+    
     - name: Install Development Tools group
       dnf:
         name: "@Development Tools"
         state: present
-
-    - name: Check if Homebrew is installed
-      stat:
-        path: /home/linuxbrew/.linuxbrew/bin/brew
-      register: brew_stat
-
-    - name: Install Homebrew
-      shell: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-      when: not brew_stat.stat.exists
-
-    - name: Add brew shell environment to .bashrc
-      lineinfile:
-        path: ~/.bashrc
-        line: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'
-        insertafter: EOF
-
-    - name: Add brew shell environment to .zshrc
-      lineinfile:
-        path: ~/.zshrc
-        line: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'
-        insertafter: EOF
+      become: yes
 
     - name: Install zsh
       dnf:
         name: zsh
         state: present
+      become: yes
 
     - name: Change default shell to zsh
       user:
@@ -91,67 +75,45 @@
       dnf:
         name: 1password
         state: present
+      become: yes
 
-    - name: Download VS Code RPM
-      get_url:
-        url: https://code.visualstudio.com/sha/download?build=stable&os=linux-rpm-x64
-        dest: /tmp/vscode.rpm
+    - name: Import Microsoft GPG key
+      rpm_key:
+        state: present
+        key: https://packages.microsoft.com/keys/microsoft.asc
+
+    - name: Add Visual Studio Code repository
+      yum_repository:
+        name: vscode
+        description: Visual Studio Code
+        baseurl: https://packages.microsoft.com/yumrepos/vscode
+        enabled: yes
+        gpgcheck: yes
+        gpgkey: https://packages.microsoft.com/keys/microsoft.asc
 
     - name: Install VS Code
       dnf:
-        name: /tmp/vscode.rpm
+        name: code
         state: present
-
-    - name: Remove VS Code RPM file
-      file:
-        path: /tmp/vscode.rpm
-        state: absent
-
-    - name: Download Slack RPM
-      get_url:
-        url: https://downloads.slack-edge.com/releases/linux/4.35.126/prod/x64/slack-4.35.126-0.1.el8.x86_64.rpm
-        dest: /tmp/slack.rpm
-
-    - name: Install Slack
-      dnf:
-        name: /tmp/slack.rpm
-        state: present
-
-    - name: Remove Slack RPM file
-      file:
-        path: /tmp/slack.rpm
-        state: absent
+      become: yes
 
     - name: Install dnf-plugins-core
       dnf:
         name: dnf-plugins-core
         state: present
-
-    - name: Add Brave browser repository
-      get_url:
-        url: https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
-        dest: /etc/yum.repos.d/brave-browser.repo
-        mode: '0644'
-
-    - name: Import Brave GPG key
-      rpm_key:
-        state: present
-        key: https://brave-browser-rpm-release.s3.brave.com/brave-core.asc
-
-    - name: Install Brave browser
-      dnf:
-        name: brave-browser
-        state: present
+      become: yes
 
     - name: Install TigerVNC
       dnf:
         name: tigervnc
         state: present
+      become: yes
 
     - name: Install flatpak
       dnf:
         name: flatpak
         state: present
+      become: yes
 
     - name: Add Fedora Flatpak remote
       command: flatpak remote-add --if-not-exists fedora oci+https://registry.fedoraproject.org
@@ -162,42 +124,47 @@
     - name: Install Obsidian via Flatpak
       command: flatpak install -y flathub md.obsidian.Obsidian
 
-    # KDE Settings
-       - name: Set KDE color scheme
-      shell: kwriteconfig5 --file kdeglobals --group General --key ColorScheme --value "ColorfulVioletDarkColorscheme"
-      become_user: "{{ ansible_user }}"
+    - name: Install Slack via Flatpak
+      command: flatpak install -y flathub com.slack.Slack
 
-    - name: Set KDE icon theme
-      shell: kwriteconfig5 --file kdeglobals --group Icons --key Theme --value "BeautySolar"
-      become_user: "{{ ansible_user }}"
+    
 
-    - name: Apply changes
-      shell: kbuildsycoca5 --noincremental
-      become_user: "{{ ansible_user }}"
+    # # KDE Settings
+    # - name: Set KDE color scheme
+    #   shell: kwriteconfig5 --file kdeglobals --group General --key ColorScheme --value "ColorfulVioletDarkColorscheme"
+    #   become_user: "{{ ansible_user }}"
 
-    - name: Ensure the .config directory exists
-      file:
-        path: "{{ user_home }}/.config"
-        state: directory
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: '0755'
-      become_user: "{{ ansible_user }}"  
+    # - name: Set KDE icon theme
+    #   shell: kwriteconfig5 --file kdeglobals --group Icons --key Theme --value "BeautySolar"
+    #   become_user: "{{ ansible_user }}"
 
-    - name: Copy KDE plasma desktop configuration file
-      copy:
-        src: "./files/plasma-org.kde.plasma.desktop-appletsrc"
-        dest: "{{ user_home }}/.config/plasma-org.kde.plasma.desktop-appletsrc"
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: '0644'
-      become_user: "{{ ansible_user }}"  # Run as the user who will use KDE
+    # - name: Apply changes
+    #   shell: kbuildsycoca5 --noincremental
+    #   become_user: "{{ ansible_user }}"
 
-    - name: Restart KDE Plasma to apply configuration
-      shell: kquitapp5 plasmashell && kstart5 plasmashell
-      become_user: "{{ ansible_user }}"
-      async: 10
-      poll: 0
+    # - name: Ensure the .config directory exists
+    #   file:
+    #     path: "{{ user_home }}/.config"
+    #     state: directory
+    #     owner: "{{ ansible_user }}"
+    #     group: "{{ ansible_user }}"
+    #     mode: '0755'
+    #   become_user: "{{ ansible_user }}"  
+
+    # - name: Copy KDE plasma desktop configuration file
+    #   copy:
+    #     src: "./files/plasma-org.kde.plasma.desktop-appletsrc"
+    #     dest: "{{ user_home }}/.config/plasma-org.kde.plasma.desktop-appletsrc"
+    #     owner: "{{ ansible_user }}"
+    #     group: "{{ ansible_user }}"
+    #     mode: '0644'
+    #   become_user: "{{ ansible_user }}"  # Run as the user who will use KDE
+
+    # - name: Restart KDE Plasma to apply configuration
+    #   shell: kquitapp5 plasmashell && kstart5 plasmashell
+    #   become_user: "{{ ansible_user }}"
+    #   async: 10
+    #   poll: 0
 
     - block:
         - name: Install Docker dependencies
