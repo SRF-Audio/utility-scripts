@@ -1,6 +1,8 @@
 - name: Stephen's Fedora Setup Playbook
   hosts: localhost
-  gather_facts: yes
+  gather_facts: true
+  debugger: on_failed
+
   vars_prompt:
     - name: install_devtools
       prompt: "Do you want to install extra developer tools? (y/n)"
@@ -17,20 +19,16 @@
       become: yes
 
     - name: Install git
-      dnf:
-        name: git
-        state: present
-      become: yes
+      ansible.builtin.dnf:
+        name:
+          - git
+          - "Development Tools"
+          - zsh
+          - go
+          - python-pip
+          - 1password-cli
+          - flatpak
 
-    - name: Install Development Tools group
-      dnf:
-        name: "Development Tools"
-        state: present
-      become: yes
-
-    - name: Install zsh
-      dnf:
-        name: zsh
         state: present
       become: yes
 
