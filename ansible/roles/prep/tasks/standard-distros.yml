@@ -1,0 +1,40 @@
+# Ensure metadata/cache fresh
+- name: Update all packages to latest
+  ansible.builtin.package:
+    name: "*"
+    state: latest
+    update_cache: yes
+  become: true
+
+# Fedora/RHEL group install
+- name: Install development toolchain (Fedora/RHEL)
+  ansible.builtin.dnf:
+    name: "@Development Tools"
+    state: present
+  when: ansible_facts['os_family'] == 'RedHat'
+  become: true
+
+# Ubuntu build-essential
+- name: Install development toolchain (Ubuntu)
+  ansible.builtin.apt:
+    name: build-essential
+    state: present
+    update_cache: yes
+  when: ansible_facts['os_family'] == 'Debian'
+  become: true
+
+# Common packages with per‑distro name mapping
+- name: Install common packages
+  ansible.builtin.package:
+    name: "{{ common_packages }}"
+    state: present
+  vars:
+    common_packages: >-
+      {{
+        [
+          'zsh','python3','python3-pip','tmux','tmate','htop','flatpak'
+        ]
+        + ([ 'golang','nmap-ncat','net-tools' ] if ansible_facts['os_family']=='RedHat' else [])
+        + ([ 'golang-go','netcat-openbsd','net-tools' ] if ansible_facts['os_family']=='Debian' else [])
+      }}
+  become: true

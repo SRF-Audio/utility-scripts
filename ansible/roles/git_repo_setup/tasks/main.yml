@@ -1,0 +1,9 @@
+- name: Create GitLab/GitHub directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - ~/GitLab/personal
+    - ~/GitLab/work
+    - ~/GitHub
+  when: ansible_facts[]
