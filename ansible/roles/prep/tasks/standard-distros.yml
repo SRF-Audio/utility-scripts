@@ -34,6 +34,7 @@
         state: present
       loop:
         - "@Development Tools"
+        - dnf-plugins-core
         - "golang"
         - "nmap-ncat"
         - "net-tools"
@@ -53,3 +54,18 @@
         - "netcat-openbsd"
         - "net-tools"
       become: true
+
+- name: Change default shell to zsh
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    shell: /usr/bin/zsh
+  become: true
+
+- name: Include oh-my-zsh tasks
+  ansible.builtin.include_tasks: oh-my-zsh.yml
+
+- name: Include 1Password Installation tasks
+  ansible.builtin.include_tasks: 1password.yml
+
+- name: Include Visual Studio Code Installation tasks
+  ansible.builtin.include_tasks: vs-code.yml

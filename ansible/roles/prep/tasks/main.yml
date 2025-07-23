@@ -10,4 +10,35 @@
 
 - name: Include tasks for standard distros
   include_tasks: standard-distros.yml
-  when: not immutable
+  when: not immutable and ansible_facts['os_family'] != 'Windows'
+
+- name: Include tasks for immutable distros
+  include_tasks: immutable-distros.yml
+  when: immutable and ansible_facts['os_family'] != 'Windows'
+
+- name: Add alias for python3 in .bashrc
+  ansible.builtin.lineinfile:
+    path: ~/.bashrc
+    line: "alias python='python3'"
+    insertafter: EOF
+
+- name: Add alias for python3 in .zshrc
+  ansible.builtin.lineinfile:
+    path: ~/.zshrc
+    line: "alias python='python3'"
+    insertafter: EOF
+
+- name: Upgrade pip for Python 3
+  ansible.builtin.shell: python3 -m ensurepip --upgrade
+
+- name: Add alias for pip3 in .bashrc
+  ansible.builtin.lineinfile:
+    path: ~/.bashrc
+    line: "alias pip='pip3'"
+    insertafter: EOF
+
+- name: Add alias for pip3 in .zshrc
+  ansible.builtin.lineinfile:
+    path: ~/.zshrc
+    line: "alias pip='pip3'"
+    insertafter: EOF

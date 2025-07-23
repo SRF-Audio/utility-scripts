@@ -1,0 +1,65 @@
+- name: Install Visual Studio Code on Fedora/RHEL
+  become: true
+  when: ansible_facts['os_family'] == 'RedHat'
+  block:
+    - name: Import Microsoft RPM key
+      ansible.builtin.rpm_key:
+        key: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+
+    - name: Add VS Code YUM repository
+      ansible.builtin.yum_repository:
+        name: vscode
+        description: Visual Studio Code
+        baseurl: https://packages.microsoft.com/yumrepos/vscode
+        enabled: yes
+        gpgcheck: yes
+        repo_gpgcheck: yes
+        gpgkey: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+
+    - name: Install VS Code
+      ansible.builtin.dnf:
+        name: code
+        state: present
+        update_cache: yes
+
+- name: Install Visual Studio Code on Debian/Ubuntu
+  become: true
+  when: ansible_facts['os_family'] == 'Debian'
+  block:
+    - name: Ensure prerequisite packages are present
+      ansible.builtin.apt:
+        name:
+          - wget
+          - gnupg
+          - apt-transport-https
+        state: present
+        update_cache: yes
+
+    - name: Add Microsoft APT signing key
+      ansible.builtin.apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        keyring: /usr/share/keyrings/microsoft.gpg
+        state: present
+
+    - name: Add VS Code sources file
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/vscode.sources
+        content: |
+          Types: deb
+          URIs: https://packages.microsoft.com/repos/code
+          Suites: stable
+          Components: main
+          Architectures: amd64,arm64,armhf
+          Signed-By: /usr/share/keyrings/microsoft.gpg
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Install VS Code
+      ansible.builtin.apt:
+        name: code
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
