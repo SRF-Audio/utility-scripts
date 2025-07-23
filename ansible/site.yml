@@ -6,7 +6,7 @@
     ansible_user: sfroeber
 
   roles:
-    - fedora
+    - prep
 
     # - name: Update all packages to the latest version
     #   ansible.builtin.package:
