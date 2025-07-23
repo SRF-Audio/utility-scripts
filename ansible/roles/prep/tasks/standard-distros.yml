@@ -23,6 +23,8 @@
     - jq
     - yq
     - rsync
+    - vim
+    - nano
   become: true
 
 - name: Install packages (Fedora/RHEL)

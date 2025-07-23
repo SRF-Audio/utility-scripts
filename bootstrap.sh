@@ -46,8 +46,8 @@ install_ansible() {
 
     fedora-*|rhel-*)
       PKG_MGR=$(command -v dnf || command -v yum)
-      echo "→ Installing ansible-core via $PKG_MGR…"
-      sudo "$PKG_MGR" -y install ansible-core
+      echo "→ Installing ansible via $PKG_MGR…"
+      sudo "$PKG_MGR" -y install ansible
       ;;
 
     ubuntu-*)
