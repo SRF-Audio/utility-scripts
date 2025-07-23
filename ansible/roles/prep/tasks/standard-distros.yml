@@ -40,7 +40,6 @@
         - "golang"
         - "nmap-ncat"
         - "net-tools"
-        - "1password-cli"
       become: true
 
 - name: Install packages (Debian/Ubuntu)
