@@ -1,0 +1,23 @@
+- name: Ensure dnf5-plugins is installed
+  ansible.builtin.dnf:
+    name: dnf5-plugins
+    state: present
+  become: true
+
+- name: Add GitHub CLI repository
+  ansible.builtin.yum_repository:
+    name: gh-cli
+    description: GitHub CLI
+    file: gh-cli
+    baseurl: https://cli.github.com/packages/rpm
+    enabled: true
+    gpgcheck: true
+    gpgkey: https://cli.github.com/packages/rpm/ghcli-gpg-key.asc
+  become: true
+
+- name: Install GitHub CLI from gh-cli repo
+  ansible.builtin.dnf:
+    name: gh
+    enablerepo: gh-cli
+    state: present
+  become: true

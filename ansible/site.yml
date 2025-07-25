@@ -5,6 +5,34 @@
   vars:
     ansible_user: sfroeber
 
+  pre_tasks:
+    - name: Check if .vault_password.txt exists
+      ansible.builtin.stat:
+        path: "{{ playbook_dir }}/.vault_password.txt"
+      register: vault_pw_file
+
+    - name: Prompt for 1Password Vault password if .vault_password.txt is missing
+      ansible.builtin.pause:
+        prompt: "Enter your Ansible Vault password for 1Password service account"
+        echo: no
+      when: not vault_pw_file.stat.exists
+      register: user_vault_password
+
+    - name: Save password to .vault_password.txt
+      ansible.builtin.copy:
+        dest: "{{ playbook_dir }}/.vault_password.txt"
+        content: "{{ user_vault_password.user_input }}"
+        mode: '0600'
+      when: not vault_pw_file.stat.exists
+
+    - name: Inform user to re-run the playbook
+      ansible.builtin.fail:
+        msg: >
+          Vault password saved to .vault_password.txt.
+          Please re-run the playbook now that decryption can proceed.
+      when: not vault_pw_file.stat.exists
+
+
   roles:
     - prep
 
