@@ -1,23 +1,38 @@
-- name: Install Productivity packages
+- name: Install productivity packages
   ansible.builtin.dnf:
-    name: 
+    name:
       - inkscape
       - steam
       - musescore
       - krita
       - libreoffice
       - kdenlive
+      - tailscale
     state: present
   become: true
 
-- name: Set theme path
+- name: Define Aretha config values
   ansible.builtin.set_fact:
-    aretha_theme_path: "{{ ansible_env.HOME }}/Downloads/Aretha-Plasma-Themes"
+    aretha_repo: "{{ ansible_user_dir }}/Downloads/Aretha-Plasma-Themes"
+    icons_dest: "{{ ansible_user_dir }}/.local/share/icons"
+    themes_dest: "{{ ansible_user_dir }}/.local/share/themes"
+    colors_dest: "{{ ansible_user_dir }}/.local/share/color-schemes"
+    konsole_dest: "{{ ansible_user_dir }}/.local/share/konsole"
+    kvantum_dest: "{{ ansible_user_dir }}/.config/Kvantum"
+    wallpapers_dest: "{{ ansible_user_dir }}/.local/share/wallpapers"
+    aretha_plasma_theme: Aretha-Dark-Plasma
+    aretha_color_scheme: Aretha-Dark
+    aretha_icon_theme: Aretha-Dark-Icons
+    aretha_kvantum_theme: Aretha-Dark
+    aretha_window_decoration: Aretha-Dark-Aurorae-6
+    aretha_splashscreen: Aretha-Splash-6
+    aretha_sddm_theme: Aretha-SDDM-6
+    aretha_konsole_profile: Aretha-Dark.profile
 
-- name: Clone Aretha Plasma Themes
+- name: Clone Aretha Plasma themes
   ansible.builtin.git:
     repo: https://github.com/L4ki/Aretha-Plasma-Themes.git
-    dest: "{{ aretha_theme_path }}"
+    dest: "{{ aretha_repo }}"
     depth: 1
     update: true
 
@@ -27,93 +42,84 @@
       - kpackagetool6
       - --type=Plasma/Theme
       - -i
-      - "{{ aretha_theme_path }}/Aretha Plasma Themes/Aretha-Dark-Plasma"
+      - "{{ aretha_repo }}/Aretha Plasma Themes/Aretha-Dark-Plasma"
   args:
-    creates: "{{ ansible_env.HOME }}/.local/share/plasma/desktoptheme/Aretha-Dark-Plasma/metadata.desktop"
+    creates: "{{ ansible_user_dir }}/.local/share/plasma/desktoptheme/Aretha-Dark-Plasma/metadata.desktop"
+  notify: reload_plasma
 
-- name: set vars
-  set_fact:
-    aretha_repo: "{{ ansible_env.HOME }}/Downloads/Aretha-Plasma-Themes"
-    home_cfg: "{{ ansible_env.HOME }}"
-    icons_dest: "{{ ansible_env.HOME }}/.local/share/icons"
-    themes_dest: "{{ ansible_env.HOME }}/.local/share/themes"
-    colors_dest: "{{ ansible_env.HOME }}/.local/share/color-schemes"
-    konsole_dest: "{{ ansible_env.HOME }}/.local/share/konsole"
-    kvantum_dest: "{{ ansible_env.HOME }}/.config/Kvantum"
-    wallpapers_dest: "{{ ansible_env.HOME }}/.local/share/wallpapers"
-
-- name: copy colour schemes
-  copy:
-    src: "{{ aretha_repo }}/Aretha Color Schemes/"
-    dest: "{{ colors_dest }}/"
+- name: Copy Aretha assets
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
     remote_src: yes
     mode: preserve
-
-- name: copy konsole schemes
-  copy:
-    src: "{{ aretha_repo }}/Aretha Konsole Color Schemes/"
-    dest: "{{ konsole_dest }}/"
-    remote_src: yes
-    mode: preserve
-
-- name: copy kvantum themes
-  copy:
-    src: "{{ aretha_repo }}/Aretha Kvantum Themes/"
-    dest: "{{ kvantum_dest }}/"
-    remote_src: yes
-    mode: preserve
-
-- name: copy gtk themes
-  copy:
-    src: "{{ aretha_repo }}/Aretha GTK Themes/"
-    dest: "{{ themes_dest }}/Aretha-GTK/"
-    remote_src: yes
-    mode: preserve
-
-- name: copy icon theme
-  copy:
-    src: "{{ aretha_repo }}/Aretha Icons Themes/Aretha-Dark-Icons/"
-    dest: "{{ icons_dest }}/Aretha-Dark-Icons/"
-    remote_src: yes
-    mode: preserve
-
-- name: copy wallpapers
-  copy:
-    src: "{{ aretha_repo }}/Aretha Wallpapers/"
-    dest: "{{ wallpapers_dest }}/Aretha/"
-    remote_src: yes
-    mode: preserve
-
-- name: install splashscreens
-  command: kpackagetool6 -i "{{ item }}"
   loop:
-    - "{{ aretha_repo }}/Aretha Splashscreen/Aretha-Splash-6/"
-  args:
-    creates: "{{ ansible_env.HOME }}/.local/share/plasma/look-and-feel/{{ item | basename }}/metadata.json"
+    - { src: "{{ aretha_repo }}/Aretha Color Schemes/",                    dest: "{{ colors_dest }}/" }
+    - { src: "{{ aretha_repo }}/Aretha Konsole Color Schemes/",            dest: "{{ konsole_dest }}/" }
+    - { src: "{{ aretha_repo }}/Aretha Kvantum Themes/",                   dest: "{{ kvantum_dest }}/" }
+    - { src: "{{ aretha_repo }}/Aretha GTK Themes/",                       dest: "{{ themes_dest }}/Aretha-GTK/" }
+    - { src: "{{ aretha_repo }}/Aretha Icons Themes/Aretha-Dark-Icons/",   dest: "{{ icons_dest }}/Aretha-Dark-Icons/" }
+    - { src: "{{ aretha_repo }}/Aretha Wallpapers/",                       dest: "{{ wallpapers_dest }}/Aretha/" }
+  notify: reload_plasma
 
-- name: install window decorations
-  command: kpackagetool6 -i "{{ item }}"
+- name: Install splashscreen
+  ansible.builtin.command:
+    argv: ["kpackagetool6", "-i", "{{ aretha_repo }}/Aretha Splashscreen/Aretha-Splash-6" ]
+  args:
+    creates: "{{ ansible_user_dir }}/.local/share/kpackage/generic/Aretha-Splash-6/metadata.json"
+
+- name: Install window decorations
+  ansible.builtin.command:
+    argv: ["kpackagetool6", "-i", "{{ item }}" ]
   loop:
     - "{{ aretha_repo }}/Aretha Windows Decorations/Aretha-Dark-Aurorae-6"
     - "{{ aretha_repo }}/Aretha Windows Decorations/Aretha-Dark-Blur-Aurorae-6"
   args:
-    creates: "{{ ansible_env.HOME }}/.local/share/aurorae/themes/{{ item | basename }}/metadata.json"
+    creates: "{{ ansible_user_dir }}/.local/share/kpackage/generic/{{ item | basename }}/metadata.json"
+  notify: reload_kwin
 
-- name: install sddm themes
-  copy:
-    src: "{{ item }}"
-    dest: "/usr/share/sddm/themes/{{ item | basename }}/"
+- name: Install SDDM theme
+  ansible.builtin.copy:
+    src: "{{ aretha_repo }}/Aretha SDDM Themes/Aretha-SDDM-6"
+    dest: /usr/share/sddm/themes/Aretha-SDDM-6/
     remote_src: yes
-    mode: "0755"
-  loop:
-    - "{{ aretha_repo }}/Aretha SDDM Themes/Aretha-SDDM-6"
+    mode: '0755'
   become: true
+  notify: restart_sddm
 
-- name: Restart plasma for changes
-  block:
-    - name: Kill plasma
-      ansible.builtin.command: killall plasmashell
-    - name: Restart plasma
-      ansible.builtin.command: plasmashell &
-      
+- name: Plasma desktop theme
+  community.general.kdeconfig:
+    path: "{{ lookup('env','XDG_CONFIG_HOME') | default(ansible_user_dir + '/.config', true) }}/plasmarc"
+    values: [{ group: Theme, key: name, value: "{{ aretha_plasma_theme }}" }]
+  notify: reload_plasma
 
+- name: Global colour scheme
+  community.general.kdeconfig:
+    path: "{{ lookup('env','XDG_CONFIG_HOME') | default(ansible_user_dir + '/.config', true) }}/kdeglobals"
+    values: [{ group: General, key: ColorScheme, value: "{{ aretha_color_scheme }}" }]
+  notify: reload_plasma
+
+- name: Icon theme
+  community.general.kdeconfig:
+    path: "{{ lookup('env','XDG_CONFIG_HOME') | default(ansible_user_dir + '/.config', true) }}/kdeglobals"
+    values: [{ group: Icons, key: Theme, value: "{{ aretha_icon_theme }}" }]
+  notify: reload_plasma
+
+- name: Window decoration
+  community.general.kdeconfig:
+    path: "{{ lookup('env','XDG_CONFIG_HOME') | default(ansible_user_dir + '/.config', true) }}/kwinrc"
+    values: [{ group: org.kde.kdecoration2, key: theme, value: "{{ aretha_window_decoration }}" }]
+  notify: reload_kwin
+
+- name: Kvantum theme
+  community.general.kdeconfig:
+    path: "{{ ansible_user_dir }}/.config/Kvantum/kvantum.kvconfig"
+    values: [{ group: General, key: theme, value: "{{ aretha_kvantum_theme }}" }]
+  notify: reload_plasma
+
+- name: SDDM theme
+  community.general.kdeconfig:
+    path: /etc/sddm.conf.d/10-theme.conf
+    values: [{ group: Theme, key: Current, value: "{{ aretha_sddm_theme }}" }]
+  become: true
+  notify: restart_sddm

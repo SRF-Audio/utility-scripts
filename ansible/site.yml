@@ -35,6 +35,11 @@
   roles:
     - prep
 
+
+  tasks:
+    - name: Tell user the theme to install
+      ansible.builtin.debug:
+        msg: "KDE Plasma Theme to install from Discover: kns://window-decorations.knsrc/2180554"
     # - name: Install TigerVNC
     #   dnf:
     #     name: tigervnc

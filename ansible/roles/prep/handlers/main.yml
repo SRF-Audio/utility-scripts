@@ -1,0 +1,15 @@
+- name: reload_plasma
+  ansible.builtin.command:
+    cmd: qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.refreshCurrentShell
+  changed_when: true                 # fire-and-forget D-Bus call :contentReference[oaicite:0]{index=0}
+
+- name: reload_kwin
+  ansible.builtin.command:
+    cmd: qdbus org.kde.KWin /KWin org.kde.KWin.reconfigure
+  changed_when: true                 # reloads window-decoration settings :contentReference[oaicite:1]{index=1}
+
+- name: restart_sddm
+  ansible.builtin.systemd:
+    name: sddm
+    state: restarted
+  become: true
