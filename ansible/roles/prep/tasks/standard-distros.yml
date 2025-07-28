@@ -68,8 +68,12 @@
 - name: Include 1Password Installation tasks
   ansible.builtin.include_tasks: 1password.yml
 
-- name: Include GitHub CLI Installation tasks
-  ansible.builtin.include_tasks: github-cli.yml
-
 - name: Include Visual Studio Code Installation tasks
   ansible.builtin.include_tasks: vs-code.yml
+
+- name: Include Flatpak Installation tasks
+  ansible.builtin.include_tasks: flatpak.yml
+
+- name: Include dnf productivity apps
+  ansible.builtin.include_tasks: productivity-apps.yml
+  when: not immutable and ansible_facts["os_family"] == 'RedHat'

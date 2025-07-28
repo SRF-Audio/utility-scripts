@@ -1,7 +1,6 @@
 - name: Stephen's Linux Setup Playbook
   hosts: localhost
   gather_facts: true
-
   vars:
     ansible_user: sfroeber
 
@@ -41,24 +40,6 @@
     #     name: tigervnc
     #     state: present
     #   become: yes
-
-    # - name: Install flatpak
-    #   dnf:
-    #     name: flatpak
-    #     state: present
-    #   become: yes
-
-    # - name: Add Fedora Flatpak remote
-    #   command: flatpak remote-add --if-not-exists fedora oci+https://registry.fedoraproject.org
-
-    # - name: Add Flathub Flatpak remote
-    #   command: flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-
-    # - name: Install Obsidian via Flatpak
-    #   command: flatpak install -y flathub md.obsidian.Obsidian
-
-    # - name: Install Slack via Flatpak
-    #   command: flatpak install -y flathub com.slack.Slack
 
     # # # KDE Settings
     # # - name: Set KDE color scheme
