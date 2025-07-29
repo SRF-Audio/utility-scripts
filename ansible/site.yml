@@ -1,8 +1,17 @@
-- name: Stephen's Linux Setup Playbook
+- name: Stephen's Linux Setup
   hosts: localhost
+  connection: local
   gather_facts: true
+  become: true
+
   vars:
     ansible_user: sfroeber
+    tailscale_args: "--hostname={{ inventory_hostname }}"
+
+  vars_prompt:
+    - name: tailscale_authkey
+      prompt: Please provide an auth key from https://login.tailscale.com/admin/settings/keys
+      private: true
 
   pre_tasks:
     - name: Check if .vault_password.txt exists
@@ -10,36 +19,34 @@
         path: "{{ playbook_dir }}/.vault_password.txt"
       register: vault_pw_file
 
-    - name: Prompt for 1Password Vault password if .vault_password.txt is missing
+    - name: Prompt for Vault password if missing
       ansible.builtin.pause:
         prompt: "Enter your Ansible Vault password for 1Password service account"
         echo: no
       when: not vault_pw_file.stat.exists
       register: user_vault_password
 
-    - name: Save password to .vault_password.txt
+    - name: Save password file
       ansible.builtin.copy:
         dest: "{{ playbook_dir }}/.vault_password.txt"
         content: "{{ user_vault_password.user_input }}"
         mode: '0600'
       when: not vault_pw_file.stat.exists
 
-    - name: Inform user to re-run the playbook
+    - name: Stop run until password is present
       ansible.builtin.fail:
-        msg: >
-          Vault password saved to .vault_password.txt.
-          Please re-run the playbook now that decryption can proceed.
+        msg: "Vault password saved—re-run the playbook."
       when: not vault_pw_file.stat.exists
-
 
   roles:
     - prep
-
+    - role: artis3n.tailscale.machine
 
   tasks:
-    - name: Tell user the theme to install
+    - name: KDE theme link
       ansible.builtin.debug:
-        msg: "KDE Plasma Theme to install from Discover: kns://window-decorations.knsrc/2180554"
+        msg: "kns://window-decorations.knsrc/2180554"
+
     # - name: Install TigerVNC
     #   dnf:
     #     name: tigervnc
