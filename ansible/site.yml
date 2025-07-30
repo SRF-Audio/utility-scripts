@@ -6,7 +6,6 @@
 
   vars:
     ansible_user: sfroeber
-    tailscale_args: "--hostname={{ inventory_hostname }}"
 
   vars_prompt:
     - name: tailscale_authkey
@@ -30,13 +29,88 @@
       ansible.builtin.copy:
         dest: "{{ playbook_dir }}/.vault_password.txt"
         content: "{{ user_vault_password.user_input }}"
-        mode: '0600'
+        mode: "0600"
       when: not vault_pw_file.stat.exists
 
     - name: Stop run until password is present
       ansible.builtin.fail:
         msg: "Vault password saved—re-run the playbook."
       when: not vault_pw_file.stat.exists
+
+    - ansible.builtin.getent:
+        database: passwd
+        key: "{{ ansible_user_id }}"
+      register: pw
+
+    # - name: Assemble first name
+    #   ansible.builtin.set_fact:
+    #     first_name: >-
+    #       {{ (pw.ansible_facts.getent_passwd[ansible_user_id][4]
+    #           | default(ansible_user_id)).split(' ')[0] | capitalize }}
+    #     cpu_short: >-
+    #       {{ (ansible_processor[1] | regex_replace('@.*', '')).split()[:2] | join(' ') }}
+    #     hw_class: >-
+    #       {% set ff = (ansible_form_factor | default('other')) | lower %}
+    #       {% if 'laptop' in ff or 'notebook' in ff %} Laptop
+    #       {% elif 'desktop' in ff or 'tower' in ff %} Desktop
+    #       {% else %} PC {% endif %}
+
+    - name: Assemble first name
+      ansible.builtin.shell: |
+        getent passwd "$USER" | cut -d: -f5 | cut -d' ' -f1
+      register: first_name
+
+    - name: Assemble CPU short name
+      ansible.builtin.shell: lscpu | grep -m1 'Model name:' | sed 's/Model name:[[:space:]]*//;s/@.*//'
+      register: cpu
+
+    - ansible.builtin.set_fact:
+        cpu_short: "{{ cpu.stdout.split()[:2] | join(' ') }}"
+
+    - name: Read chassis code
+      ansible.builtin.command: cat /sys/class/dmi/id/chassis_type
+      register: chassis_code
+      failed_when: false
+      changed_when: false
+
+    - name: Map chassis code to class
+      ansible.builtin.set_fact:
+        hw_class: >-
+          {% set c = chassis_code.stdout | default('0') | int %}
+          {% if c in [8, 9, 10, 14] %} Laptop
+          {% elif c in [3, 4, 5, 6, 7] %} Desktop
+          {% else %} PC {% endif %}
+
+    - name: Assemble pretty / static hostnames
+      ansible.builtin.set_fact:
+        pretty_hostname: "{{ first_name }}’s {{ cpu_short }} Fedora {{ hw_class }}"
+        static_hostname: >-
+          {{ (first_name | lower | regex_replace('[^a-z0-9]', '')) ~ 's-' ~
+            (cpu_short | lower | regex_replace('[^a-z0-9]+', '-')) ~
+            '-fedora-' ~ (hw_class | lower) }}
+
+    - name: Set tailscale args fact
+      ansible.builtin.set_fact:
+        tailscale_args: "--hostname={{ static_hostname }} --authkey={{ tailscale_authkey }}"
+
+    - name: Set static hostname
+      ansible.builtin.hostname:
+        name: "{{ static_hostname }}"
+
+    - name: Set pretty hostname
+      ansible.builtin.command:
+        argv:
+          - hostnamectl
+          - set-hostname
+          - "--pretty"
+          - "{{ pretty_hostname }}"
+      changed_when: "'Static hostname' not in lookup('pipe', 'hostnamectl status')"
+
+    - name: Ensure /etc/hosts is updated
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: '^127\\.0\\.0\\.1'
+        line: "127.0.0.1   localhost {{ static_hostname }}"
 
   roles:
     - prep
