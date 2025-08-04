@@ -1,0 +1,52 @@
+- name: Pull coachlight-homelab keypair from 1Password
+  ansible.builtin.set_fact:
+    clh_public: >-
+      {{ lookup('community.general.onepassword',
+                'coachlight-homelab SSH key',
+                vault='HomeLab',
+                field='public key') }}
+  delegate_to: localhost
+  run_once: true
+  no_log: true
+
+- name: Install private key for local machine
+  ansible.builtin.command:
+    argv:
+      - op
+      - read
+      - --out-file
+      - ~/.ssh/coachlight-homelab.pem
+      - "op://HomeLab/coachlight-homelab SSH key/private key?ssh-format=openssh"
+    creates: /home/sfroeber/.ssh/coachlight-homelab.pem
+  register: clh_private_result
+  delegate_to: localhost
+  run_once: true
+
+- name: Ensure /root/.ssh exists on every node
+  ansible.builtin.file:
+    path: /root/.ssh
+    state: directory
+    mode: "0700"
+    owner: root
+    group: root
+  become: true
+
+- name: Install cluster private key as /root/.ssh/id_ed25519
+  ansible.builtin.copy:
+    src: "/home/sfroeber/.ssh/coachlight-homelab.pem"
+    dest: /root/.ssh/id_ed25519
+    mode: "0600"
+    owner: root
+    group: root
+  become: true
+  no_log: true
+
+- name: Tell root which identity to use for cluster peers
+  community.general.ssh_config:
+    host: coachlight-homelab-*
+    user: root
+    identity_file: /root/.ssh/id_ed25519
+    identities_only: true
+    state: present
+  become: true
+  when: inventory_hostname in groups['proxmox']

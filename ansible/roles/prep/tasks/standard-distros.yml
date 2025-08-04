@@ -13,6 +13,7 @@
     - zsh
     - python3
     - python3-pip
+    - python3-ansible-lint
     - tmux
     - tmate
     - htop
@@ -25,7 +26,17 @@
     - rsync
     - vim
     - nano
+    - wl-clipboard
+    - sshpass
+    - python3-paramiko
   become: true
+
+- name: Install python packages
+  ansible.builtin.pip:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - paramiko
 
 - name: Install packages (Fedora/RHEL)
   when: ansible_facts['os_family'] == 'RedHat'
@@ -40,6 +51,7 @@
         - "golang"
         - "nmap-ncat"
         - "net-tools"
+        - qt
       become: true
 
 - name: Install packages (Debian/Ubuntu)
@@ -77,4 +89,3 @@
 - name: Include dnf productivity apps
   ansible.builtin.include_tasks: productivity-apps.yml
   when: not immutable and ansible_facts["os_family"] == 'RedHat'
-

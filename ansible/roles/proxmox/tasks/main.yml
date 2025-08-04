@@ -1,2 +1,17 @@
-- name: Import Initial Cluster Setup tasks
-  ansible.builtin.include_tasks: cluster-setup.yml
+- name: Import Repo setup tasks for Proxmox Cluster Setup
+  ansible.builtin.import_tasks: repo-setup.yml
+
+- name: Import Package Install tasks
+  ansible.builtin.import_tasks: package-install.yml
+
+- name: Import Hosts modification tasks
+  ansible.builtin.import_tasks: hosts-mod.yml
+
+- name: Import SSH Trust tasks
+  ansible.builtin.import_tasks: ssh-trust.yml
+
+- name: Import Create sfroeber user tasks
+  ansible.builtin.import_tasks: create-sfroeber.yml
+
+- name: Import Cluster Setup tasks
+  ansible.builtin.import_tasks: cluster-setup.yml

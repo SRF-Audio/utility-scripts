@@ -1,0 +1,7 @@
+proxmox_cluster_name: "coachlight-hl"
+proxmox_extra_packages:
+  - vim
+  - htop
+  - net-tools
+  - iftop
+  - sudo

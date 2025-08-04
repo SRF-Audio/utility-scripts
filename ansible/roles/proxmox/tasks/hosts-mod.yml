@@ -1,0 +1,9 @@
+- name: Configure /etc/hosts with cluster hosts
+  ansible.builtin.template:
+    src: "{{ role_path }}/files/hosts.j2"
+    dest: /etc/hosts
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: Restart networking

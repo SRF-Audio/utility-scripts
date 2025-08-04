@@ -111,15 +111,54 @@
 #       line: "127.0.0.1   localhost {{ static_hostname }}"
 
 #   roles:
-#     - prep
+#     - role: prep
+#       tags: prep
 
-- name: Configure Proxmox Cluster Nodes
+- name: Configure Proxmox Cluster
   hosts: proxmox
-  gather_facts: true
-  become: true
+  gather_facts: false
 
+  pre_tasks:
+    - name: Assert that 1Password CLI is installed on the control machine
+      run_once: true
+      delegate_to: localhost
+      ansible.builtin.assert:
+        that:
+          - "'op' in lookup('ansible.builtin.pipe', 'command -v op || true')"
+        fail_msg: |
+          1Password CLI not found. Run `ansible-playbook -t prep site.yml`
+        success_msg: "1Password CLI detected."
+
+    - name: Set ansible_password to ProxMox 1Password entry
+      ansible.builtin.set_fact:
+        ansible_password: "{{ lookup('community.general.onepassword', 'Coachlight ProxMox Cluster', field='password', vault='HomeLab') }}"
+      no_log: true
   roles:
     - proxmox
+
+- name: Add Proxmox nodes to Cluster
+  hosts: proxmox_secondaries
+  gather_facts: false
+  serial: 1
+  tasks:
+    - name: Join existing cluster
+      ansible.builtin.command: >
+        pvecm add {{ hostvars[groups['proxmox_primary'][0]].ansible_host }} --use_ssh true
+      args:
+        creates: /etc/pve/corosync.conf
+      register: join_out
+      failed_when: >
+        ('already exists' not in join_out.stderr) and
+        (join_out.rc != 0)
+
+    - name: Wait until cluster quorum is back before adding next node
+      delegate_to: "{{ groups['proxmox_primary'][0] }}"
+      ansible.builtin.command: pvecm status
+      register: cluster_status
+      changed_when: false
+      until: cluster_status.stdout is search('(?m)^\\s*Quorate:\\s*Yes$')
+      retries: 12
+      delay: 10
 
     # - name: Install TigerVNC
     #   dnf:

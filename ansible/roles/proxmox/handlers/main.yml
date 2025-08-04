@@ -3,7 +3,7 @@
     name: networking
     state: restarted
 
-- name: Update apt cache
+- name: Apt update cache
   ansible.builtin.apt:
-    update_cache: yes
+    update_cache: true
   become: true

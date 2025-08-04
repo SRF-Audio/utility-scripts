@@ -1,0 +1,24 @@
+- name: Pull coachlight-homelab public key from 1Password
+  ansible.builtin.set_fact:
+    clh_public: >-
+      {{ lookup('community.general.onepassword',
+                'coachlight-homelab SSH key',
+                vault='HomeLab',
+                field='public key') }}
+  delegate_to: localhost
+  run_once: true
+  no_log: true
+
+- name: Ensure sfroeber exists and is sudo-capable
+  ansible.builtin.user:
+    name: sfroeber
+    groups: sudo
+    append: true
+    create_home: true
+    shell: /bin/bash
+    state: present
+
+- name: Authorize coachlight key for sfroeber
+  ansible.posix.authorized_key:
+    user: sfroeber
+    key: "{{ clh_public }}"

@@ -1,0 +1,6 @@
+- name: Install management tools
+  ansible.builtin.apt:
+    name: "{{ proxmox_extra_packages }}"
+    state: present
+    update_cache: true
+  become: true
