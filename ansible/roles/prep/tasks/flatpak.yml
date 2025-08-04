@@ -1,0 +1,33 @@
+- name: Install flatpak
+  ansible.builtin.dnf:
+    name: flatpak
+    state: present
+  become: yes
+
+- name: Add Fedora Flatpak remote
+  community.general.flatpak_remote:
+    name: fedora
+    state: present
+    flatpakrepo_url: oci+https://registry.fedoraproject.org
+
+- name: Add Flathub Flatpak remote
+  community.general.flatpak_remote:
+    name: flathub
+    state: present
+    flatpakrepo_url: https://flathub.org/repo/flathub.flatpakrepo
+
+
+- name: Install Flatpaks
+  community.general.flatpak:
+    name:
+      - com.discordapp.Discord
+      - org.signal.Signal
+      - com.slack.Slack
+      - com.brave.Browser
+      - md.obsidian.Obsidian
+      - com.bitwig.BitwigStudio
+      - com.jgraph.drawio.desktop
+      - org.blender.Blender
+
+
+

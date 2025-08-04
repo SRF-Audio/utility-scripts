@@ -1,0 +1,12 @@
+- name: Install productivity packages
+  ansible.builtin.dnf:
+    name:
+      - inkscape
+      - steam
+      - musescore
+      - krita
+      - libreoffice
+      - kdenlive
+      - tailscale
+    state: present
+  become: true

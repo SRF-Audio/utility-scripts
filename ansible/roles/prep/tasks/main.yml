@@ -3,7 +3,7 @@
     os_id: "{{ lookup('file', '/etc/os-release') | regex_search('^ID=([^\\n]+)', '\\1', multiline=True) }}"
   when: ansible_facts['os_family'] == 'RedHat'
 
-- name: Set immutable fact
+- name: Set whether the Fedora distro is immutable
   set_fact:
     immutable: "{{ os_id[0] == 'aurora' }}"
   when: os_id is defined

@@ -71,4 +71,4 @@ fi
 echo "✅ ansible is now available"
 
 cd ansible || { echo "ERROR: 'ansible' directory not found"; exit 1; }
-ansible-playbook site.yml -vv
+ansible-playbook site.yml -vv --ask-become-pass
