@@ -1,0 +1,2 @@
+- name: Import Initial Cluster Setup tasks
+  ansible.builtin.include_tasks: cluster-setup.yml

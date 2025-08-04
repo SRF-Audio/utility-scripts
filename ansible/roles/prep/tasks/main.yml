@@ -30,6 +30,7 @@
 
 - name: Upgrade pip for Python 3
   ansible.builtin.shell: python3 -m ensurepip --upgrade
+  when: not immutable
 
 - name: Add alias for pip3 in .bashrc
   ansible.builtin.lineinfile:

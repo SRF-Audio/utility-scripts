@@ -1,0 +1,4 @@
+ansible_user: root
+ansible_password: ""
+ansible_ssh_common_args: "-o IdentitiesOnly=yes -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no"
+proxmox_cluster_name: "coachlight-hl"

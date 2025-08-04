@@ -1,12 +1,20 @@
-- name: Stephen's Linux Setup Playbook
-  hosts: localhost
-  gather_facts: true
+# - name: Stephen's Linux Setup Playbook
+#   hosts: localhost
+#   gather_facts: true
 
-  vars:
-    ansible_user: sfroeber
+#   vars:
+#     ansible_user: sfroeber
+
+#   roles:
+#     - prep
+
+- name: Configure Proxmox Cluster Nodes
+  hosts: proxmox
+  gather_facts: true
+  become: true
 
   roles:
-    - prep
+    - proxmox
 
     # - name: Install TigerVNC
     #   dnf:
