@@ -134,7 +134,7 @@
         ansible_password: "{{ lookup('community.general.onepassword', 'Coachlight ProxMox Cluster', field='password', vault='HomeLab') }}"
       no_log: true
   roles:
-    - proxmox
+    - proxmox_cluster_prep
 
 - name: Add Proxmox nodes to Cluster
   hosts: proxmox_secondaries
