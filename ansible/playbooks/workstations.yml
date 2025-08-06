@@ -1,0 +1,334 @@
+- name: Stephen's Linux Setup Playbook
+  hosts: localhost
+  gather_facts: true
+
+  vars:
+    ansible_user: sfroeber
+
+  vars_prompt:
+    - name: tailscale_authkey
+      prompt: Please provide an auth key from https://login.tailscale.com/admin/settings/keys
+      private: true
+
+  pre_tasks:
+    - name: Check if .vault_password.txt exists
+      ansible.builtin.stat:
+        path: "{{ playbook_dir }}/.vault_password.txt"
+      register: vault_pw_file
+
+    - name: Prompt for Vault password if missing
+      ansible.builtin.pause:
+        prompt: "Enter your Ansible Vault password for 1Password service account"
+        echo: no
+      when: not vault_pw_file.stat.exists
+      register: user_vault_password
+
+    - name: Save password file
+      ansible.builtin.copy:
+        dest: "{{ playbook_dir }}/.vault_password.txt"
+        content: "{{ user_vault_password.user_input }}"
+        mode: "0600"
+      when: not vault_pw_file.stat.exists
+
+    - name: Stop run until password is present
+      ansible.builtin.fail:
+        msg: "Vault password saved—re-run the playbook."
+      when: not vault_pw_file.stat.exists
+
+    - ansible.builtin.getent:
+        database: passwd
+        key: "{{ ansible_user_id }}"
+      register: pw
+
+    # - name: Assemble first name
+    #   ansible.builtin.set_fact:
+    #     first_name: >-
+    #       {{ (pw.ansible_facts.getent_passwd[ansible_user_id][4]
+    #           | default(ansible_user_id)).split(' ')[0] | capitalize }}
+    #     cpu_short: >-
+    #       {{ (ansible_processor[1] | regex_replace('@.*', '')).split()[:2] | join(' ') }}
+    #     hw_class: >-
+    #       {% set ff = (ansible_form_factor | default('other')) | lower %}
+    #       {% if 'laptop' in ff or 'notebook' in ff %} Laptop
+    #       {% elif 'desktop' in ff or 'tower' in ff %} Desktop
+    #       {% else %} PC {% endif %}
+
+    - name: Assemble first name
+      ansible.builtin.shell: |
+        getent passwd "$USER" | cut -d: -f5 | cut -d' ' -f1
+      register: first_name
+
+    - name: Assemble CPU short name
+      ansible.builtin.shell: lscpu | grep -m1 'Model name:' | sed 's/Model name:[[:space:]]*//;s/@.*//'
+      register: cpu
+
+    - ansible.builtin.set_fact:
+        cpu_short: "{{ cpu.stdout.split()[:2] | join(' ') }}"
+
+    - name: Read chassis code
+      ansible.builtin.command: cat /sys/class/dmi/id/chassis_type
+      register: chassis_code
+      failed_when: false
+      changed_when: false
+
+    - name: Map chassis code to class
+      ansible.builtin.set_fact:
+        hw_class: >-
+          {% set c = chassis_code.stdout | default('0') | int %}
+          {% if c in [8, 9, 10, 14] %} Laptop
+          {% elif c in [3, 4, 5, 6, 7] %} Desktop
+          {% else %} PC {% endif %}
+
+    - name: Assemble pretty / static hostnames
+      ansible.builtin.set_fact:
+        pretty_hostname: "{{ first_name }}’s {{ cpu_short }} Fedora {{ hw_class }}"
+        static_hostname: >-
+          {{ (first_name | lower | regex_replace('[^a-z0-9]', '')) ~ 's-' ~
+            (cpu_short | lower | regex_replace('[^a-z0-9]+', '-')) ~
+            '-fedora-' ~ (hw_class | lower) }}
+
+    - name: Set tailscale args fact
+      ansible.builtin.set_fact:
+        tailscale_args: "--hostname={{ static_hostname }} --authkey={{ tailscale_authkey }}"
+
+    - name: Set static hostname
+      ansible.builtin.hostname:
+        name: "{{ static_hostname }}"
+
+    - name: Set pretty hostname
+      ansible.builtin.command:
+        argv:
+          - hostnamectl
+          - set-hostname
+          - "--pretty"
+          - "{{ pretty_hostname }}"
+      changed_when: "'Static hostname' not in lookup('pipe', 'hostnamectl status')"
+
+    - name: Ensure /etc/hosts is updated
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: '^127\\.0\\.0\\.1'
+        line: "127.0.0.1   localhost {{ static_hostname }}"
+
+  roles:
+    - role: workstation_prep
+      tags: prep
+
+    # - name: Install TigerVNC
+    #   dnf:
+    #     name: tigervnc
+    #     state: present
+    #   become: yes
+
+    # # # KDE Settings
+    # # - name: Set KDE color scheme
+    # #   shell: kwriteconfig5 --file kdeglobals --group General --key ColorScheme --value "ColorfulVioletDarkColorscheme"
+    # #   become_user: "{{ ansible_user }}"
+
+    # # - name: Set KDE icon theme
+    # #   shell: kwriteconfig5 --file kdeglobals --group Icons --key Theme --value "BeautySolar"
+    # #   become_user: "{{ ansible_user }}"
+
+    # # - name: Apply changes
+    # #   shell: kbuildsycoca5 --noincremental
+    # #   become_user: "{{ ansible_user }}"
+
+    # # - name: Ensure the .config directory exists
+    # #   file:
+    # #     path: "{{ user_home }}/.config"
+    # #     state: directory
+    # #     owner: "{{ ansible_user }}"
+    # #     group: "{{ ansible_user }}"
+    # #     mode: '0755'
+    # #   become_user: "{{ ansible_user }}"
+
+    # # - name: Copy KDE plasma desktop configuration file
+    # #   copy:
+    # #     src: "./files/plasma-org.kde.plasma.desktop-appletsrc"
+    # #     dest: "{{ user_home }}/.config/plasma-org.kde.plasma.desktop-appletsrc"
+    # #     owner: "{{ ansible_user }}"
+    # #     group: "{{ ansible_user }}"
+    # #     mode: '0644'
+    # #   become_user: "{{ ansible_user }}"  # Run as the user who will use KDE
+
+    # # - name: Restart KDE Plasma to apply configuration
+    # #   shell: kquitapp5 plasmashell && kstart5 plasmashell
+    # #   become_user: "{{ ansible_user }}"
+    # #   async: 10
+    # #   poll: 0
+
+    # - block:
+    #     - name: Install Docker dependencies
+    #       dnf:
+    #         name: dnf-plugins-core
+    #         state: present
+
+    #     - name: Add Docker CE repository
+    #       get_url:
+    #         url: https://download.docker.com/linux/fedora/docker-ce.repo
+    #         dest: /etc/yum.repos.d/docker-ce.repo
+    #         mode: "0644"
+
+    #     - name: Install Docker packages
+    #       dnf:
+    #         name:
+    #           - docker-ce
+    #           - docker-ce-cli
+    #           - containerd.io
+    #           - docker-buildx-plugin
+    #           - docker-compose-plugin
+    #         state: present
+
+    #     - name: Start and enable Docker service
+    #       systemd:
+    #         name: docker
+    #         state: started
+    #         enabled: yes
+
+    #     - name: Add user to docker group
+    #       user:
+    #         name: "{{ ansible_user }}"
+    #         groups: docker
+    #         append: yes
+
+    #     - name: Check if running in a VM
+    #       set_fact:
+    #         is_vm: "{{ ansible_facts.virtualization_role == 'guest' }}"
+
+    #     - block:
+    #         - name: Download Docker Desktop RPM
+    #           get_url:
+    #             url: https://desktop.docker.com/linux/main/amd64/docker-desktop-4.25.1-x86_64.rpm
+    #             dest: /tmp/docker-desktop.rpm
+
+    #         - name: Install Docker Desktop
+    #           dnf:
+    #             name: /tmp/docker-desktop.rpm
+    #             state: present
+
+    #         - name: Remove Docker Desktop RPM file
+    #           file:
+    #             path: /tmp/docker-desktop.rpm
+    #             state: absent
+    #       when: not is_vm
+
+    #     - name: Create fonts directory
+    #       file:
+    #         path: ~/.local/share/fonts
+    #         state: directory
+    #         mode: "0755"
+
+    #     - name: Download FiraMono Nerd Font
+    #       get_url:
+    #         url: https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/FiraMono/Regular/FiraMonoNerdFontMono-Regular.otf
+    #         dest: ~/.local/share/fonts/FiraMonoNerdFontMono-Regular.otf
+
+    #     - name: Install additional developer tools
+    #       dnf:
+    #         name:
+    #           - jq
+    #           - nmap
+    #           - htop
+    #         state: present
+
+    #     - name: Install packages via Homebrew
+    #       loop:
+    #         - python
+    #         - go
+    #         - kind
+    #         - kubectl
+    #         - helm
+    #         - kustomize
+    #         - skaffold
+    #         - istioctl
+    #         - derailed/k9s/k9s
+    #         - fx
+    #         - yh
+    #       command: /home/linuxbrew/.linuxbrew/bin/brew install {{ item }}
+
+    #   when: install_devtools == "y"
+
+    # - name: Get PCI devices
+    #   command: lspci
+    #   register: lspci_output
+
+    # - name: Check for NVIDIA graphics card
+    #   set_fact:
+    #     has_nvidia: "{{ 'nvidia' in lspci_output.stdout.lower() }}"
+
+    # - block:
+    #     - name: Set Fedora version
+    #       set_fact:
+    #         fedora_version: "{{ ansible_distribution_version | int }}"
+
+    #     - name: Install RPM Fusion free repository
+    #       dnf:
+    #         name: "https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ fedora_version }}.noarch.rpm"
+    #         state: present
+
+    #     - name: Install RPM Fusion nonfree repository
+    #       dnf:
+    #         name: "https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ fedora_version }}.noarch.rpm"
+    #         state: present
+
+    #     - name: Update DNF repositories
+    #       dnf:
+    #         name: "*"
+    #         state: latest
+    #         update_cache: yes
+
+    #     - name: Install DaVinci Resolve dependencies
+    #       dnf:
+    #         name:
+    #           - apr
+    #           - apr-util
+    #           - mesa-libGLU
+    #         state: present
+
+    #     - name: Remove existing NVIDIA packages if any
+    #       dnf:
+    #         name: "*nvidia*"
+    #         state: absent
+    #         autoremove: yes
+
+    #     - name: Install NVIDIA drivers
+    #       dnf:
+    #         name:
+    #           - akmod-nvidia
+    #           - xorg-x11-drv-nvidia
+    #           - xorg-x11-drv-nvidia-libs.i686
+    #           - xorg-x11-drv-nvidia-cuda
+    #         state: present
+
+    #     - name: Blacklist nouveau driver
+    #       lineinfile:
+    #         path: /etc/modprobe.d/blacklist.conf
+    #         line: "blacklist nouveau"
+    #         create: yes
+
+    #     - name: Rebuild initramfs
+    #       command: dracut --force
+
+    #     - name: Update kernel
+    #       dnf:
+    #         name: kernel
+    #         state: latest
+
+    #     - name: Check Secure Boot status
+    #       command: mokutil --sb-state
+    #       register: sb_state
+    #       failed_when: false
+
+    #     - name: Notify about Secure Boot if enabled
+    #       debug:
+    #         msg: "Secure Boot is enabled. You'll need to disable it to finish NVIDIA drivers installation properly."
+    #       when: "'enabled' in sb_state.stdout.lower()"
+
+    #     - name: Notify that NVIDIA drivers are installed
+    #       debug:
+    #         msg: "NVIDIA drivers installed successfully."
+    #       when: "'enabled' not in sb_state.stdout.lower()"
+    #   when: has_nvidia
+
+    # - name: Reboot the system
+    #   reboot:

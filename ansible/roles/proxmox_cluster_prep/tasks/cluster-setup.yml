@@ -12,25 +12,3 @@
     - not corosync_cfg.stat.exists
   register: cluster_create
   changed_when: "'already exists' not in cluster_create.stderr"
-# - name: Join cluster (secondaries)
-#   ansible.builtin.command: >
-#     pvecm add {{ hostvars[groups['proxmox_primary'][0]].ansible_host }} --use_ssh true
-#   when:
-#     - inventory_hostname in groups['proxmox_secondaries']
-#     - not corosync_cfg.stat.exists
-#   register: cluster_join
-#   changed_when: "'already exists' not in cluster_join.stderr"
-#   become: true
-
-# - name: Wait for quorum
-#   ansible.builtin.command: pvecm status
-#   register: cluster_status
-#   changed_when: false
-#   until:
-#     - "'Quorate: Yes' in cluster_status.stdout"
-#     - (cluster_status.stdout | regex_search('\\d+/\\d+')).split('/')[1] | int
-#       == groups['proxmox'] | length
-#   retries: 12
-#   delay: 10
-#   run_once: true
-#   delegate_to: "{{ groups['proxmox_primary'][0] }}"

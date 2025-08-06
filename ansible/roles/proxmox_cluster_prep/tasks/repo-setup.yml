@@ -1,5 +1,6 @@
 - name: Fix all repo references
   become: true
+  become_user: root
   notify: Apt update cache
   block:
     - name: Disable Enterprise repo

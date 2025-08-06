@@ -1,0 +1,100 @@
+- name: Detect Proxmox nodes that need bootstrapping
+  hosts: localhost
+  gather_facts: false
+  vars:
+    probe_hosts: "{{ groups['proxmox'] }}"
+  tasks:
+    - name: Check nodes based on SSH config of host
+      command: >
+        ssh -o BatchMode=yes -o ConnectTimeout=5
+            -o StrictHostKeyChecking=no
+            {{ item }} true
+      loop: "{{ probe_hosts }}"
+      register: probe
+      changed_when: false
+      failed_when: false
+
+    - name: Create dynamic group “needs_bootstrap” with IP address
+      add_host:
+        name: "{{ item.item }}"
+        ansible_host: "{{ hostvars[item.item].proxmox_ip }}"
+        groups: needs_bootstrap
+      loop: "{{ probe.results }}"
+      when: item.rc != 0
+
+- name: Bootstrap the nodes that failed the probe
+  hosts: needs_bootstrap
+  gather_facts: false
+  vars:
+    bootstrap_password: "{{ lookup('community.general.onepassword',
+      'Coachlight ProxMox Cluster',
+      field='password',
+      vault='HomeLab') }}"
+    ansible_user: root
+    ansible_password: "{{ bootstrap_password }}"
+    ansible_ssh_common_args: "-o IdentitiesOnly=yes -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no"
+  roles:
+    - proxmox_cluster_prep
+
+- name: Add Proxmox nodes to Cluster
+  hosts: proxmox_secondaries
+  gather_facts: true
+  serial: 1
+  vars:
+    bootstrap_password: "{{ lookup('community.general.onepassword',
+      'Coachlight ProxMox Cluster',
+      field='password',
+      vault='HomeLab') }}"
+    ansible_user: root
+    ansible_password: "{{ bootstrap_password }}"
+
+  tasks:
+    - name: Detect existing cluster
+      delegate_to: "{{ groups['proxmox_primary'][0] }}"
+      ansible.builtin.command: pvecm status
+      register: cluster_check
+      become: true
+      changed_when: false
+
+    - name: Set fact for existing cluster
+      set_fact:
+        existing_cluster: true
+      when: (cluster_check.stdout is search('(?m)^\\s*Quorate:\\s*Yes$')) and (cluster_check.stdout is search('(?m)^\\s*Nodes:\\s*3\\s*$'))
+
+    - name: Join existing cluster
+      ansible.builtin.command: >
+        pvecm add {{ hostvars[groups['proxmox_primary'][0]].proxmox_ip }} --use_ssh true
+      args:
+        creates: /etc/pve/corosync.conf
+      register: join_out
+      failed_when: >
+        ('already exists' not in join_out.stderr) and
+        (join_out.rc != 0)
+      when: existing_cluster is not defined or not existing_cluster
+      become: true
+      become_user: root
+
+    - name: Wait until cluster quorum is back before adding next node
+      delegate_to: "{{ groups['proxmox_primary'][0] }}"
+      ansible.builtin.command: pvecm status
+      register: cluster_status
+      changed_when: false
+      until: cluster_status.stdout is search('(?m)^\\s*Quorate:\\s*Yes$')
+      retries: 12
+      delay: 10
+      when: existing_cluster is not defined or not existing_cluster
+
+- name: Coachlight Homelab Proxmox Cluster Config
+  hosts: proxmox
+  gather_facts: false
+  run_once: true
+  vars:
+    pve_admin_group: administrators
+    pve_admin_user: sfroeber@pam
+    pve_admin_password: "{{ lookup('community.general.onepassword', 'Coachlight ProxMox Cluster', field='password', vault='HomeLab') }}"
+    linux_admin_user: sfroeber
+    comment: "Stephen Froeber's user, created by Ansible"
+    ansible_user: root
+    ansible_ssh_private_key_file: ~/.ssh/coachlight-homelab.pem
+  roles:
+    - proxmox

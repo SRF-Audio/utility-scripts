@@ -1,0 +1,80 @@
+- name: Query existing PVE groups
+  ansible.builtin.command: pveum group list --noheader
+  register: _pve_groups
+  changed_when: false
+
+- name: Create administrators group if missing
+  ansible.builtin.command:
+    argv:
+      - pveum
+      - group
+      - add
+      - "{{ pve_admin_group }}"
+      - --comment
+      - "{{ comment }}"
+  when: pve_admin_group not in _pve_groups.stdout
+
+- name: Ensure administrators group has the Administrator role at /
+  ansible.builtin.command:
+    argv:
+      - pveum
+      - acl
+      - modify
+      - /
+      - --groups
+      - "{{ pve_admin_group }}"
+      - --role
+      - Administrator
+  register: _acl_change
+  changed_when: "'(group {{ pve_admin_group }})' in _acl_change.stderr"
+
+- name: Query existing PVE users
+  ansible.builtin.command: pveum user list --noheader
+  register: _pve_users
+  changed_when: false
+
+- name: Add sfroeber to PVE
+  ansible.builtin.command:
+    argv:
+      - pveum
+      - user
+      - add
+      - "{{ pve_admin_user }}"
+      - --comment
+      - "{{ comment }}"
+  when: pve_admin_user not in _pve_users.stdout
+
+- name: Add sfroeber to administrators group
+  ansible.builtin.command:
+    argv:
+      - pveum
+      - user
+      - modify
+      - "{{ pve_admin_user }}"
+      - --groups
+      - "{{ pve_admin_group }}"
+
+- name: Explain password steps
+  ansible.builtin.debug:
+    msg: |
+      Password for {{ pve_admin_user }} cannot be set programmatically.
+      Log into the node with `ssh root@coachlight-homelab-1` and run:
+      ```
+      pveum passwd {{ pve_admin_user }}@pam
+      ```
+
+- name: Query existing pools
+  ansible.builtin.command: pveum pool list --noheader
+  register: _pools
+  changed_when: false
+
+- name: Create kubernetes pool
+  ansible.builtin.command:
+    argv:
+      - pveum
+      - pool
+      - add
+      - kubernetes
+      - --comment
+      - "All Kubernetes VMs/CTs"
+  when: "'kubernetes' not in _pools.stdout"

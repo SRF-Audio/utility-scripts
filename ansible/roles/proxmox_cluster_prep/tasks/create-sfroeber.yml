@@ -13,6 +13,8 @@
   ansible.builtin.user:
     name: sfroeber
     groups: sudo
+    password: "{{ lookup('community.general.onepassword', 'Coachlight ProxMox Cluster', field='password', vault='HomeLab') }}"
+    ssh_key_file: ~/.ssh/coachlight-homelab.pem
     append: true
     create_home: true
     shell: /bin/bash
@@ -22,3 +24,9 @@
   ansible.posix.authorized_key:
     user: sfroeber
     key: "{{ clh_public }}"
+
+- name: Allow password-less sudo for admin group
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/90-admin-nopw
+    content: "%sudo ALL=(ALL) NOPASSWD:ALL"
+    mode: "0440"
