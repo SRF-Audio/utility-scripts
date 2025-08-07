@@ -53,4 +53,4 @@
   when: inventory_hostname in groups['proxmox_primary']
   run_once: true
   register: coreos_storage_add
-  failed_when: "'already defined' in coreos_storage_add.stderr and coreos_storage_add.rc != 0"
+  failed_when: "'already defined' not in coreos_storage_add.stderr and coreos_storage_add.rc != 0"

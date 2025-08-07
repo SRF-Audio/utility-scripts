@@ -14,7 +14,7 @@
     mode: "0755"
   when: inventory_hostname in groups['local']
 
-- name: Download & decompress latest Fedora CoreOS proxmox image
+- name: Download latest Fedora CoreOS proxmox image
   ansible.builtin.command: >
     coreos-installer download
       --stream {{ proxmox_fcos_stream }}

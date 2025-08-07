@@ -1,12 +1,58 @@
-- name: Build Fedora CoreOS template (runs on localhost)
-  community.general.proxmox_template:
-    api_host: "{{ hostvars[groups['proxmox_primary'][0]].proxmox_ip }}"
-    api_user: "{{ pve_admin_user }}"
-    api_password: "{{ pve_admin_password }}"
-    node: "{{ groups['proxmox_primary'][0] }}"
-    storage: coreos
+- name: Ensure coreos/images and coreos/snippets exist on primary
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ coreos_storage }}/images"
+    - "{{ coreos_storage }}/snippets"
+  when: inventory_hostname in groups['proxmox_primary']
+
+- name: Upload FCOS qcow2 to primary node storage
+  ansible.builtin.copy:
     src: "{{ fcos_path }}"
-    template: coreos-k3s
+    dest: "{{ coreos_storage }}/images/{{ fcos_path | basename }}"
+    mode: "0644"
+  when: inventory_hostname in groups['proxmox_primary']
+
+- name: Ensure Butane is installed (localhost)
+  ansible.builtin.package:
+    name: butane
     state: present
-    force: true
   when: inventory_hostname in groups['local']
+  run_once: true
+
+- name: Render Butane for control plane (localhost)
+  ansible.builtin.template:
+    src: "{{ role_path }}/files/fcos-k3s-control.bu.j2"
+    dest: "{{ role_path }}/files/k3s-control-plane.bu"
+    mode: "0644"
+  when: inventory_hostname in groups['local']
+  run_once: true
+
+- name: Transpile control plane Butane -> Ignition (localhost)
+  ansible.builtin.command: >
+    butane --pretty --strict
+      {{ role_path }}/files/k3s-control-plane.bu
+      --output {{ role_path }}/files/k3s-control-plane.ign
+  creates: "{{ role_path }}/files/k3s-control-plane.ign"
+  when: inventory_hostname in groups['local']
+  run_once: true
+
+- name: Render & transpile worker Ignitions (localhost)
+  ansible.builtin.block:
+    - name: Render worker {{ item }} Butane
+      ansible.builtin.template:
+        src: "{{ role_path }}/files/fcos-k3s-worker-bu.j2"
+        dest: "{{ role_path }}/files/k3s-worker-{{ item }}.bu"
+      vars:
+        inventory_index: "{{ item }}"
+    - name: Transpile worker {{ item }} Butane -> Ignition
+      ansible.builtin.command: >
+        butane --pretty --strict
+          {{ role_path }}/files/k3s-worker-{{ item }}.bu
+          --output {{ role_path }}/files/k3s-worker-{{ item }}.ign
+      changed_when: true
+  loop: "{{ range(1, (proxmox_k3s_worker_count | int) + 1) | list }}"
+  when: inventory_hostname in groups['local']
+  run_once: true

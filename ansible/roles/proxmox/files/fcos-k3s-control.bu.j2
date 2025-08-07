@@ -1,0 +1,65 @@
+variant: {{ fcos_variant }}
+version: {{ fcos_version }}
+
+passwd:
+  users:
+    - name: sfroeber
+      groups: ["wheel"]
+      ssh_authorized_keys:
+        - "{{ lookup('community.general.onepassword',
+                     'coachlight-homelab SSH key',
+                     field='public_key',
+                     vault='HomeLab') }}"
+
+storage:
+  disks:
+    - device: "{{ k3s_data_device }}"
+      wipe_table: true
+      partitions:
+        - number: 1
+          label: "{{ k3s_data_label }}"
+          size_mib: 0
+  filesystems:
+    - device: "{{ k3s_data_device }}1"
+      format: ext4
+      label: "{{ k3s_data_label }}"
+      path: "{{ k3s_data_mount }}"
+  files:
+    - path: /etc/hostname
+      mode: 0644
+      overwrite: true
+      contents:
+        inline: k3s-control-plane
+
+systemd:
+  units:
+    - name: install-k3s.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Install K3s server
+        Wants=network-online.target
+        After=network-online.target
+        ConditionPathExists=!/etc/rancher/k3s/config.yaml
+
+        [Service]
+        Type=oneshot
+        Environment="INSTALL_K3S_EXEC=server --disable traefik"
+        ExecStart=/usr/bin/sh -c 'curl -sfL https://get.k3s.io | sh -'
+        RemainAfterExit=yes
+
+        [Install]
+        WantedBy=multi-user.target
+
+    - name: {{ k3s_data_label | lower }}.mount
+      enabled: true
+      contents: |
+        [Unit]
+        Before=local-fs.target
+        [Mount]
+        What=/dev/disk/by-label/{{ k3s_data_label }}
+        Where={{ k3s_data_mount }}
+        Type=ext4
+        Options=defaults
+        [Install]
+        WantedBy=local-fs.target

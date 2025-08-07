@@ -1,3 +1,10 @@
 # Fedora CoreOS (FCOS) VM variables for Proxmox
 proxmox_fcos_stream: stable
 proxmox_fcos_download_dir: ~/Downloads/fcos
+
+proxmox_fcos_variant: fcos
+proxmox_fcos_version: 1.5.0
+proxmox_k3s_data_device: /dev/vdb
+proxmox_k3s_data_label: K3S_DATA
+proxmox_k3s_data_mount: /var/lib/rancher/k3s
+proxmox_k3s_worker_count: 3
