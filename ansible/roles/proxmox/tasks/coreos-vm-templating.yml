@@ -1,0 +1,12 @@
+- name: Build Fedora CoreOS template (runs on localhost)
+  community.general.proxmox_template:
+    api_host: "{{ hostvars[groups['proxmox_primary'][0]].proxmox_ip }}"
+    api_user: "{{ pve_admin_user }}"
+    api_password: "{{ pve_admin_password }}"
+    node: "{{ groups['proxmox_primary'][0] }}"
+    storage: coreos
+    src: "{{ fcos_path }}"
+    template: coreos-k3s
+    state: present
+    force: true
+  when: inventory_hostname in groups['local']

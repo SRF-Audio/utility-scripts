@@ -1,0 +1,10 @@
+- name: Ensure proxmoxer + deps are present
+  ansible.builtin.pip:
+    name:
+      - proxmoxer
+      - requests
+      - requests_toolbelt
+    state: present
+    executable: pip3
+  delegate_to: localhost
+  run_once: true

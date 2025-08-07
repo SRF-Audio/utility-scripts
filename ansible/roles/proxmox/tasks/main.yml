@@ -1,2 +1,10 @@
 - name: Import Proxmox node add users
   ansible.builtin.import_tasks: users.yml
+- name: Import Proxmox node add NFS and local image storage
+  ansible.builtin.import_tasks: storage.yml
+- name: Import Proxmox module prerequisites
+  ansible.builtin.import_tasks: proxmox-module-prereqs.yml
+- name: Import CoreOS download tasks
+  ansible.builtin.import_tasks: coreos-download.yml
+- name: Import CoreOS VM templating tasks
+  ansible.builtin.import_tasks: coreos-vm-templating.yml

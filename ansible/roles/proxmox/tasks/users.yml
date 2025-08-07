@@ -2,6 +2,8 @@
   ansible.builtin.command: pveum group list --noheader
   register: _pve_groups
   changed_when: false
+  run_once: true
+  when: inventory_hostname in groups['proxmox_primary']
 
 - name: Create administrators group if missing
   ansible.builtin.command:
@@ -12,7 +14,7 @@
       - "{{ pve_admin_group }}"
       - --comment
       - "{{ comment }}"
-  when: pve_admin_group not in _pve_groups.stdout
+  when: pve_admin_group not in _pve_groups.stdout and inventory_hostname in groups['proxmox_primary']
 
 - name: Ensure administrators group has the Administrator role at /
   ansible.builtin.command:
@@ -27,11 +29,14 @@
       - Administrator
   register: _acl_change
   changed_when: "'(group {{ pve_admin_group }})' in _acl_change.stderr"
+  when: inventory_hostname in groups['proxmox_primary']
 
 - name: Query existing PVE users
   ansible.builtin.command: pveum user list --noheader
   register: _pve_users
   changed_when: false
+  run_once: true
+  when: inventory_hostname in groups['proxmox_primary']
 
 - name: Add sfroeber to PVE
   ansible.builtin.command:
@@ -42,7 +47,8 @@
       - "{{ pve_admin_user }}"
       - --comment
       - "{{ comment }}"
-  when: pve_admin_user not in _pve_users.stdout
+  when: pve_admin_user not in _pve_users.stdout and inventory_hostname in groups['proxmox_primary']
+  register: _user_add
 
 - name: Add sfroeber to administrators group
   ansible.builtin.command:
@@ -53,6 +59,7 @@
       - "{{ pve_admin_user }}"
       - --groups
       - "{{ pve_admin_group }}"
+  when: (_user_add is defined and _user_add.changed or pve_admin_user not in _pve_users.stdout) and inventory_hostname in groups['proxmox_primary']
 
 - name: Explain password steps
   ansible.builtin.debug:
@@ -67,6 +74,7 @@
   ansible.builtin.command: pveum pool list --noheader
   register: _pools
   changed_when: false
+  when: inventory_hostname in groups['proxmox_primary']
 
 - name: Create kubernetes pool
   ansible.builtin.command:
@@ -77,4 +85,4 @@
       - kubernetes
       - --comment
       - "All Kubernetes VMs/CTs"
-  when: "'kubernetes' not in _pools.stdout"
+  when: (inventory_hostname in groups['proxmox_primary']) and (_pools.stdout is defined and 'kubernetes' not in _pools.stdout)

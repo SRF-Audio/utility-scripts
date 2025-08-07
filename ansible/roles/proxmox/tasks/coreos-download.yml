@@ -1,0 +1,41 @@
+- name: Assert coreos-installer is present (localhost only)
+  ansible.builtin.package:
+    name: coreos-installer
+    state: present
+  when: inventory_hostname in groups['local']
+  become: true
+  vars:
+    ansible_become_password: "{{ lookup('community.general.onepassword', 's3wpaur4krdgrdrn24rrqw7ewm', field='password', vault='Stephen and Christine') }}"
+
+- name: Ensure local download dir exists
+  ansible.builtin.file:
+    path: "{{ proxmox_fcos_download_dir }}"
+    state: directory
+    mode: "0755"
+  when: inventory_hostname in groups['local']
+
+- name: Download & decompress latest Fedora CoreOS proxmox image
+  ansible.builtin.command: >
+    coreos-installer download
+      --stream {{ proxmox_fcos_stream }}
+      --directory {{ proxmox_fcos_download_dir }}
+      -p proxmoxve
+      -f qcow2.xz
+      --decompress
+  register: coreos_dl
+  changed_when: "'Downloading' in coreos_dl.stdout or 'Decompressing' in coreos_dl.stdout"
+  when: inventory_hostname in groups['local']
+
+- name: Locate the freshly downloaded FCOS raw image
+  ansible.builtin.find:
+    paths: "{{ proxmox_fcos_download_dir }}"
+    patterns: "fedora-coreos-*.qcow2"
+    use_regex: false
+  register: fcos_path
+  when: inventory_hostname in groups['local']
+
+- name: Expose raw path to subsequent roles
+  ansible.builtin.set_fact:
+    fcos_path: "{{ fcos_path.files[0].path }}"
+    cacheable: true
+  when: inventory_hostname in groups['local']

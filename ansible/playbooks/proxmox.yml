@@ -85,9 +85,8 @@
       when: existing_cluster is not defined or not existing_cluster
 
 - name: Coachlight Homelab Proxmox Cluster Config
-  hosts: proxmox
-  gather_facts: false
-  run_once: true
+  hosts: proxmox,local
+  gather_facts: true
   vars:
     pve_admin_group: administrators
     pve_admin_user: sfroeber@pam

@@ -37,6 +37,7 @@
     state: present
   loop:
     - paramiko
+    - ansibug
 
 - name: Install packages (Fedora/RHEL)
   when: ansible_facts['os_family'] == 'RedHat'

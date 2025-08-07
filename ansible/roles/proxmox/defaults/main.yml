@@ -1,0 +1,3 @@
+# Fedora CoreOS (FCOS) VM variables for Proxmox
+proxmox_fcos_stream: stable
+proxmox_fcos_download_dir: ~/Downloads/fcos
