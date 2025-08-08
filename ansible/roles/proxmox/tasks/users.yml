@@ -14,7 +14,7 @@
       - "{{ pve_admin_group }}"
       - --comment
       - "{{ comment }}"
-  when: pve_admin_group not in _pve_groups.stdout and inventory_hostname in groups['proxmox_primary']
+  when: (_pve_groups.stdout is defined and pve_admin_group not in _pve_groups.stdout) and inventory_hostname in groups['proxmox_primary']
 
 - name: Ensure administrators group has the Administrator role at /
   ansible.builtin.command:

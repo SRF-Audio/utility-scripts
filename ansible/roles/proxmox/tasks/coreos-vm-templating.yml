@@ -35,24 +35,32 @@
     butane --pretty --strict
       {{ role_path }}/files/k3s-control-plane.bu
       --output {{ role_path }}/files/k3s-control-plane.ign
-  creates: "{{ role_path }}/files/k3s-control-plane.ign"
+    creates: "{{ role_path }}/files/k3s-control-plane.ign"
   when: inventory_hostname in groups['local']
   run_once: true
 
 - name: Render & transpile worker Ignitions (localhost)
-  ansible.builtin.block:
+  block:
     - name: Render worker {{ item }} Butane
       ansible.builtin.template:
         src: "{{ role_path }}/files/fcos-k3s-worker-bu.j2"
         dest: "{{ role_path }}/files/k3s-worker-{{ item }}.bu"
       vars:
         inventory_index: "{{ item }}"
+      loop: "{{ range(1, (proxmox_k3s_worker_count | int) + 1) | list }}"
+      loop_control:
+        loop_var: item
+
     - name: Transpile worker {{ item }} Butane -> Ignition
       ansible.builtin.command: >
         butane --pretty --strict
           {{ role_path }}/files/k3s-worker-{{ item }}.bu
           --output {{ role_path }}/files/k3s-worker-{{ item }}.ign
       changed_when: true
-  loop: "{{ range(1, (proxmox_k3s_worker_count | int) + 1) | list }}"
+      args:
+        creates: "{{ role_path }}/files/k3s-worker-{{ item }}.ign"
+      loop: "{{ range(1, (proxmox_k3s_worker_count | int) + 1) | list }}"
+      loop_control:
+        loop_var: item
   when: inventory_hostname in groups['local']
   run_once: true
