@@ -21,6 +21,7 @@
     name: butane
     state: present
   delegate_to: localhost
+  become: true
   run_once: true
 
 - name: Render Butane for control plane (localhost)
