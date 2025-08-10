@@ -31,11 +31,13 @@
     paths: "{{ proxmox_fcos_download_dir }}"
     patterns: "fedora-coreos-*.qcow2"
     use_regex: false
-  register: fcos_path
+  register: fcos_find
   when: inventory_hostname in groups['local']
 
-- name: Expose raw path to subsequent roles
+- name: Publish fcos_path to all proxmox hosts
   ansible.builtin.set_fact:
-    fcos_path: "{{ fcos_path.files[0].path }}"
-    cacheable: true
-  when: inventory_hostname in groups['local']
+    fcos_path: "{{ hostvars['localhost']['fcos_find'].files[0].path }}"
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ groups['proxmox'] }}"
+  run_once: true

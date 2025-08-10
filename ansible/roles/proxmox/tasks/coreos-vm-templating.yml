@@ -10,16 +10,17 @@
 
 - name: Upload FCOS qcow2 to primary node storage
   ansible.builtin.copy:
-    src: "{{ fcos_path }}"
-    dest: "{{ coreos_storage }}/images/{{ fcos_path | basename }}"
+    src: "{{ hostvars['localhost']['fcos_find'].files[0].path }}"
+    dest: "{{ coreos_storage }}/images/{{ hostvars['localhost']['fcos_find'].files[0].path | basename }}"
     mode: "0644"
-  when: inventory_hostname in groups['proxmox_primary']
+  become: true
+  when: inventory_hostname == groups['proxmox_primary'][0]
 
 - name: Ensure Butane is installed (localhost)
   ansible.builtin.package:
     name: butane
     state: present
-  when: inventory_hostname in groups['local']
+  delegate_to: localhost
   run_once: true
 
 - name: Render Butane for control plane (localhost)
@@ -27,7 +28,7 @@
     src: "{{ role_path }}/files/fcos-k3s-control.bu.j2"
     dest: "{{ role_path }}/files/k3s-control-plane.bu"
     mode: "0644"
-  when: inventory_hostname in groups['local']
+  delegate_to: localhost
   run_once: true
 
 - name: Transpile control plane Butane -> Ignition (localhost)
@@ -36,22 +37,25 @@
       {{ role_path }}/files/k3s-control-plane.bu
       --output {{ role_path }}/files/k3s-control-plane.ign
     creates: "{{ role_path }}/files/k3s-control-plane.ign"
-  when: inventory_hostname in groups['local']
+  delegate_to: localhost
   run_once: true
 
 - name: Render & transpile worker Ignitions (localhost)
+  delegate_to: localhost
+  run_once: true
   block:
-    - name: Render worker {{ item }} Butane
+    - name: Render worker Butane
       ansible.builtin.template:
         src: "{{ role_path }}/files/fcos-k3s-worker-bu.j2"
         dest: "{{ role_path }}/files/k3s-worker-{{ item }}.bu"
+        mode: "0644"
       vars:
         inventory_index: "{{ item }}"
       loop: "{{ range(1, (proxmox_k3s_worker_count | int) + 1) | list }}"
       loop_control:
         loop_var: item
 
-    - name: Transpile worker {{ item }} Butane -> Ignition
+    - name: Transpile workers Butane -> Ignition
       ansible.builtin.command: >
         butane --pretty --strict
           {{ role_path }}/files/k3s-worker-{{ item }}.bu
@@ -62,5 +66,3 @@
       loop: "{{ range(1, (proxmox_k3s_worker_count | int) + 1) | list }}"
       loop_control:
         loop_var: item
-  when: inventory_hostname in groups['local']
-  run_once: true
