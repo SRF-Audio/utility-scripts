@@ -1,4 +1,4 @@
-{{ lookup('template', 'templates/fcos-k3s-control.bu.j2') |
+{{ lookup('template', 'fcos-k3s-control.bu.j2') |
    regex_replace('k3s-control-plane', 'k3s-worker-{{ inventory_index | default(1) }}') |
    regex_replace('INSTALL_K3S_EXEC=server --disable traefik',
                  'INSTALL_K3S_EXEC=agent --server https://{{ control_plane_ip }}:6443 --token {{ k3s_token }}') }}

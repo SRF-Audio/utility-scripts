@@ -28,6 +28,12 @@
     src: "{{ role_path }}/files/fcos-k3s-control.bu.j2"
     dest: "{{ role_path }}/files/k3s-control-plane.bu"
     mode: "0644"
+  vars:
+    fcos_variant: "{{ proxmox_fcos_variant }}"
+    fcos_version: "{{ proxmox_fcos_version }}"
+    k3s_data_device: "{{ proxmox_k3s_data_device }}"
+    k3s_data_label: "{{ proxmox_k3s_data_label }}"
+    k3s_data_mount: "{{ proxmox_k3s_data_mount }}"
   delegate_to: localhost
   run_once: true
 
@@ -36,6 +42,7 @@
     butane --pretty --strict
       {{ role_path }}/files/k3s-control-plane.bu
       --output {{ role_path }}/files/k3s-control-plane.ign
+  args:
     creates: "{{ role_path }}/files/k3s-control-plane.ign"
   delegate_to: localhost
   run_once: true
@@ -51,6 +58,13 @@
         mode: "0644"
       vars:
         inventory_index: "{{ item }}"
+        fcos_variant: "{{ proxmox_fcos_variant }}"
+        fcos_version: "{{ proxmox_fcos_version }}"
+        k3s_data_device: "{{ proxmox_k3s_data_device }}"
+        k3s_data_label: "{{ proxmox_k3s_data_label }}"
+        k3s_data_mount: "{{ proxmox_k3s_data_mount }}"
+        control_plane_ip: "{{ control_plane_ip }}"
+        k3s_token: "{{ k3s_token }}"
       loop: "{{ range(1, (proxmox_k3s_worker_count | int) + 1) | list }}"
       loop_control:
         loop_var: item
