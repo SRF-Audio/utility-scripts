@@ -1,0 +1,82 @@
+variant: {{ fcos_variant }}
+version: {{ fcos_version }}
+
+passwd:
+  users:
+    - name: sfroeber
+      groups: ["wheel"]
+      ssh_authorized_keys:
+        - "{{ lookup('community.general.onepassword',
+                     'coachlight-homelab SSH key',
+                     field='public_key',
+                     vault='HomeLab') }}"
+
+storage:
+  disks:
+    - device: "{{ k3s_data_device }}"
+      wipe_table: true
+      partitions:
+        - number: 1
+          label: "{{ k3s_data_label }}"
+          size_mib: 0
+  filesystems:
+    - device: "{{ k3s_data_device }}1"
+      format: ext4
+      label: "{{ k3s_data_label }}"
+      path: "{{ k3s_data_mount }}"
+  files:
+    - path: /etc/hostname
+      mode: 0644
+      overwrite: true
+      contents:
+        inline: {{ node_hostname }}
+    - path: /etc/k3s-install.env
+      mode: 0644
+      overwrite: true
+      contents:
+        inline: |
+          # K3s installation environment for {{ node_hostname }}
+          NODE_IP={{ node_ip }}
+          NODE_HOSTNAME={{ node_hostname }}
+          K3S_TOKEN={{ k3s_token }}
+          K3S_CLUSTER_INIT={{ 'true' if node_index == 1 else 'false' }}
+          FIRST_SERVER_IP={{ first_control_plane_ip }}
+          {% if node_index == 1 %}
+          INSTALL_K3S_EXEC="server --cluster-init --disable traefik --node-ip {{ node_ip }} --advertise-address {{ node_ip }}"
+          {% else %}
+          INSTALL_K3S_EXEC="server --server https://{{ first_control_plane_ip }}:6443 --disable traefik --node-ip {{ node_ip }} --advertise-address {{ node_ip }}"
+          {% endif %}
+
+systemd:
+  units:
+    - name: install-k3s.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Install K3s server (HA mode)
+        Wants=network-online.target
+        After=network-online.target
+        ConditionPathExists=!/etc/rancher/k3s/config.yaml
+
+        [Service]
+        Type=oneshot
+        EnvironmentFile=/etc/k3s-install.env
+        ExecStartPre=/bin/bash -c 'while ! ping -c 1 {{ first_control_plane_ip }} >/dev/null 2>&1 && [ "{{ node_index }}" != "1" ]; do echo "Waiting for first control plane..."; sleep 10; done'
+        ExecStart=/usr/bin/sh -c 'curl -sfL https://get.k3s.io | sh -'
+        RemainAfterExit=yes
+
+        [Install]
+        WantedBy=multi-user.target
+
+    - name: {{ k3s_data_label | lower }}.mount
+      enabled: true
+      contents: |
+        [Unit]
+        Before=local-fs.target
+        [Mount]
+        What=/dev/disk/by-label/{{ k3s_data_label }}
+        Where={{ k3s_data_mount }}
+        Type=ext4
+        Options=defaults
+        [Install]
+        WantedBy=local-fs.target

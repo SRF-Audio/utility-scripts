@@ -7,8 +7,46 @@ proxmox_fcos_version: 1.5.0
 proxmox_k3s_data_device: /dev/vdb
 proxmox_k3s_data_label: K3S_DATA
 proxmox_k3s_data_mount: /var/lib/rancher/k3s
-proxmox_k3s_worker_count: 3
 
-# K3s cluster configuration
-control_plane_ip: "192.168.226.100"  # IP that will be assigned to control plane VM
+# K3s cluster configuration - HA setup
+k3s_control_plane_count: 3
+k3s_worker_count: 3
+k3s_cluster_name: "coachlight-k3s"
 k3s_token: "super-secret-k3s-token"  # Should be generated or retrieved from 1Password
+
+# IP addressing - sequential starting from .93
+k3s_base_ip: "192.168.226"
+k3s_start_ip_suffix: 93
+
+# Worker node variants and their counts
+k3s_worker_variants:
+  worker: 2      # 2x standard worker nodes
+  media_worker: 1  # 1x media worker node
+
+# VM specifications by node type
+k3s_vm_specs:
+  control_plane:
+    vcpus: 2
+    memory_mb: 4096
+    disk_gb: 60
+    bridge: vmbr0
+  worker:
+    vcpus: 4
+    memory_mb: 4096
+    disk_gb: 150
+    bridge: vmbr0
+  media_worker:
+    vcpus: 8
+    memory_mb: 8192
+    disk_gb: 240
+    bridge: vmbr0
+
+# VM template IDs (adjust as needed for your environment)
+k3s_template_ids:
+  control_plane: 9001
+  worker: 9002
+  media_worker: 9003
+
+# MAC address prefix (will append node-specific suffix)
+k3s_mac_prefix: "52:54:00:k3:cp"  # For control plane
+k3s_mac_worker_prefix: "52:54:00:k3:wk"  # For workers

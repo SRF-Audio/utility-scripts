@@ -1,0 +1,70 @@
+- name: Create VM templates for each node type
+  block:
+    - name: Create VM for template ({{ item.type }})
+      ansible.builtin.command: >
+        qm create {{ item.template_id }}
+        --name {{ k3s_cluster_name }}-{{ item.type }}-template
+        --memory {{ item.specs.memory_mb }}
+        --cores {{ item.specs.vcpus }}
+        --net0 virtio,bridge={{ item.specs.bridge }}
+        --scsihw virtio-scsi-single
+        --serial0 socket --vga serial0
+        --agent enabled=1
+        --machine q35
+        --boot order=scsi0
+      args:
+        creates: "/etc/pve/qemu-server/{{ item.template_id }}.conf"
+      when: inventory_hostname == groups['proxmox_primary'][0]
+      become: true
+
+    - name: Import FCOS disk to storage for template ({{ item.type }})
+      ansible.builtin.command: >
+        qm importdisk {{ item.template_id }}
+        "{{ coreos_storage }}/images/{{ hostvars['localhost']['fcos_find'].files[0].path | basename }}"
+        coreos
+        --format qcow2
+      register: import_result
+      changed_when: "'Successfully imported disk' in import_result.stdout"
+      failed_when: >
+        import_result.rc != 0 and 
+        'already exists' not in import_result.stderr
+      when: inventory_hostname == groups['proxmox_primary'][0]
+      become: true
+
+    - name: Attach disk and configure boot for template ({{ item.type }})
+      ansible.builtin.command: >
+        qm set {{ item.template_id }}
+        --scsi0 coreos:vm-{{ item.template_id }}-disk-0,size={{ item.specs.disk_gb }}G
+        --boot order=scsi0
+      when: inventory_hostname == groups['proxmox_primary'][0]
+      become: true
+
+    - name: Add data disk for K3s storage ({{ item.type }})
+      ansible.builtin.command: >
+        qm set {{ item.template_id }}
+        --scsi1 coreos:{{ item.specs.disk_gb }}G,format=raw
+      when: inventory_hostname == groups['proxmox_primary'][0]
+      become: true
+
+    - name: Convert VM to template ({{ item.type }})
+      ansible.builtin.command: qm template {{ item.template_id }}
+      register: template_result
+      changed_when: "'marked as template' in template_result.stdout"
+      failed_when: >
+        template_result.rc != 0 and 
+        'already a template' not in template_result.stderr
+      when: inventory_hostname == groups['proxmox_primary'][0]
+      become: true
+
+  loop: "{{ k3s_template_types }}"
+  vars:
+    k3s_template_types:
+      - type: control_plane
+        template_id: "{{ k3s_template_ids.control_plane }}"
+        specs: "{{ k3s_vm_specs.control_plane }}"
+      - type: worker
+        template_id: "{{ k3s_template_ids.worker }}"
+        specs: "{{ k3s_vm_specs.worker }}"
+      - type: media_worker
+        template_id: "{{ k3s_template_ids.media_worker }}"
+        specs: "{{ k3s_vm_specs.media_worker }}"
