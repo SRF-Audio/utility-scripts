@@ -1,0 +1,78 @@
+---
+# Create k3s cluster VMs
+- name: Create control plane VMs
+  community.general.proxmox_kvm:
+    api_host: "{{ hostvars[groups['proxmox_primary'][0]]['proxmox_ip'] }}"
+    api_user: "{{ pve_admin_user }}"
+    api_password: "{{ pve_admin_password }}"
+    node: "{{ hostvars[groups['proxmox_primary'][0]]['proxmox_node_name'] | default('pve') }}"
+    name: "k3s-cp-{{ item }}"
+    state: present
+    clone: "{{ proxmox_fcos_template_name | default('fcos-template') }}"
+    cores: "{{ proxmox_k3s_control_plane_cpu }}"
+    memory: "{{ proxmox_k3s_control_plane_memory }}"
+    disk:
+      - size: "{{ proxmox_k3s_control_plane_disk }}G"
+        storage: "{{ proxmox_storage | default('local-lvm') }}"
+        type: "{{ proxmox_storage_type | default('scsi') }}"
+    net:
+      - name: net0
+        bridge: "{{ proxmox_bridge | default('vmbr0') }}"
+        mac: "{{ proxmox_k3s_mac_prefix }}{{ '%02x' % (item | int) }}"
+    ipconfig0: "ip={{ proxmox_k3s_control_plane_start_ip | ipaddr('+%d' | format(item | int - 1)) }}/24,gw={{ proxmox_k3s_control_plane_gateway }}"
+    startup_order: "{{ item }}"
+    onboot: true
+    agent: 1
+    tags: "k3s,control-plane,ha"
+  loop: "{{ range(1, (proxmox_k3s_control_plane_count | int) + 1) | list }}"
+  when: inventory_hostname == groups['proxmox_primary'][0]
+  vars:
+    pve_admin_user: "{{ hostvars[groups['proxmox_primary'][0]]['pve_admin_user'] | default('root@pam') }}"
+    pve_admin_password: "{{ hostvars[groups['proxmox_primary'][0]]['pve_admin_password'] | default('') }}"
+
+- name: Create worker VMs
+  community.general.proxmox_kvm:
+    api_host: "{{ hostvars[groups['proxmox_primary'][0]]['proxmox_ip'] }}"
+    api_user: "{{ pve_admin_user }}"
+    api_password: "{{ hostvars[groups['proxmox_primary'][0]]['pve_admin_password'] }}"
+    node: "{{ hostvars[groups['proxmox_primary'][0]]['proxmox_node_name'] | default('pve') }}"
+    name: "k3s-worker-{{ item.node_index }}"
+    state: present
+    clone: "{{ proxmox_fcos_template_name | default('fcos-template') }}"
+    cores: "{{ item.specs.cpu }}"
+    memory: "{{ item.specs.memory }}"
+    disk:
+      - size: "{{ item.specs.disk }}G"
+        storage: "{{ proxmox_storage | default('local-lvm') }}"
+        type: "{{ proxmox_storage_type | default('scsi') }}"
+    net:
+      - name: net0
+        bridge: "{{ proxmox_bridge | default('vmbr0') }}"
+        mac: "{{ proxmox_k3s_mac_prefix }}{{ '%02x' % (item.mac_suffix | int) }}"
+    ipconfig0: "ip={{ proxmox_k3s_control_plane_start_ip | ipaddr('+%d' | format(item.ip_offset | int)) }}/24,gw={{ proxmox_k3s_control_plane_gateway }}"
+    startup_order: "{{ item.startup_order }}"
+    onboot: true
+    agent: 1
+    tags: "k3s,worker,{{ item.type }}"
+  loop: "{{ proxmox_k3s_worker_vm_list }}"
+  when: inventory_hostname == groups['proxmox_primary'][0]
+  vars:
+    pve_admin_user: "{{ hostvars[groups['proxmox_primary'][0]]['pve_admin_user'] | default('root@pam') }}"
+    pve_admin_password: "{{ hostvars[groups['proxmox_primary'][0]]['pve_admin_password'] | default('') }}"
+
+- name: Wait for VMs to be ready
+  community.general.proxmox_vm_info:
+    api_host: "{{ hostvars[groups['proxmox_primary'][0]]['proxmox_ip'] }}"
+    api_user: "{{ pve_admin_user }}"
+    api_password: "{{ pve_admin_password }}"
+    node: "{{ hostvars[groups['proxmox_primary'][0]]['proxmox_node_name'] | default('pve') }}"
+    name: "{{ item }}"
+  loop: "{{ proxmox_k3s_vm_list }}"
+  register: vm_status
+  until: item.status == 'running'
+  retries: 30
+  delay: 10
+  when: inventory_hostname == groups['proxmox_primary'][0]
+  vars:
+    pve_admin_user: "{{ hostvars[groups['proxmox_primary'][0]]['pve_admin_user'] | default('root@pam') }}"
+    pve_admin_password: "{{ hostvars[groups['proxmox_primary'][0]]['pve_admin_password'] | default('') }}"

@@ -8,3 +8,7 @@
   ansible.builtin.import_tasks: coreos-download.yml
 - name: Import CoreOS VM templating tasks
   ansible.builtin.import_tasks: coreos-vm-templating.yml
+- name: Import VM configuration generation tasks
+  ansible.builtin.import_tasks: generate-vm-config.yml
+- name: Import VM creation tasks
+  ansible.builtin.import_tasks: vm-creation.yml

@@ -24,22 +24,49 @@
   become: true
   run_once: true
 
-- name: Render Butane for control plane (localhost)
+- name: Render Butane for first control plane node (localhost)
   ansible.builtin.template:
-    src: "{{ role_path }}/files/fcos-k3s-control.bu.j2"
-    dest: "{{ role_path }}/files/k3s-control-plane.bu"
+    src: "{{ role_path }}/files/fcos-k3s-ha-control.bu.j2"
+    dest: "{{ role_path }}/files/k3s-cp-1.bu"
     mode: "0644"
   delegate_to: localhost
   run_once: true
+  vars:
+    vm_hostname: k3s-cp-1
+    vm_ip: "{{ proxmox_k3s_control_plane_start_ip }}"
 
-- name: Transpile control plane Butane -> Ignition (localhost)
+- name: Transpile first control plane Butane -> Ignition (localhost)
   ansible.builtin.command: >
     butane --pretty --strict
-      {{ role_path }}/files/k3s-control-plane.bu
-      --output {{ role_path }}/files/k3s-control-plane.ign
-    creates: "{{ role_path }}/files/k3s-control-plane.ign"
+      {{ role_path }}/files/k3s-cp-1.bu
+      --output {{ role_path }}/files/k3s-cp-1.ign
+  args:
+    creates: "{{ role_path }}/files/k3s-cp-1.ign"
   delegate_to: localhost
   run_once: true
+
+- name: Render Butane for additional control plane nodes (localhost)
+  ansible.builtin.template:
+    src: "{{ role_path }}/files/fcos-k3s-ha-control-join.bu.j2"
+    dest: "{{ role_path }}/files/k3s-cp-{{ item }}.bu"
+    mode: "0644"
+  delegate_to: localhost
+  run_once: true
+  vars:
+    vm_hostname: "k3s-cp-{{ item }}"
+    vm_ip: "{{ proxmox_k3s_control_plane_start_ip | ipaddr('+%d' | format(item | int - 1)) }}"
+  loop: "{{ range(2, (proxmox_k3s_control_plane_count | int) + 1) | list }}"
+
+- name: Transpile additional control plane Butane -> Ignition (localhost)
+  ansible.builtin.command: >
+    butane --pretty --strict
+      {{ role_path }}/files/k3s-cp-{{ item }}.bu
+      --output {{ role_path }}/files/k3s-cp-{{ item }}.ign
+  args:
+    creates: "{{ role_path }}/files/k3s-cp-{{ item }}.ign"
+  delegate_to: localhost
+  run_once: true
+  loop: "{{ range(2, (proxmox_k3s_control_plane_count | int) + 1) | list }}"
 
 - name: Render & transpile worker Ignitions (localhost)
   delegate_to: localhost
@@ -47,23 +74,20 @@
   block:
     - name: Render worker Butane
       ansible.builtin.template:
-        src: "{{ role_path }}/files/fcos-k3s-worker-bu.j2"
-        dest: "{{ role_path }}/files/k3s-worker-{{ item }}.bu"
+        src: "{{ role_path }}/files/fcos-k3s-worker.bu.j2"
+        dest: "{{ role_path }}/files/{{ item.name }}.bu"
         mode: "0644"
       vars:
-        inventory_index: "{{ item }}"
-      loop: "{{ range(1, (proxmox_k3s_worker_count | int) + 1) | list }}"
-      loop_control:
-        loop_var: item
+        vm_hostname: "{{ item.name }}"
+        vm_ip: "{{ proxmox_k3s_control_plane_start_ip | ipaddr('+%d' | format(item.ip_offset | int)) }}"
+      loop: "{{ proxmox_k3s_worker_vm_list }}"
 
     - name: Transpile workers Butane -> Ignition
       ansible.builtin.command: >
         butane --pretty --strict
-          {{ role_path }}/files/k3s-worker-{{ item }}.bu
-          --output {{ role_path }}/files/k3s-worker-{{ item }}.ign
+          {{ role_path }}/files/{{ item.name }}.bu
+          --output {{ role_path }}/files/{{ item.name }}.ign
       changed_when: true
       args:
-        creates: "{{ role_path }}/files/k3s-worker-{{ item }}.ign"
-      loop: "{{ range(1, (proxmox_k3s_worker_count | int) + 1) | list }}"
-      loop_control:
-        loop_var: item
+        creates: "{{ role_path }}/files/{{ item.name }}.ign"
+      loop: "{{ proxmox_k3s_worker_vm_list }}"

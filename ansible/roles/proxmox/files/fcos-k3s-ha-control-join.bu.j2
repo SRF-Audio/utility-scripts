@@ -1,0 +1,125 @@
+variant: {{ proxmox_fcos_variant }}
+version: {{ proxmox_fcos_version }}
+
+passwd:
+  users:
+    - name: sfroeber
+      groups: ["wheel"]
+      ssh_authorized_keys:
+        - "{{ lookup('community.general.onepassword',
+                     'coachlight-homelab SSH key',
+                     field='public_key',
+                     vault='HomeLab') }}"
+
+storage:
+  disks:
+    - device: "{{ proxmox_k3s_data_device }}"
+      wipe_table: true
+      partitions:
+        - number: 1
+          label: "{{ proxmox_k3s_data_label }}"
+          size_mib: 0
+  filesystems:
+    - device: "{{ proxmox_k3s_data_device }}1"
+      format: ext4
+      label: "{{ proxmox_k3s_data_label }}"
+      path: "{{ proxmox_k3s_data_mount }}"
+  files:
+    - path: /etc/hostname
+      mode: 0644
+      overwrite: true
+      contents:
+        inline: "{{ vm_hostname }}"
+    - path: /etc/systemd/network/20-enp0s1.network
+      mode: 0644
+      overwrite: true
+      contents:
+        inline: |
+          [Match]
+          Name=enp0s1
+          
+          [Network]
+          Address={{ vm_ip }}/24
+          Gateway={{ proxmox_k3s_control_plane_gateway }}
+          DNS=1.1.1.1
+          DNS=8.8.8.8
+  directories:
+    - path: /var/lib/tailscale
+      mode: 0755
+      user: 
+        id: 0
+      group: 
+        id: 0
+
+systemd:
+  units:
+    - name: install-k3s.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Install K3s server and join HA cluster
+        Wants=network-online.target
+        After=network-online.target
+        ConditionPathExists=!/etc/rancher/k3s/config.yaml
+
+        [Service]
+        Type=oneshot
+        Environment="INSTALL_K3S_EXEC=server --disable traefik --server https://{{ proxmox_k3s_control_plane_start_ip }}:6443 --token {{ proxmox_k3s_cluster_token }}"
+        ExecStart=/usr/bin/sh -c 'curl -sfL https://get.k3s.io | sh -'
+        RemainAfterExit=yes
+
+        [Install]
+        WantedBy=multi-user.target
+
+    - name: {{ proxmox_k3s_data_label | lower }}.mount
+      enabled: true
+      contents: |
+        [Unit]
+        Before=local-fs.target
+        [Mount]
+        What=/dev/disk/by-label/{{ proxmox_k3s_data_label }}
+        Where={{ proxmox_k3s_data_mount }}
+        Type=ext4
+        Options=defaults
+        [Install]
+        WantedBy=local-fs.target
+
+    - name: tailscaled.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Tailscale (container)
+        After=network-online.target
+        Wants=network-online.target
+
+        [Service]
+        Restart=always
+        ExecStartPre=/usr/bin/podman pull docker.io/tailscale/tailscale:latest
+        ExecStart=/usr/bin/podman run --name tailscaled --rm \
+          --network host \
+          --privileged \
+          -v /var/lib/tailscale:/var/lib/tailscale \
+          -v /dev/net/tun:/dev/net/tun \
+          docker.io/tailscale/tailscale:latest tailscaled
+        ExecStop=/usr/bin/podman stop tailscaled
+
+        [Install]
+        WantedBy=multi-user.target
+
+    - name: tailscale-up.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Authenticate Tailscale (container)
+        After=tailscaled.service
+        Requires=tailscaled.service
+        ConditionPathExists=!/var/lib/tailscale/.authed
+
+        [Service]
+        Type=oneshot
+        Environment="TS_AUTHKEY={{ lookup('community.general.onepassword', 'Tailscale', field='auth key', vault='HomeLab') }}"
+        ExecStart=/usr/bin/podman exec tailscaled tailscale up --ssh --hostname=%H
+        ExecStartPost=/usr/bin/touch /var/lib/tailscale/.authed
+
+        [Install]
+        WantedBy=multi-user.target
