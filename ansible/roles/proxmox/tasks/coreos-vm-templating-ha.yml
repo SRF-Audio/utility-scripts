@@ -1,0 +1,154 @@
+- name: Ensure coreos/images and coreos/snippets exist on primary
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ coreos_storage }}/images"
+    - "{{ coreos_storage }}/snippets"
+  when: inventory_hostname in groups['proxmox_primary']
+
+- name: Upload FCOS qcow2 to primary node storage
+  ansible.builtin.copy:
+    src: "{{ hostvars['localhost']['fcos_find'].files[0].path }}"
+    dest: "{{ coreos_storage }}/images/{{ hostvars['localhost']['fcos_find'].files[0].path | basename }}"
+    mode: "0644"
+  become: true
+  when: inventory_hostname == groups['proxmox_primary'][0]
+
+- name: Ensure Butane is installed (localhost)
+  ansible.builtin.package:
+    name: butane
+    state: present
+  delegate_to: localhost
+  run_once: true
+
+- name: Build control plane node configurations
+  ansible.builtin.set_fact:
+    k3s_node_configs: "{{ k3s_node_configs | default([]) + [node_config] }}"
+  vars:
+    node_config:
+      name: "control-plane-{{ item }}"
+      hostname: "{{ k3s_cluster_name }}-cp-{{ '%02d' | format(item) }}"
+      type: "control_plane"
+      index: "{{ item }}"
+      ip: "{{ k3s_base_ip }}.{{ k3s_start_ip_suffix + (item - 1) }}"
+      mac: "{{ k3s_mac_prefix }}:{{ '%02d' | format(item) }}"
+      specs: "{{ k3s_vm_specs['control_plane'] }}"
+      template_id: "{{ k3s_template_ids['control_plane'] }}"
+  loop: "{{ range(1, k3s_control_plane_count + 1) | list }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Calculate current IP offset for workers
+  ansible.builtin.set_fact:
+    worker_ip_offset: "{{ k3s_control_plane_count }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Build worker node configurations (standard workers)
+  ansible.builtin.set_fact:
+    k3s_node_configs: "{{ k3s_node_configs | default([]) + [node_config] }}"
+  vars:
+    node_config:
+      name: "worker-{{ item }}"
+      hostname: "{{ k3s_cluster_name }}-worker-{{ '%02d' | format(item) }}"
+      type: "worker"
+      index: "{{ item }}"
+      ip: "{{ k3s_base_ip }}.{{ k3s_start_ip_suffix + worker_ip_offset + (item - 1) }}"
+      mac: "{{ k3s_mac_worker_prefix }}:w{{ '%02d' | format(item) }}"
+      specs: "{{ k3s_vm_specs['worker'] }}"
+      template_id: "{{ k3s_template_ids['worker'] }}"
+  loop: "{{ range(1, k3s_worker_variants['worker'] + 1) | list }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Build media worker node configurations
+  ansible.builtin.set_fact:
+    k3s_node_configs: "{{ k3s_node_configs | default([]) + [node_config] }}"
+  vars:
+    node_config:
+      name: "media-worker-{{ item }}"
+      hostname: "{{ k3s_cluster_name }}-media-worker-{{ '%02d' | format(item) }}"
+      type: "media_worker"
+      index: "{{ item }}"
+      ip: "{{ k3s_base_ip }}.{{ k3s_start_ip_suffix + worker_ip_offset + k3s_worker_variants['worker'] + (item - 1) }}"
+      mac: "{{ k3s_mac_worker_prefix }}:m{{ '%02d' | format(item) }}"
+      specs: "{{ k3s_vm_specs['media_worker'] }}"
+      template_id: "{{ k3s_template_ids['media_worker'] }}"
+  loop: "{{ range(1, k3s_worker_variants['media_worker'] + 1) | list }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Debug node configurations
+  ansible.builtin.debug:
+    var: k3s_node_configs
+  delegate_to: localhost
+  run_once: true
+
+- name: Set first control plane IP fact
+  ansible.builtin.set_fact:
+    first_control_plane_ip: "{{ (k3s_node_configs | selectattr('type', 'equalto', 'control_plane') | first).ip }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Render HA control plane Butane configs (localhost)
+  ansible.builtin.template:
+    src: "{{ role_path }}/files/fcos-k3s-control-ha.bu.j2"
+    dest: "{{ role_path }}/files/{{ item.hostname }}.bu"
+    mode: "0644"
+  vars:
+    fcos_variant: "{{ proxmox_fcos_variant }}"
+    fcos_version: "{{ proxmox_fcos_version }}"
+    k3s_data_device: "{{ proxmox_k3s_data_device }}"
+    k3s_data_label: "{{ proxmox_k3s_data_label }}"
+    k3s_data_mount: "{{ proxmox_k3s_data_mount }}"
+    node_hostname: "{{ item.hostname }}"
+    node_ip: "{{ item.ip }}"
+    node_index: "{{ item.index }}"
+    k3s_token: "{{ k3s_token }}"
+    first_control_plane_ip: "{{ first_control_plane_ip }}"
+  loop: "{{ k3s_node_configs | selectattr('type', 'equalto', 'control_plane') | list }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Render HA worker Butane configs (localhost)
+  ansible.builtin.template:
+    src: "{{ role_path }}/files/fcos-k3s-worker-ha.bu.j2"
+    dest: "{{ role_path }}/files/{{ item.hostname }}.bu"
+    mode: "0644"
+  vars:
+    fcos_variant: "{{ proxmox_fcos_variant }}"
+    fcos_version: "{{ proxmox_fcos_version }}"
+    k3s_data_device: "{{ proxmox_k3s_data_device }}"
+    k3s_data_label: "{{ proxmox_k3s_data_label }}"
+    k3s_data_mount: "{{ proxmox_k3s_data_mount }}"
+    node_hostname: "{{ item.hostname }}"
+    node_ip: "{{ item.ip }}"
+    node_index: "{{ item.index }}"
+    worker_type: "{{ item.type }}"
+    k3s_token: "{{ k3s_token }}"
+    first_control_plane_ip: "{{ first_control_plane_ip }}"
+  loop: "{{ k3s_node_configs | rejectattr('type', 'equalto', 'control_plane') | list }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Transpile all Butane configs to Ignition (localhost)
+  ansible.builtin.command: >
+    butane --pretty --strict
+      {{ role_path }}/files/{{ item.hostname }}.bu
+      --output {{ role_path }}/files/{{ item.hostname }}.ign
+  args:
+    creates: "{{ role_path }}/files/{{ item.hostname }}.ign"
+  loop: "{{ k3s_node_configs }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Copy all Ignition configs to snippets storage
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/{{ item.hostname }}.ign"
+    dest: "{{ coreos_storage }}/snippets/{{ item.hostname }}.ign"
+    mode: "0644"
+  loop: "{{ k3s_node_configs }}"
+  when: inventory_hostname == groups['proxmox_primary'][0]
+  become: true

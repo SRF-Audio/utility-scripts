@@ -1,0 +1,100 @@
+variant: {{ fcos_variant }}
+version: {{ fcos_version }}
+
+passwd:
+  users:
+    - name: sfroeber
+      groups: ["wheel"]
+      ssh_authorized_keys:
+        - "{{ lookup('community.general.onepassword',
+                     'coachlight-homelab SSH key',
+                     field='public_key',
+                     vault='HomeLab') }}"
+
+storage:
+  disks:
+    - device: "{{ k3s_data_device }}"
+      wipe_table: true
+      partitions:
+        - number: 1
+          label: "{{ k3s_data_label }}"
+          size_mib: 0
+  filesystems:
+    - device: "{{ k3s_data_device }}1"
+      format: ext4
+      label: "{{ k3s_data_label }}"
+      path: "{{ k3s_data_mount }}"
+  files:
+    - path: /etc/hostname
+      mode: 0644
+      overwrite: true
+      contents:
+        inline: {{ node_hostname }}
+    - path: /etc/k3s-install.env
+      mode: 0644
+      overwrite: true
+      contents:
+        inline: |
+          # K3s worker installation environment for {{ node_hostname }}
+          NODE_IP={{ node_ip }}
+          NODE_HOSTNAME={{ node_hostname }}
+          NODE_TYPE={{ worker_type }}
+          K3S_TOKEN={{ k3s_token }}
+          FIRST_SERVER_IP={{ first_control_plane_ip }}
+          {% if worker_type == 'media_worker' %}
+          INSTALL_K3S_EXEC="agent --server https://{{ first_control_plane_ip }}:6443 --node-ip {{ node_ip }} --node-label node.coachlight.io/type=media"
+          {% else %}
+          INSTALL_K3S_EXEC="agent --server https://{{ first_control_plane_ip }}:6443 --node-ip {{ node_ip }} --node-label node.coachlight.io/type=standard"
+          {% endif %}
+
+systemd:
+  units:
+    - name: install-k3s.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Install K3s agent (worker node)
+        Wants=network-online.target
+        After=network-online.target
+        ConditionPathExists=!/etc/rancher/k3s/config.yaml
+
+        [Service]
+        Type=oneshot
+        EnvironmentFile=/etc/k3s-install.env
+        ExecStartPre=/bin/bash -c 'until curl -k https://{{ first_control_plane_ip }}:6443/ping >/dev/null 2>&1; do echo "Waiting for control plane API..."; sleep 15; done'
+        ExecStart=/usr/bin/sh -c 'curl -sfL https://get.k3s.io | sh -'
+        RemainAfterExit=yes
+
+        [Install]
+        WantedBy=multi-user.target
+
+    - name: {{ k3s_data_label | lower }}.mount
+      enabled: true
+      contents: |
+        [Unit]
+        Before=local-fs.target
+        [Mount]
+        What=/dev/disk/by-label/{{ k3s_data_label }}
+        Where={{ k3s_data_mount }}
+        Type=ext4
+        Options=defaults
+        [Install]
+        WantedBy=local-fs.target
+
+{% if worker_type == 'media_worker' %}
+    - name: prepare-media-storage.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Prepare additional storage for media workloads
+        After={{ k3s_data_label | lower }}.mount
+        Wants={{ k3s_data_label | lower }}.mount
+
+        [Service]
+        Type=oneshot
+        ExecStart=/bin/bash -c 'mkdir -p {{ k3s_data_mount }}/media-storage && chown -R 1000:1000 {{ k3s_data_mount }}/media-storage'
+        RemainAfterExit=yes
+
+        [Install]
+        WantedBy=multi-user.target
+{% endif %}

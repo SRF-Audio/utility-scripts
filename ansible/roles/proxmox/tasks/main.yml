@@ -6,5 +6,7 @@
   ansible.builtin.import_tasks: proxmox-module-prereqs.yml
 - name: Import CoreOS download tasks
   ansible.builtin.import_tasks: coreos-download.yml
-- name: Import CoreOS VM templating tasks
-  ansible.builtin.import_tasks: coreos-vm-templating.yml
+- name: Import CoreOS HA VM templating tasks
+  ansible.builtin.import_tasks: coreos-vm-templating-ha.yml
+- name: Import CoreOS VM template creation tasks
+  ansible.builtin.import_tasks: coreos-vm-templates.yml
