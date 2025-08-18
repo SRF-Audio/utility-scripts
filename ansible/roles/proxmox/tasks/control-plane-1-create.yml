@@ -1,0 +1,156 @@
+- name: Ensure Butane is installed (localhost)
+  ansible.builtin.package:
+    name: butane
+    state: present
+  delegate_to: localhost
+  become: true
+  run_once: true
+
+- name: Render Butane for first control plane (localhost)
+  ansible.builtin.template:
+    src: "{{ role_path }}/files/fcos-k3s-ha-control.bu.j2"
+    dest: "{{ role_path }}/files/k3s-cp-1.bu"
+    mode: "0644"
+  vars:
+    vm_hostname: k3s-cp-1
+    vm_ip: "{{ proxmox_k3s_control_plane_start_ip }}"
+    vm_mac: "{{ proxmox_k3s_mac_prefix }}01"
+  delegate_to: localhost
+  run_once: true
+  register: cp1_bu
+
+- name: Stat cp1 Ignition (localhost)
+  ansible.builtin.stat:
+    path: "{{ role_path }}/files/k3s-cp-1.ign"
+  delegate_to: localhost
+  run_once: true
+  register: cp1_ign
+
+- name: Transpile cp1 Butane -> Ignition (localhost)
+  ansible.builtin.command: >
+    butane --pretty --strict
+      {{ role_path }}/files/k3s-cp-1.bu
+      --output {{ role_path }}/files/k3s-cp-1.ign
+  args:
+    creates: "{{ role_path }}/files/k3s-cp-1.ign"
+  when: cp1_bu.changed or not cp1_ign.stat.exists
+  delegate_to: localhost
+  run_once: true
+
+# Put Ignition into Proxmox 'snippets' storage on primary
+- name: Ensure /var/coreos/snippets exists on primary
+  ansible.builtin.file:
+    path: /var/coreos/snippets
+    state: directory
+    mode: "0755"
+  when: inventory_hostname in groups['proxmox_primary']
+
+- name: Upload cp1 Ignition to primary snippets
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/k3s-cp-1.ign"
+    dest: "/var/coreos/snippets/k3s-cp-1.ign"
+    mode: "0600"
+  when: inventory_hostname in groups['proxmox_primary']
+
+# One-time, controller-executed Proxmox API work (cp1)
+- name: Provision cp1 via Proxmox API (controller)
+  delegate_to: localhost
+  run_once: true
+  vars:
+    api_host_ip: "{{ hostvars[groups['proxmox_primary'][0]].proxmox_ip }}"
+    api_host: "{{ groups['proxmox_primary'][0] }}"
+    api_user: "{{ pve_admin_user }}"
+    api_password: "{{ pve_admin_password }}"
+  block:
+    - name: Ensure cp1 VM exists (base config; no boot yet)
+      community.general.proxmox_kvm:
+        api_host: "{{ api_host_ip }}"
+        api_user: "{{ api_user }}"
+        api_password: "{{ api_password }}"
+        node: "{{ api_host }}"
+        vmid: "{{ proxmox_k3s_cp1_vmid }}"
+        name: "k3s-cp-1"
+        memory: "{{ proxmox_k3s_control_plane_memory }}"
+        cores: "{{ proxmox_k3s_control_plane_cpu }}"
+        net:
+          net0: "virtio,bridge={{ proxmox_bridge }},macaddr={{ proxmox_k3s_mac_prefix }}01"
+        ide:
+          ide2: "{{ proxmox_storage }}:cloudinit" # no format on ZFS
+        cicustom: "vendor=coreos:snippets/k3s-cp-1.ign"
+        state: present
+        validate_certs: false
+
+    - name: Import FCOS qcow2 as scsi0 (must be root)
+      community.general.proxmox_disk:
+        api_host: "{{ api_host_ip }}"
+        api_user: "root@pam"
+        api_password: "{{ api_password }}"
+        vmid: "{{ proxmox_k3s_cp1_vmid }}"
+        disk: "scsi0"
+        storage: "{{ proxmox_storage }}"
+        import_from: "{{ coreos_storage }}/images/{{ (fcos_path | basename) | default(hostvars['localhost']['fcos_find'].files[0].path | basename) }}"
+        state: present
+        validate_certs: false
+
+    - name: Grow scsi0 to requested size
+      community.general.proxmox_disk:
+        api_host: "{{ api_host_ip }}"
+        api_user: "root@pam"
+        api_password: "{{ api_password }}"
+        vmid: "{{ proxmox_k3s_cp1_vmid }}"
+        disk: "scsi0"
+        size: "{{ proxmox_k3s_control_plane_disk }}G"
+        state: resized
+        validate_certs: false
+
+    - name: Wait for scsi0 to appear in VM config
+      ansible.builtin.command: "qm config {{ proxmox_k3s_cp1_vmid }}"
+      register: qm_cfg
+      until: "'scsi0:' in qm_cfg.stdout"
+      retries: 10
+      delay: 1
+      delegate_to: "{{ api_host }}"
+      become: true
+
+    - name: Set boot order to scsi0
+      community.general.proxmox_kvm:
+        api_host: "{{ api_host_ip }}"
+        api_user: "{{ api_user }}"
+        api_password: "{{ api_password }}"
+        node: "{{ api_host }}"
+        vmid: "{{ proxmox_k3s_cp1_vmid }}"
+        boot: "order=scsi0"
+        state: present
+        update: true
+        validate_certs: false
+
+    - name: Start cp1
+      community.general.proxmox_kvm:
+        api_host: "{{ api_host_ip }}"
+        api_user: "{{ api_user }}"
+        api_password: "{{ api_password }}"
+        node: "{{ api_host }}"
+        vmid: "{{ proxmox_k3s_cp1_vmid }}"
+        state: started
+        validate_certs: false
+
+    - name: Wait until cp1 reports running in Proxmox
+      community.general.proxmox_kvm:
+        api_host: "{{ api_host_ip }}"
+        api_user: "{{ api_user }}"
+        api_password: "{{ api_password }}"
+        node: "{{ api_host }}"
+        vmid: "{{ proxmox_k3s_cp1_vmid }}"
+        state: current
+        validate_certs: false
+      register: vm_state
+      until: vm_state.status == 'running'
+      retries: 60
+      delay: 2
+
+    - name: Optional - wait for SSH on cp1 (be patient; guest-agent layer causes one reboot)
+      ansible.builtin.wait_for:
+        host: "{{ proxmox_k3s_control_plane_start_ip }}"
+        port: 22
+        state: started
+        timeout: 1200

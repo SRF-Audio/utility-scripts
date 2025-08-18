@@ -1,4 +1,3 @@
----
 - name: Setup K3s HA Cluster on Proxmox
   hosts: proxmox_primary
   gather_facts: true

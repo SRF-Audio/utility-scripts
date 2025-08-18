@@ -54,3 +54,4 @@
   run_once: true
   register: coreos_storage_add
   failed_when: "'already defined' not in coreos_storage_add.stderr and coreos_storage_add.rc != 0"
+  changed_when: coreos_storage_add.rc == 0

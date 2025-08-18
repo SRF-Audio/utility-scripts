@@ -39,7 +39,8 @@ proxmox_k3s_data_mount: /var/lib/rancher/k3s
 
 # Proxmox VM creation settings
 proxmox_fcos_template_name: fcos-template
-proxmox_storage: local-lvm
+proxmox_storage: local-zfs
+proxmox_k3s_cp1_vmid: 100
 proxmox_storage_type: scsi
 proxmox_bridge: vmbr0
 

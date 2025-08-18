@@ -12,44 +12,17 @@ passwd:
                      vault='HomeLab') }}"
 
 storage:
-  disks:
-    - device: "{{ proxmox_k3s_data_device }}"
-      wipe_table: true
-      partitions:
-        - number: 1
-          label: "{{ proxmox_k3s_data_label }}"
-          size_mib: 0
-  filesystems:
-    - device: "{{ proxmox_k3s_data_device }}1"
-      format: ext4
-      label: "{{ proxmox_k3s_data_label }}"
-      path: "{{ proxmox_k3s_data_mount }}"
   files:
     - path: /etc/hostname
       mode: 0644
       overwrite: true
       contents:
         inline: "{{ vm_hostname }}"
-    - path: /etc/systemd/network/20-enp0s1.network
-      mode: 0644
-      overwrite: true
-      contents:
-        inline: |
-          [Match]
-          Name=enp0s1
-          
-          [Network]
-          Address={{ vm_ip }}/24
-          Gateway={{ proxmox_k3s_control_plane_gateway }}
-          DNS=1.1.1.1
-          DNS=8.8.8.8
   directories:
     - path: /var/lib/tailscale
       mode: 0755
-      user: 
-        id: 0
-      group: 
-        id: 0
+      user: { id: 0 }
+      group: { id: 0 }
 
 systemd:
   units:
@@ -71,18 +44,26 @@ systemd:
         [Install]
         WantedBy=multi-user.target
 
-    - name: {{ proxmox_k3s_data_label | lower }}.mount
+    - name: rpm-ostree-install-qemu-guest-agent.service
       enabled: true
       contents: |
         [Unit]
-        Before=local-fs.target
-        [Mount]
-        What=/dev/disk/by-label/{{ proxmox_k3s_data_label }}
-        Where={{ proxmox_k3s_data_mount }}
-        Type=ext4
-        Options=defaults
+        Description=Layer qemu-guest-agent and reboot once
+        Wants=network-online.target
+        After=network-online.target
+        ConditionPathExists=!/var/lib/%N.stamp
+
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/bin/rpm-ostree install --allow-inactive --assumeyes qemu-guest-agent
+        ExecStart=/usr/bin/touch /var/lib/%N.stamp
+        ExecStart=/usr/bin/systemctl reboot
+
         [Install]
-        WantedBy=local-fs.target
+        WantedBy=multi-user.target
+
+    - name: qemu-guest-agent.service
+      enabled: true
 
     - name: tailscaled.service
       enabled: true
