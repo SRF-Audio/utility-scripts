@@ -175,8 +175,8 @@ systemd:
         [Service]
         Type=oneshot
         ExecStartPre=/usr/bin/bash -lc 'for i in {1..30}; do systemctl is-active --quiet tailscaled && exit 0; sleep 1; done; echo "tailscaled not active"; exit 1'
-        Environment="TS_AUTHKEY={{ lookup('community.general.onepassword', 'Tailscale', field='auth key', vault='HomeLab') }}"
-        ExecStart=/usr/bin/tailscale up --ssh --authkey=${TS_AUTHKEY} --hostname=%H
+        Environment="TS_AUTHKEY={{ lookup('community.general.onepassword', 'Tailscale', field='coachlight-homelab auth key', vault='HomeLab') }}"
+        ExecStart=/usr/bin/tailscale up --ssh --authkey=${TS_AUTHKEY} --hostname=%H --accept-routes=true --force-reauth=false --operator=sfroeber
         ExecStartPost=/usr/bin/touch /var/lib/tailscale/.authed
         Restart=on-failure
         RestartSec=10s

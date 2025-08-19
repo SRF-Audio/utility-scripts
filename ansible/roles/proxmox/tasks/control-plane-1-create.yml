@@ -72,6 +72,7 @@
         name: "k3s-cp-1"
         memory: "{{ proxmox_k3s_control_plane_memory }}"
         cores: "{{ proxmox_k3s_control_plane_cpu }}"
+        agent: "enabled=1,fstrim_cloned_disks=1"
         net:
           net0: "virtio,bridge={{ proxmox_bridge }},macaddr={{ proxmox_k3s_mac_prefix }}01"
         ide:
@@ -154,3 +155,15 @@
         port: 22
         state: started
         timeout: 1200
+
+- name: Clean up cp1 Ignition
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  delegate_to: localhost
+  run_once: true
+  loop:
+    - "{{ role_path }}/files/k3s-cp-1.bu"
+    - "{{ role_path }}/files/k3s-cp-1.ign"
+  loop_control:
+    loop_var: item
