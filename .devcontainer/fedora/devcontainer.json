@@ -1,0 +1,53 @@
+{
+  "name": "Coachlight Homelab Automation - Fedora",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "BASE_IMAGE": "fedora:42"
+    }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "configureZshAsDefaultShell": true
+    }
+  },
+  "workspaceFolder": "/workspace",
+  "mounts": [
+    "type=bind,source=${localWorkspaceFolder},target=/workspace",
+    "type=bind,source=${localEnv:HOME}/.1password/agent.sock,target=/home/vscode/.1password/agent.sock",
+    "type=bind,source=${localEnv:HOME}/.ssh/known_hosts,target=/home/vscode/.ssh/known_hosts,readonly",
+    "type=bind,source=${localEnv:HOME}/.ssh/config,target=/home/vscode/.ssh/config,readonly"
+  ],
+  "runArgs": [
+    "--network=host"
+  ],
+  "remoteUser": "vscode",
+  "updateRemoteUserUID": true,
+  "containerEnv": {
+    "SSH_AUTH_SOCK": "/ssh-agent",
+    "LANG": "en_US.UTF-8"
+  },
+  "postStartCommand": "bash -lc '/workspace/.devcontainer/fedora/bootstrap-tools.sh'",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "workbench.colorTheme": "ｖａｐｏｒｗａｖｅ"
+      },
+      "extensions": [
+        "redhat.ansible",
+        "ms-vscode-remote.remote-containers",
+        "jborean.ansibug",
+        "ms-azuretools.vscode-containers",
+        "this-fifo.vaporwave-theme-vscode",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "github.copilot-chat",
+        "github.copilot",
+        "redhat.vscode-yaml",
+        "esbenp.prettier-vscode",
+        "davidanson.vscode-markdownlint",
+        "shd101wyy.markdown-preview-enhanced"
+      ]
+    }
+  }
+}

@@ -2,8 +2,8 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
+    mode: "0755"
   loop:
     - ~/GitLab/personal
     - ~/GitLab/work
     - ~/GitHub
-  when: ansible_facts[]
