@@ -17,7 +17,7 @@ storage:
       mode: 0644
       overwrite: true
       contents:
-        inline: "{{ vm_hostname }}"
+        inline: "{{ proxmox_vm_hostname }}"
   directories:
     - path: /var/lib/tailscale
       mode: 0755
@@ -98,7 +98,7 @@ systemd:
 
         [Service]
         Type=oneshot
-        Environment="TS_AUTHKEY={{ lookup('community.general.onepassword', 'Tailscale', field='auth key', vault='HomeLab') }}"
+        Environment="TS_AUTHKEY={{ lookup('community.general.onepassword', 'Tailscale', field='coachlight-homelab auth key', vault='HomeLab') }}"
         ExecStart=/usr/bin/podman exec tailscaled tailscale up --ssh --hostname=%H
         ExecStartPost=/usr/bin/touch /var/lib/tailscale/.authed
 

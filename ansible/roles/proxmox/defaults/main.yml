@@ -4,7 +4,17 @@ proxmox_fcos_download_dir: ~/Downloads/fcos
 
 proxmox_fcos_variant: fcos
 proxmox_fcos_version: 1.5.0
+proxmox_fcos_storage_path: /var/coreos
 
+proxmox_vm_hostname: k3s-cp-1
+
+proxmox_nfs_storages:
+  - id: proxmox-backup
+    export: /volume2/proxmox-backup
+    content: backup
+  - id: proxmox-cluster-storage
+    export: /volume2/proxmox-cluster-storage
+    content: images,iso,vztmpl,snippets
 # K3s Cluster Configuration
 proxmox_k3s_control_plane_count: 3
 proxmox_k3s_control_plane_start_ip: 192.168.226.93
@@ -17,6 +27,12 @@ proxmox_k3s_control_plane_memory: 4096
 proxmox_k3s_control_plane_disk: 60
 
 # Worker node configuration
+proxmox_k3s_worker_start_ip: 192.168.226.96
+proxmox_k3s_worker_vmid_start: 200
+proxmox_k3s_worker_mac_start: 32
+proxmox_k3s_worker_prefix_map:
+  worker: k3s-wkr
+  media_worker: k3s-media
 proxmox_k3s_worker_config:
   worker:
     count: 2

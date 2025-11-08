@@ -1,0 +1,132 @@
+- name: Create list of additional control plane indices
+  ansible.builtin.set_fact:
+    proxmox_additional_cp_indices: "{{ range(2, proxmox_k3s_control_plane_count | int + 1) | list }}"
+  run_once: true
+  delegate_to: localhost
+
+- name: Render Butane for additional control planes (localhost)
+  ansible.builtin.template:
+    src: "{{ role_path }}/files/fcos-k3s-ha-control-join.bu.j2"
+    dest: "{{ role_path }}/files/k3s-cp-{{ item }}.bu"
+    mode: "0644"
+  loop: "{{ proxmox_additional_cp_indices }}"
+  vars:
+    proxmox_vm_hostname: "k3s-cp-{{ item }}"
+    vm_ip: "{{ (proxmox_k3s_control_plane_start_ip | ipaddr('add', item - 1)) }}"
+    vm_mac: "{{ '%s%02x' | format(proxmox_k3s_mac_prefix, item) }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Transpile additional control plane Butane -> Ignition (localhost)
+  ansible.builtin.command: >
+    butane --pretty --strict
+      {{ role_path }}/files/k3s-cp-{{ item }}.bu
+      --output {{ role_path }}/files/k3s-cp-{{ item }}.ign
+  args:
+    creates: "{{ role_path }}/files/k3s-cp-{{ item }}.ign"
+  loop: "{{ proxmox_additional_cp_indices }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Upload additional control plane Ignition to target node
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/k3s-cp-{{ item }}.ign"
+    dest: "/var/coreos/snippets/k3s-cp-{{ item }}.ign"
+    mode: "0600"
+  loop: "{{ proxmox_additional_cp_indices }}"
+  loop_control:
+    loop_var: item
+  delegate_to: "{{ groups['proxmox'][ item - 1 ] }}"
+
+- name: Provision additional control planes via Proxmox API (controller)
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_api_host_ip }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_password }}"
+    vmid: "{{ proxmox_k3s_cp1_vmid | int + item - 1 }}"
+    name: "k3s-cp-{{ item }}"
+    memory: "{{ proxmox_k3s_control_plane_memory }}"
+    cores: "{{ proxmox_k3s_control_plane_cpu }}"
+    agent: "enabled=1,fstrim_cloned_disks=1"
+    net:
+      net0: "virtio,bridge={{ proxmox_bridge }},macaddr={{ '%s%02x' | format(proxmox_k3s_mac_prefix, item) }}"
+    ide:
+      ide2: "{{ proxmox_storage }}:cloudinit"
+    cicustom: "vendor=coreos:snippets/k3s-cp-{{ item }}.ign"
+    state: present
+    node: "{{ groups['proxmox'][ item - 1 ] }}"
+    validate_certs: false
+  loop: "{{ proxmox_additional_cp_indices }}"
+  delegate_to: localhost
+
+- name: Import FCOS qcow2 as scsi0 for additional control planes
+  community.proxmox.proxmox_disk:
+    api_host: "{{ proxmox_api_host_ip }}"
+    api_user: "root@pam"
+    api_password: "{{ proxmox_api_password }}"
+    vmid: "{{ proxmox_k3s_cp1_vmid | int + item - 1 }}"
+    disk: scsi0
+    storage: "{{ proxmox_storage }}"
+    import_from: "{{ proxmox_fcos_storage_path }}/images/{{ proxmox_fcos_path | basename }}"
+    state: present
+    validate_certs: false
+  loop: "{{ proxmox_additional_cp_indices }}"
+  delegate_to: localhost
+
+- name: Set boot order, start, and wait for additional control planes
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_api_host_ip }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_password }}"
+    node: "{{ groups['proxmox'][ item - 1 ] }}"
+    vmid: "{{ proxmox_k3s_cp1_vmid | int + item - 1 }}"
+    boot: "order=scsi0"
+    state: present
+    update: true
+    validate_certs: false
+  loop: "{{ proxmox_additional_cp_indices }}"
+  delegate_to: localhost
+
+- name: Start additional control planes
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_api_host_ip }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_password }}"
+    node: "{{ groups['proxmox'][ item - 1 ] }}"
+    vmid: "{{ proxmox_k3s_cp1_vmid | int + item - 1 }}"
+    state: started
+    validate_certs: false
+  loop: "{{ proxmox_additional_cp_indices }}"
+  delegate_to: localhost
+
+- name: Wait until additional control planes report running in Proxmox
+  loop: "{{ proxmox_additional_cp_indices }}"
+  loop_control:
+    loop_var: item
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_api_host_ip }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_password }}"
+    node: "{{ proxmox_api_host }}"
+    vmid: "{{ proxmox_k3s_cp1_vmid | int + item - 1 }}"
+    state: current
+    validate_certs: false
+  register: vm_state
+  until: vm_state.status == 'running'
+  retries: 60
+  delay: 2
+  delegate_to: localhost
+
+- name: Clean up additional control plane Butane and Ignition files (localhost)
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ role_path }}/files/k3s-cp-2.bu"
+    - "{{ role_path }}/files/k3s-cp-2.ign"
+    - "{{ role_path }}/files/k3s-cp-3.bu"
+    - "{{ role_path }}/files/k3s-cp-3.ign"
+  loop_control:
+    loop_var: item
+  run_once: true
+  delegate_to: localhost

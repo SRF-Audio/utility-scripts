@@ -1,3 +1,40 @@
 ansible_user: root
 ansible_ssh_private_key_file: "~/.ssh/coachlight-homelab.pem"
 ansible_ssh_common_args: "-o IdentitiesOnly=yes"
+proxmox_fcos_stream: stable
+proxmox_fcos_download_dir: ~/Downloads/fcos
+proxmox_fcos_variant: fcos
+proxmox_fcos_version: 1.5.0
+proxmox_k3s_control_plane_count: 3
+proxmox_k3s_control_plane_start_ip: 192.168.226.93
+proxmox_k3s_control_plane_subnet: 192.168.226.0/24
+proxmox_k3s_control_plane_gateway: 192.168.226.1
+proxmox_k3s_control_plane_cpu: 2
+proxmox_k3s_control_plane_memory: 4096
+proxmox_k3s_control_plane_disk: 60
+# Worker node configuration
+proxmox_k3s_worker_config:
+  worker:
+    count: 2
+    cpu: 4
+    memory: 4096
+    disk: 150
+  media_worker:
+    count: 1
+    cpu: 8
+    memory: 8192
+    disk: 240
+
+# MAC address prefix for static addressing (will be suffixed with sequential numbers)
+proxmox_k3s_mac_prefix: "52:54:00:12:34:"
+proxmox_k3s_data_device: /dev/vdb
+proxmox_k3s_data_label: K3S_DATA
+proxmox_k3s_data_mount: /var/lib/rancher/k3s
+proxmox_fcos_template_name: fcos-template
+proxmox_storage: local-zfs
+proxmox_k3s_cp1_vmid: 100
+proxmox_storage_type: scsi
+proxmox_bridge: vmbr0
+proxmox_k3s_cluster_token: "{{ lookup('community.general.onepassword', 'Coachlight k3s Cluster', field='cluster token', vault='HomeLab') }}"
+proxmox_k3s_worker_count: "{{ (proxmox_k3s_worker_config.worker.count + proxmox_k3s_worker_config.media_worker.count) | int }}"
+proxmox_k3s_control_plane_ip: "{{ proxmox_k3s_control_plane_start_ip }}"

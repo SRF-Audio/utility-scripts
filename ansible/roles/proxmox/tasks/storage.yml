@@ -1,21 +1,13 @@
 - name: Set facts for NFS storage
   ansible.builtin.set_fact:
     synology_ip: "{{ lookup('community.general.onepassword', 'oattlsmrtkwf6ppnvvo24shk24', field='ip address', vault='HomeLab') }}"
-    coreos_storage: /var/coreos
-    nfs_storages:
-      - id: proxmox-backup
-        export: /volume2/proxmox-backup
-        content: backup
-      - id: proxmox-cluster-storage
-        export: /volume2/proxmox-cluster-storage
-        content: images,iso,vztmpl,snippets
 
 - name: Check if storage exists
   ansible.builtin.command: pvesm status --storage {{ nfs.id }}
   register: storage_check
   changed_when: false
   failed_when: false
-  loop: "{{ nfs_storages }}"
+  loop: "{{ proxmox_nfs_storages }}"
   loop_control:
     loop_var: nfs
   when: inventory_hostname in groups['proxmox_primary']
@@ -35,23 +27,26 @@
       | selectattr('nfs.id', 'equalto', nfs.id)
       | first
     ).rc != 0) and inventory_hostname in groups['proxmox_primary']
-  loop: "{{ nfs_storages }}"
+  loop: "{{ proxmox_nfs_storages }}"
   loop_control:
     loop_var: nfs
   run_once: true
 
 - name: Ensure coreos storage directory exists on Proxmox nodes
   ansible.builtin.file:
-    path: "{{ coreos_storage }}"
+    path: "{{ proxmox_fcos_storage_path }}"
     state: directory
     mode: "0755"
   when: inventory_hostname in groups['proxmox']
 
-- name: Add coreos storage to Proxmox nodes
+- name: Add coreos storage to all Proxmox nodes
   ansible.builtin.command: >
-    pvesm add dir coreos --path {{ coreos_storage }} --content images,snippets
+    pvesm add dir coreos
+    --path {{ proxmox_fcos_storage_path }}
+    --content images,snippets
+    --nodes {{ groups['proxmox'] | join(',') }}
   when: inventory_hostname in groups['proxmox_primary']
   run_once: true
-  register: coreos_storage_add
-  failed_when: "'already defined' not in coreos_storage_add.stderr and coreos_storage_add.rc != 0"
-  changed_when: coreos_storage_add.rc == 0
+  register: proxmox_fcos_storage_path_add
+  failed_when: "'already defined' not in proxmox_fcos_storage_path_add.stderr and proxmox_fcos_storage_path_add.rc != 0"
+  changed_when: proxmox_fcos_storage_path_add.rc == 0

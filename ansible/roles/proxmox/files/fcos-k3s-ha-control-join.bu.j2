@@ -17,7 +17,7 @@ storage:
       mode: 0644
       overwrite: true
       contents:
-        inline: "{{ vm_hostname }}"
+        inline: "{{ proxmox_vm_hostname }}"
   directories:
     - path: /var/lib/tailscale
       mode: 0755

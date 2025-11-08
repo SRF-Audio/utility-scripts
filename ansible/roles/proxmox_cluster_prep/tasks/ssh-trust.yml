@@ -1,26 +1,45 @@
 - name: Pull coachlight-homelab keypair from 1Password
   ansible.builtin.set_fact:
-    clh_public: >-
+    proxmox_cluster_prep_clh_public: >-
       {{ lookup('community.general.onepassword',
                 'coachlight-homelab SSH key',
                 vault='HomeLab',
                 field='public key') }}
+    proxmox_cluster_prep_clh_private: >-
+      {{ lookup('community.general.onepassword',
+                'coachlight-homelab SSH key',
+                vault='HomeLab',
+                field='private key') }}
   delegate_to: localhost
   run_once: true
   no_log: true
 
-- name: Install private key for local machine
-  ansible.builtin.command:
-    argv:
-      - op
-      - read
-      - --out-file
-      - ~/.ssh/coachlight-homelab.pem
-      - "op://HomeLab/coachlight-homelab SSH key/private key?ssh-format=openssh"
-    creates: /home/sfroeber/.ssh/coachlight-homelab.pem
-  register: clh_private_result
+- name: Check if private key file exists
+  ansible.builtin.stat:
+    path: ~/.ssh/coachlight-homelab.pem
+  register: proxmox_cluster_prep_coachlight_key_stat
   delegate_to: localhost
   run_once: true
+
+- name: Read existing private key if present
+  ansible.builtin.slurp:
+    src: ~/.ssh/coachlight-homelab.pem
+  when: proxmox_cluster_prep_coachlight_key_stat.stat.exists
+  register: proxmox_cluster_prep_existing_key_content
+  delegate_to: localhost
+  run_once: true
+  no_log: true
+
+- name: Write private key when missing or content differs
+  ansible.builtin.copy:
+    dest: ~/.ssh/coachlight-homelab.pem
+    content: "{{ proxmox_cluster_prep_clh_private }}"
+    mode: "0600"
+  when: not proxmox_cluster_prep_coachlight_key_stat.stat.exists
+    or (proxmox_cluster_prep_existing_key_content.content | b64decode) != proxmox_cluster_prep_clh_private
+  delegate_to: localhost
+  run_once: true
+  no_log: true
 
 - name: Ensure /root/.ssh exists on every node
   ansible.builtin.file:

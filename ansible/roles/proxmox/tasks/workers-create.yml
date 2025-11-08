@@ -1,0 +1,262 @@
+- name: Set class counts
+  ansible.builtin.set_fact:
+    _w_count: "{{ proxmox_k3s_worker_config.worker.count | int }}"
+    _m_count: "{{ proxmox_k3s_worker_config.media_worker.count | int }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Ensure /var/coreos/snippets exists on primary
+  ansible.builtin.file:
+    path: /var/coreos/snippets
+    state: directory
+    mode: "0755"
+  when: inventory_hostname in groups['proxmox_primary']
+
+- name: Render Butane for workers (localhost)
+  ansible.builtin.template:
+    src: "{{ role_path }}/files/fcos-k3s-worker.bu.j2"
+    dest: "{{ role_path }}/files/{{ proxmox_k3s_worker_prefix_map.worker }}-{{ (item | int) + 1 }}.bu"
+    mode: "0644"
+  vars:
+    proxmox_vm_hostname: "{{ proxmox_k3s_worker_prefix_map.worker }}-{{ (item | int) + 1 }}"
+    vm_ip: "{{ proxmox_k3s_worker_start_ip | ansible.utils.ipaddr('add', (item | int)) }}"
+    vm_mac: "{{ '%s%02x' | format(proxmox_k3s_mac_prefix, (proxmox_k3s_worker_mac_start | int) + (item | int)) }}"
+  loop: "{{ range(0, (_w_count | int)) | list }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Transpile Butane -> Ignition for workers (localhost)
+  ansible.builtin.command: >-
+    butane --pretty --strict
+    {{ role_path }}/files/{{ proxmox_k3s_worker_prefix_map.worker }}-{{ (item | int) + 1 }}.bu
+    --output {{ role_path }}/files/{{ proxmox_k3s_worker_prefix_map.worker }}-{{ (item | int) + 1 }}.ign
+  args:
+    creates: "{{ role_path }}/files/{{ proxmox_k3s_worker_prefix_map.worker }}-{{ (item | int) + 1 }}.ign"
+  loop: "{{ range(0, (_w_count | int)) | list }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Upload worker Ignitions to target nodes
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/{{ proxmox_k3s_worker_prefix_map.worker }}-{{ (item | int) + 1 }}.ign"
+    dest: "/var/coreos/snippets/{{ proxmox_k3s_worker_prefix_map.worker }}-{{ (item | int) + 1 }}.ign"
+    mode: "0600"
+  loop: "{{ range(0, (_w_count | int)) | list }}"
+  delegate_to: "{{ groups['proxmox'][ (item | int) % (groups['proxmox'] | length) ] }}"
+
+- name: Ensure worker VMs exist
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_api_host_ip }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_password }}"
+    node: "{{ groups['proxmox'][ (item | int) % (groups['proxmox'] | length) ] }}"
+    vmid: "{{ proxmox_k3s_worker_vmid_start | int + (item | int) }}"
+    name: "{{ proxmox_k3s_worker_prefix_map.worker }}-{{ (item | int) + 1 }}"
+    memory: "{{ proxmox_k3s_worker_config.worker.memory }}"
+    cores: "{{ proxmox_k3s_worker_config.worker.cpu }}"
+    agent: "enabled=1,fstrim_cloned_disks=1"
+    net:
+      net0: "virtio,bridge={{ proxmox_bridge }},macaddr={{ '%s%02x' | format(proxmox_k3s_mac_prefix, (proxmox_k3s_worker_mac_start | int) + (item | int)) }}"
+    ide:
+      ide2: "{{ proxmox_storage }}:cloudinit"
+    cicustom: "vendor=coreos:snippets/{{ proxmox_k3s_worker_prefix_map.worker }}-{{ (item | int) + 1 }}.ign"
+    state: present
+    validate_certs: false
+  loop: "{{ range(0, (_w_count | int)) | list }}"
+  delegate_to: localhost
+
+- name: Import FCOS qcow2 as scsi0 for workers
+  community.proxmox.proxmox_disk:
+    api_host: "{{ proxmox_api_host_ip }}"
+    api_user: "root@pam"
+    api_password: "{{ proxmox_api_password }}"
+    vmid: "{{ proxmox_k3s_worker_vmid_start | int + (item | int) }}"
+    disk: scsi0
+    storage: "{{ proxmox_storage }}"
+    import_from: "{{ proxmox_fcos_storage_path }}/images/{{ proxmox_fcos_path | basename }}"
+    state: present
+    validate_certs: false
+  loop: "{{ range(0, (_w_count | int)) | list }}"
+  delegate_to: localhost
+
+- name: Set worker boot order to scsi0
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_api_host_ip }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_password }}"
+    node: "{{ groups['proxmox'][ (item | int) % (groups['proxmox'] | length) ] }}"
+    vmid: "{{ proxmox_k3s_worker_vmid_start | int + (item | int) }}"
+    boot: "order=scsi0"
+    state: present
+    update: true
+    validate_certs: false
+  loop: "{{ range(0, (_w_count | int)) | list }}"
+  delegate_to: localhost
+
+- name: Start workers
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_api_host_ip }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_password }}"
+    node: "{{ groups['proxmox'][ (item | int) % (groups['proxmox'] | length) ] }}"
+    vmid: "{{ proxmox_k3s_worker_vmid_start | int + (item | int) }}"
+    state: started
+    validate_certs: false
+  loop: "{{ range(0, (_w_count | int)) | list }}"
+  delegate_to: localhost
+
+- name: Wait until workers report running in Proxmox
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_api_host_ip }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_password }}"
+    node: "{{ proxmox_api_host }}"
+    vmid: "{{ proxmox_k3s_worker_vmid_start | int + (item | int) }}"
+    state: current
+    validate_certs: false
+  register: _w_state
+  until: _w_state.status == 'running'
+  retries: 60
+  delay: 2
+  loop: "{{ range(0, (_w_count | int)) | list }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Clean up worker Butane and Ignition (localhost)
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: >-
+    {{ range(0, (_w_count | int)) | list
+       | map('int')
+       | map('regex_replace', '^(.*)$', role_path ~ '/files/' ~ proxmox_k3s_worker_prefix_map.worker ~ '-' ~ (\\1 + 1) ~ '.bu')
+       + range(0, (_w_count | int)) | list
+       | map('int')
+       | map('regex_replace', '^(.*)$', role_path ~ '/files/' ~ proxmox_k3s_worker_prefix_map.worker ~ '-' ~ (\\1 + 1) ~ '.ign') }}
+  delegate_to: localhost
+  run_once: true
+
+- name: Render Butane for media workers (localhost)
+  ansible.builtin.template:
+    src: "{{ role_path }}/files/fcos-k3s-worker.bu.j2"
+    dest: "{{ role_path }}/files/{{ proxmox_k3s_worker_prefix_map.media_worker }}-{{ (item | int) + 1 }}.bu"
+    mode: "0644"
+  vars:
+    _base: "{{ _w_count | int }}"
+    proxmox_vm_hostname: "{{ proxmox_k3s_worker_prefix_map.media_worker }}-{{ (item | int) + 1 }}"
+    vm_ip: "{{ proxmox_k3s_worker_start_ip | ansible.utils.ipaddr('add', (_base + (item | int))) }}"
+    vm_mac: "{{ '%s%02x' | format(proxmox_k3s_mac_prefix, (proxmox_k3s_worker_mac_start | int) + _base + (item | int)) }}"
+  loop: "{{ range(0, (_m_count | int)) | list }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Transpile Butane -> Ignition for media workers (localhost)
+  ansible.builtin.command: >-
+    butane --pretty --strict
+    {{ role_path }}/files/{{ proxmox_k3s_worker_prefix_map.media_worker }}-{{ (item | int) + 1 }}.bu
+    --output {{ role_path }}/files/{{ proxmox_k3s_worker_prefix_map.media_worker }}-{{ (item | int) + 1 }}.ign
+  args:
+    creates: "{{ role_path }}/files/{{ proxmox_k3s_worker_prefix_map.media_worker }}-{{ (item | int) + 1 }}.ign"
+  loop: "{{ range(0, (_m_count | int)) | list }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Upload media worker Ignitions to target nodes
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/{{ proxmox_k3s_worker_prefix_map.media_worker }}-{{ (item | int) + 1 }}.ign"
+    dest: "/var/coreos/snippets/{{ proxmox_k3s_worker_prefix_map.media_worker }}-{{ (item | int) + 1 }}.ign"
+    mode: "0600"
+  loop: "{{ range(0, (_m_count | int)) | list }}"
+  delegate_to: "{{ groups['proxmox'][ ((_w_count | int) + (item | int)) % (groups['proxmox'] | length) ] }}"
+
+- name: Ensure media worker VMs exist
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_api_host_ip }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_password }}"
+    node: "{{ groups['proxmox'][ ((_w_count | int) + (item | int)) % (groups['proxmox'] | length) ] }}"
+    vmid: "{{ proxmox_k3s_worker_vmid_start | int + (_w_count | int) + (item | int) }}"
+    name: "{{ proxmox_k3s_worker_prefix_map.media_worker }}-{{ (item | int) + 1 }}"
+    memory: "{{ proxmox_k3s_worker_config.media_worker.memory }}"
+    cores: "{{ proxmox_k3s_worker_config.media_worker.cpu }}"
+    agent: "enabled=1,fstrim_cloned_disks=1"
+    net:
+      net0: "virtio,bridge={{ proxmox_bridge }},macaddr={{ '%s%02x' | format(proxmox_k3s_mac_prefix, (proxmox_k3s_worker_mac_start | int) + (_w_count | int) + (item | int)) }}"
+    ide:
+      ide2: "{{ proxmox_storage }}:cloudinit"
+    cicustom: "vendor=coreos:snippets/{{ proxmox_k3s_worker_prefix_map.media_worker }}-{{ (item | int) + 1 }}.ign"
+    state: present
+    validate_certs: false
+  loop: "{{ range(0, (_m_count | int)) | list }}"
+  delegate_to: localhost
+
+- name: Import FCOS qcow2 as scsi0 for media workers
+  community.proxmox.proxmox_disk:
+    api_host: "{{ proxmox_api_host_ip }}"
+    api_user: "root@pam"
+    api_password: "{{ proxmox_api_password }}"
+    vmid: "{{ proxmox_k3s_worker_vmid_start | int + (_w_count | int) + (item | int) }}"
+    disk: scsi0
+    storage: "{{ proxmox_storage }}"
+    import_from: "{{ proxmox_fcos_storage_path }}/images/{{ proxmox_fcos_path | basename }}"
+    state: present
+    validate_certs: false
+  loop: "{{ range(0, (_m_count | int)) | list }}"
+  delegate_to: localhost
+
+- name: Set media worker boot order to scsi0
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_api_host_ip }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_password }}"
+    node: "{{ groups['proxmox'][ ((_w_count | int) + (item | int)) % (groups['proxmox'] | length) ] }}"
+    vmid: "{{ proxmox_k3s_worker_vmid_start | int + (_w_count | int) + (item | int) }}"
+    boot: "order=scsi0"
+    state: present
+    update: true
+    validate_certs: false
+  loop: "{{ range(0, (_m_count | int)) | list }}"
+  delegate_to: localhost
+
+- name: Start media workers
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_api_host_ip }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_password }}"
+    node: "{{ groups['proxmox'][ ((_w_count | int) + (item | int)) % (groups['proxmox'] | length) ] }}"
+    vmid: "{{ proxmox_k3s_worker_vmid_start | int + (_w_count | int) + (item | int) }}"
+    state: started
+    validate_certs: false
+  loop: "{{ range(0, (_m_count | int)) | list }}"
+  delegate_to: localhost
+
+- name: Wait until media workers report running in Proxmox
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_api_host_ip }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_password }}"
+    node: "{{ proxmox_api_host }}"
+    vmid: "{{ proxmox_k3s_worker_vmid_start | int + (_w_count | int) + (item | int) }}"
+    state: current
+    validate_certs: false
+  register: _mw_state
+  until: _mw_state.status == 'running'
+  retries: 60
+  delay: 2
+  loop: "{{ range(0, (_m_count | int)) | list }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Clean up media worker Butane and Ignition (localhost)
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: >-
+    {{ range(0, (_m_count | int)) | list
+       | map('int')
+       | map('regex_replace', '^(.*)$', role_path ~ '/files/' ~ proxmox_k3s_worker_prefix_map.media_worker ~ '-' ~ (\\1 + 1) ~ '.bu')
+       + range(0, (_m_count | int)) | list
+       | map('int')
+       | map('regex_replace', '^(.*)$', role_path ~ '/files/' ~ proxmox_k3s_worker_prefix_map.media_worker ~ '-' ~ (\\1 + 1) ~ '.ign') }}
+  delegate_to: localhost
+  run_once: true

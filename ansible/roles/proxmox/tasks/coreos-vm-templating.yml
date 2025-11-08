@@ -4,17 +4,18 @@
     state: directory
     mode: "0755"
   loop:
-    - "{{ coreos_storage }}/images"
-    - "{{ coreos_storage }}/snippets"
+    - "{{ proxmox_fcos_storage_path }}/images"
+    - "{{ proxmox_fcos_storage_path }}/snippets"
   when: inventory_hostname in groups['proxmox_primary']
 
-- name: Upload FCOS qcow2 to primary node storage
+- name: Upload FCOS qcow2 to each node's coreos storage
   ansible.builtin.copy:
-    src: "{{ fcos_path }}"
-    dest: "{{ coreos_storage }}/images/{{ hostvars['localhost']['fcos_find'].files[0].path | basename }}"
+    src: "{{ proxmox_fcos_path }}"
+    dest: "{{ proxmox_fcos_storage_path }}/images/{{ proxmox_fcos_path | basename }}"
     mode: "0644"
-  become: true
-  when: inventory_hostname == groups['proxmox_primary'][0]
+  loop: "{{ groups['proxmox'] }}"
+  delegate_to: "{{ item }}"
+  run_once: true
 
 - name: Ensure Butane is installed (localhost)
   ansible.builtin.package:
@@ -32,7 +33,7 @@
   delegate_to: localhost
   run_once: true
   vars:
-    vm_hostname: k3s-cp-1
+    proxmox_vm_hostname: k3s-cp-1
     vm_ip: "{{ proxmox_k3s_control_plane_start_ip }}"
 
 - name: Transpile first control plane Butane -> Ignition (localhost)
@@ -53,7 +54,7 @@
   delegate_to: localhost
   run_once: true
   vars:
-    vm_hostname: "k3s-cp-{{ item }}"
+    proxmox_vm_hostname: "k3s-cp-{{ item }}"
     vm_ip: >-
       {{ proxmox_k3s_control_plane_start_ip.split('.')[:-1] | join('.') }}.
       {{ (proxmox_k3s_control_plane_start_ip.split('.')[-1] | int) + (item | int - 1) }}
@@ -80,7 +81,7 @@
         dest: "{{ role_path }}/files/{{ item.name }}.bu"
         mode: "0644"
       vars:
-        vm_hostname: "{{ item.name }}"
+        proxmox_vm_hostname: "{{ item.name }}"
         vm_ip: >-
           {{ proxmox_k3s_control_plane_start_ip.split('.')[:-1] | join('.') }}.
           {{ (proxmox_k3s_control_plane_start_ip.split('.')[-1] | int) + (item.ip_offset | int) }}
