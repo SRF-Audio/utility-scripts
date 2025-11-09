@@ -1,4 +1,6 @@
 # - name: Playbook to set up desktops and laptops
 #   import_playbook: playbooks/workstations.yml
+# - name: Playbook to prepare newly installed Proxmox nodes for clustering
+#   import_playbook: playbooks/proxmox.yml
 - name: Playbook to prepare newly installed Proxmox nodes for clustering
-  import_playbook: playbooks/proxmox.yml
+  import_playbook: playbooks/k3s-cluster-setup.yml

@@ -1,0 +1,40 @@
+- name: Assert inputs
+  ansible.builtin.assert:
+    that:
+      - (file_publish_targets | length) > 0
+      - (file_publish_items | length) > 0
+
+- name: Ensure destination directories exist on targets
+  ansible.builtin.file:
+    path: "{{ item.1.dest | dirname }}"
+    state: directory
+    mode: "0755"
+  loop: "{{ file_publish_targets | product(file_publish_items) | list }}"
+  loop_control:
+    label: "{{ item.0 }} -> {{ item.1.dest | dirname }}"
+  delegate_to: "{{ item.0 }}"
+
+- name: Publish files to targets
+  ansible.builtin.copy:
+    src: "{{ item.1.src }}"
+    dest: "{{ item.1.dest }}"
+    mode: "{{ item.1.mode | default(file_publish_default_mode | default(omit)) }}"
+    owner: "{{ item.1.owner | default(omit) }}"
+    group: "{{ item.1.group | default(omit) }}"
+  loop: "{{ file_publish_targets | product(file_publish_items) | list }}"
+  loop_control:
+    label: "{{ item.0 }} <- {{ item.1.src }} -> {{ item.1.dest }}"
+  delegate_to: "{{ item.0 }}"
+
+- name: Publish outputs
+  ansible.builtin.set_fact:
+    file_publish_outputs:
+      targets: "{{ file_publish_targets }}"
+      items: "{{ file_publish_items }}"
+
+- name: Write outputs to artifact file
+  ansible.builtin.copy:
+    content: "{{ file_publish_outputs | to_nice_json }}"
+    dest: "{{ file_publish_artifact_path }}"
+    mode: "0644"
+  when: file_publish_artifact_path is defined

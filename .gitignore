@@ -2,3 +2,4 @@ ansible/.vault_password.txt
 .lock
 *.bu
 *.ign
+ansible/playbooks/.artifacts/*
