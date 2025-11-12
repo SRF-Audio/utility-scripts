@@ -4,11 +4,3 @@
   ansible.builtin.import_tasks: storage.yml
 - name: Import Proxmox module prerequisites
   ansible.builtin.import_tasks: proxmox-module-prereqs.yml
-- name: Import CoreOS download tasks
-  ansible.builtin.import_tasks: coreos-download.yml
-- name: Create first control-plane VM (cp1)
-  ansible.builtin.import_tasks: control-plane-1-create.yml
-- name: Create additional control-plane VMs
-  ansible.builtin.import_tasks: control-planes-2-3-create-join.yml
-- name: Create worker VMs
-  ansible.builtin.import_tasks: workers-create.yml

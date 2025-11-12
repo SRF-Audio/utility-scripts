@@ -1,0 +1,128 @@
+# roles/image_fetch/tasks/main.yml
+- name: Ensure destination and artifacts dirs exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ image_fetch_dest_dir }}"
+    - "{{ image_fetch_artifact_path | dirname }}"
+
+- name: Fetch FCOS stream manifest
+  ansible.builtin.uri:
+    url: "{{ image_fetch_manifest_url }}"
+    method: GET
+    return_content: true
+    status_code: 200
+  register: image_fetch_manifest_http
+
+- name: Parse manifest JSON
+  ansible.builtin.set_fact:
+    image_fetch_manifest: "{{ image_fetch_manifest_http.json }}"
+
+- name: Resolve artifact object
+  ansible.builtin.set_fact:
+    image_fetch_artifact_obj: >-
+      {{ image_fetch_manifest.architectures[image_fetch_arch]
+         .artifacts[image_fetch_platform]
+         .formats[image_fetch_format] }}
+
+- name: Resolve disk and release
+  ansible.builtin.set_fact:
+    image_fetch_disk: >-
+      {{ image_fetch_manifest.architectures[image_fetch_arch]
+         .artifacts[image_fetch_platform]
+         .formats[image_fetch_format].disk | default({}) }}
+    image_fetch_release: >-
+      {{ image_fetch_manifest.architectures[image_fetch_arch]
+         .artifacts[image_fetch_platform]
+         .release | default('') }}
+
+- name: Resolve filename
+  ansible.builtin.set_fact:
+    image_fetch_filename: >-
+      {{ image_fetch_filename_override
+         | default(image_fetch_disk.location | basename) }}
+
+- name: Resolve destination path
+  ansible.builtin.set_fact:
+    image_fetch_dest_path: "{{ image_fetch_dest_dir.rstrip('/') ~ '/' ~ image_fetch_filename }}"
+
+- name: Download CoreOS artifact
+  ansible.builtin.get_url:
+    url: "{{ image_fetch_disk.location }}"
+    dest: "{{ image_fetch_dest_path }}"
+    checksum: "{{ ('sha256:' ~ image_fetch_disk.sha256) if (image_fetch_disk.sha256 is defined) else omit }}"
+    mode: "0644"
+  register: image_fetch_download
+
+- name: Stat compressed artifact
+  ansible.builtin.stat:
+    path: "{{ image_fetch_dest_path }}"
+  register: image_fetch_stat_compressed
+
+- name: Decompress .xz
+  when:
+    - image_fetch_decompress
+    - image_fetch_dest_path.endswith('.xz')
+  ansible.builtin.command:
+    cmd: "xz -d -k -T0 -f {{ image_fetch_dest_path }}"
+    creates: "{{ image_fetch_dest_path | regex_replace('\\.xz$', '') }}"
+  register: image_fetch_decomp_xz
+  changed_when: image_fetch_decomp_xz.rc == 0
+
+- name: Decompress .gz
+  when:
+    - image_fetch_decompress
+    - image_fetch_dest_path.endswith('.gz')
+  ansible.builtin.command:
+    cmd: "gzip -d -k -f {{ image_fetch_dest_path }}"
+    creates: "{{ image_fetch_dest_path | regex_replace('\\.gz$', '') }}"
+  register: image_fetch_decomp_gz
+  changed_when: image_fetch_decomp_gz.rc == 0
+
+- name: Determine uncompressed path
+  when: image_fetch_decompress
+  ansible.builtin.set_fact:
+    image_fetch_uncompressed_path: >-
+      {{ image_fetch_dest_path
+         | regex_replace('\.xz$', '')
+         | regex_replace('\.gz$', '') }}
+
+- name: Stat uncompressed artifact
+  when: image_fetch_decompress
+  ansible.builtin.stat:
+    path: "{{ image_fetch_uncompressed_path }}"
+  register: image_fetch_stat_uncompressed
+
+- name: Publish outputs
+  ansible.builtin.set_fact:
+    image_fetch_outputs:
+      stream: "{{ image_fetch_stream }}"
+      arch: "{{ image_fetch_arch }}"
+      platform: "{{ image_fetch_platform }}"
+      format: "{{ image_fetch_format }}"
+      release: "{{ image_fetch_release }}"
+      source:
+        url: "{{ image_fetch_disk.location }}"
+        signature_url: "{{ image_fetch_disk.signature | default(omit) }}"
+        sha256: "{{ image_fetch_disk.sha256 | default(omit) }}"
+        uncompressed_sha256: "{{ image_fetch_disk['uncompressed-sha256'] | default(omit) }}"
+        last_modified: "{{ image_fetch_manifest.metadata['last-modified'] | default(omit) }}"
+      files:
+        compressed:
+          path: "{{ image_fetch_dest_path }}"
+          name: "{{ image_fetch_dest_path | basename }}"
+          size_bytes: "{{ image_fetch_stat_compressed.stat.size | default(0) }}"
+        uncompressed: >-
+          {{ {
+               'path': image_fetch_uncompressed_path,
+               'name': (image_fetch_uncompressed_path | basename),
+               'size_bytes': (image_fetch_stat_uncompressed.stat.size | default(0))
+             } if image_fetch_decompress else omit }}
+
+- name: Write outputs artifact
+  ansible.builtin.copy:
+    dest: "{{ image_fetch_artifact_path }}"
+    mode: "0644"
+    content: "{{ image_fetch_outputs | to_nice_json }}"

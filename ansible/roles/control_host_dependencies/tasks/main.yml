@@ -1,0 +1,13 @@
+- name: Ensure pip dependencies are present
+  ansible.builtin.pip:
+    name: "{{ control_host_dependencies_pip_packages }}"
+    state: present
+    executable: "{{ control_host_dependencies_python_executable }}"
+  when: control_host_dependencies_pip_packages | length > 0
+
+- name: Ensure system packages are installed
+  ansible.builtin.package:
+    name: "{{ control_host_dependencies_system_packages }}"
+    state: present
+  when: control_host_dependencies_system_packages | length > 0
+  become: true
