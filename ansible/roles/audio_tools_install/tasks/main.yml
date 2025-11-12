@@ -1,0 +1,25 @@
+- name: Install core audio stack for Fedora (PipeWire + WirePlumber)
+  ansible.builtin.dnf:
+    name:
+      # Core PipeWire stack
+      - pipewire
+      - pipewire-alsa
+      - pipewire-pulseaudio
+      - pipewire-utils
+      # Session manager
+      - wireplumber
+      # ALSA + Pulse CLIs (for MIDI/audio troubleshooting)
+      - alsa-utils
+      - pulseaudio-utils
+      # Real-time helper (commonly installed by default; keep explicit)
+      - rtkit
+      # Your scoring app
+      - musescore
+    state: present
+  become: true
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Install Flatpak Audio Applications
+  community.general.flatpak:
+    name:
+      - com.bitwig.BitwigStudio
