@@ -6,6 +6,7 @@
       - pipewire-alsa
       - pipewire-pulseaudio
       - pipewire-utils
+      - qpwgraph
       # Session manager
       - wireplumber
       # ALSA + Pulse CLIs (for MIDI/audio troubleshooting)
