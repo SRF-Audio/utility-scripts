@@ -41,7 +41,7 @@ storage:
           write-kubeconfig-mode: "0640"
           write-kubeconfig-group: wheel
           kubelet-arg:
-            - resolv-conf=/run/systemd/resolve/stub-resolv.conf
+            - resolv-conf=/run/systemd/resolve/resolv.conf
 
     # Tailscale repo (GPG key written by firstboot ExecStartPre)
     - path: /etc/yum.repos.d/tailscale.repo

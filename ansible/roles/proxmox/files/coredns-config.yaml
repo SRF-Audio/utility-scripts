@@ -1,0 +1,23 @@
+# TODO: Add updating this as part of playbook
+# kubectl apply -f k3s/coredns-config.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns
+  namespace: kube-system
+data:
+  Corefile: |
+    .:53 {
+        errors
+        health
+        kubernetes cluster.local in-addr.arpa ip6.arpa {
+            pods insecure
+            fallthrough in-addr.arpa ip6.arpa
+            ttl 30
+        }
+        forward . 45.90.28.0 45.90.30.0
+        cache 30
+        loop
+        reload
+        loadbalance
+    }
