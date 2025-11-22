@@ -4,7 +4,11 @@
 
   roles:
     - role: control_host_dependencies
+    - role: coreos_cli_install
     - role: coreos_image_fetch
+    - role: ignition_renderer
+      vars:
+        ignition_renderer_cluster_layout: "{{ proxmox_cluster_layout }}"
 
 - name: Copy Fedora CoreOS image into Proxmox shared storage
   hosts: coachlight-homelab-1

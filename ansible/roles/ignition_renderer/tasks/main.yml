@@ -1,0 +1,88 @@
+- name: Assert ignition_renderer inputs are defined
+  ansible.builtin.assert:
+    that:
+      - ignition_renderer_cluster_layout is defined
+      - ignition_renderer_cluster_layout | length > 0
+      - '"control_planes" in ignition_renderer_cluster_layout'
+      - '"workers" in ignition_renderer_cluster_layout'
+    fail_msg: ignition_renderer_cluster_layout must be defined and contain control_planes and workers.
+
+- name: Ensure Butane CLI {{ ignition_renderer_butane_cli_name }} is installed
+  ansible.builtin.include_role:
+    name: butane_install
+  vars:
+    butane_install_cli_name: "{{ ignition_renderer_butane_cli_name }}"
+    butane_install_artifacts_path: "{{ ignition_renderer_artifacts_path }}"
+
+- name: Ensure ignition output directory exists at {{ ignition_renderer_output_dir }}
+  ansible.builtin.file:
+    path: "{{ ignition_renderer_output_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Render Butane templates for control plane nodes
+  ansible.builtin.include_role:
+    name: template_renderer
+  vars:
+    template_renderer_src: "{{ ignition_renderer_template_src }}"
+    template_renderer_dest: "{{ ignition_renderer_output_dir }}/{{ item.name }}.bu"
+    template_renderer_vars:
+      proxmox_vm_hostname: "{{ item.name }}"
+      proxmox_k3s_role: "{{ item.role }}"
+  loop: "{{ ignition_renderer_cluster_layout.control_planes }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Render Butane templates for worker nodes
+  ansible.builtin.include_role:
+    name: template_renderer
+  vars:
+    template_renderer_src: "{{ ignition_renderer_template_src }}"
+    template_renderer_dest: "{{ ignition_renderer_output_dir }}/{{ item.name }}.bu"
+    template_renderer_vars:
+      proxmox_vm_hostname: "{{ item.name }}"
+      proxmox_k3s_role: "worker"
+  loop: "{{ ignition_renderer_cluster_layout.workers }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Render ignition JSON for control plane nodes using Butane
+  ansible.builtin.command:
+    cmd: >
+      {{ ignition_renderer_butane_cli_name }}
+      --strict
+      --pretty
+      -o {{ ignition_renderer_output_dir }}/{{ item.name }}.ign
+      {{ ignition_renderer_output_dir }}/{{ item.name }}.bu
+    creates: "{{ ignition_renderer_output_dir }}/{{ item.name }}.ign"
+  loop: "{{ ignition_renderer_cluster_layout.control_planes }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: ignition_renderer_control_plane_butane_result
+
+- name: Render ignition JSON for worker nodes using Butane
+  ansible.builtin.command:
+    cmd: >
+      {{ ignition_renderer_butane_cli_name }}
+      --strict
+      --pretty
+      -o {{ ignition_renderer_output_dir }}/{{ item.name }}.ign
+      {{ ignition_renderer_output_dir }}/{{ item.name }}.bu
+    creates: "{{ ignition_renderer_output_dir }}/{{ item.name }}.ign"
+  loop: "{{ ignition_renderer_cluster_layout.workers }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: ignition_renderer_worker_butane_result
+
+- name: Record ignition_renderer role artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    role_artifacts_path: "{{ ignition_renderer_artifacts_path }}"
+    # noqa: var-naming
+    calling_role_name: "ignition_renderer"
+    calling_role_artifacts_inputs:
+      ignition_renderer_template_src: "{{ ignition_renderer_template_src }}"
+      ignition_renderer_output_dir: "{{ ignition_renderer_output_dir }}"
+      ignition_renderer_cluster_layout: "{{ ignition_renderer_cluster_layout }}"
+      ignition_renderer_butane_cli_name: "{{ ignition_renderer_butane_cli_name }}"

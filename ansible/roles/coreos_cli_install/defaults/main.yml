@@ -1,0 +1,1 @@
+coreos_cli_install_artifacts_path: "{{ artifacts_path }}"

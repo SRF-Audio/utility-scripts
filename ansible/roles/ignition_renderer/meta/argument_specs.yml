@@ -1,0 +1,23 @@
+argument_specs:
+  main:
+    options:
+      ignition_renderer_cluster_layout:
+        type: dict
+        required: true
+        description: Cluster layout containing control_planes and workers definitions.
+      ignition_renderer_artifacts_path:
+        type: str
+        required: false
+        description: Base artifacts path for ignition_renderer role outputs.
+      ignition_renderer_template_src:
+        type: str
+        required: false
+        description: Source Butane Jinja2 template for node ignition configs.
+      ignition_renderer_output_dir:
+        type: str
+        required: false
+        description: Directory where rendered .bu and .ign files are written.
+      ignition_renderer_butane_cli_name:
+        type: str
+        required: false
+        description: Name of the Butane CLI binary to use when rendering ignition.

@@ -1,6 +1,10 @@
 variant: {{ proxmox_fcos_variant }}
 version: {{ proxmox_fcos_version }}
 
+{% set is_control_plane = proxmox_k3s_role in ['bootstrap', 'join'] %}
+{% set is_bootstrap = proxmox_k3s_role == 'bootstrap' %}
+{% set is_worker = proxmox_k3s_role == 'worker' %}
+
 passwd:
   users:
     - name: sfroeber
@@ -19,7 +23,7 @@ storage:
       contents:
         inline: "{{ proxmox_vm_hostname }}"
 
-    # systemd-resolved + NextDNS DoT
+{% if is_control_plane %}
     - path: /etc/systemd/resolved.conf.d/nextdns.conf
       mode: 0644
       overwrite: true
@@ -32,7 +36,6 @@ storage:
           DNS=2a07:a8c1::#e3698d.dns.nextdns.io
           DNSOverTLS=yes
 
-    # k3s server config: readable kubeconfig for wheel; kubelet uses stub resolv.conf
     - path: /etc/rancher/k3s/config.yaml
       mode: 0644
       overwrite: true
@@ -42,8 +45,8 @@ storage:
           write-kubeconfig-group: wheel
           kubelet-arg:
             - resolv-conf=/run/systemd/resolve/resolv.conf
+{% endif %}
 
-    # Tailscale repo (GPG key written by firstboot ExecStartPre)
     - path: /etc/yum.repos.d/tailscale.repo
       mode: 0644
       overwrite: true
@@ -58,7 +61,6 @@ storage:
           gpgcheck=1
           gpgkey=file:///etc/pki/rpm-gpg/tailscale.gpg
 
-    # Passwordless sudo for your user
     - path: /etc/sudoers.d/010-sfroeber
       mode: 0440
       overwrite: true
@@ -66,13 +68,14 @@ storage:
         inline: |
           sfroeber ALL=(ALL) NOPASSWD: ALL
 
-    # QoL: make kubectl use the k3s admin kubeconfig once it exists
+{% if is_control_plane %}
     - path: /etc/profile.d/k3s.sh
       mode: 0644
       overwrite: true
       contents:
         inline: |
           export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+{% endif %}
 
   directories:
     - path: /etc/systemd/resolved.conf.d
@@ -90,21 +93,20 @@ storage:
 
 systemd:
   units:
-    # Keep these masked/disabled
     - name: firewalld.service
       mask: true
       enabled: false
+
     - name: serial-getty@ttyS0.service
       mask: true
       enabled: false
 
-    # Online gating for early fetches
     - name: NetworkManager-wait-online.service
       enabled: true
+
     - name: systemd-resolved.service
       enabled: true
 
-    # One-time OS layering for qemu-guest-agent + tailscale, then reboot
     - name: rpm-ostree-firstboot.service
       enabled: true
       contents: |
@@ -117,11 +119,8 @@ systemd:
 
         [Service]
         Type=oneshot
-        # Ensure real network + DNS before any downloads
         ExecStartPre=/usr/bin/bash -lc 'for i in {1..60}; do ping -c1 -W1 1.1.1.1 >/dev/null 2>&1 && getent hosts pkgs.tailscale.com >/dev/null 2>&1 && exit 0; sleep 1; done; echo "network/dns not ready"; exit 1'
-        # Fetch Tailscale GPG key (idempotent)
         ExecStartPre=/usr/bin/bash -lc '[ -f /etc/pki/rpm-gpg/tailscale.gpg ] || (curl -fsSL https://pkgs.tailscale.com/stable/fedora/repo.gpg -o /etc/pki/rpm-gpg/tailscale.gpg && chmod 0644 /etc/pki/rpm-gpg/tailscale.gpg)'
-        # Layer required RPMs
         ExecStart=/usr/bin/rpm-ostree install --allow-inactive --assumeyes qemu-guest-agent tailscale
         ExecStart=/usr/bin/touch /var/lib/rpm-ostree-firstboot.stamp
         ExecStart=/usr/bin/systemctl reboot
@@ -129,12 +128,11 @@ systemd:
         [Install]
         WantedBy=multi-user.target
 
-    # Install k3s server once, AFTER layering + reboot
     - name: install-k3s.service
       enabled: true
       contents: |
         [Unit]
-        Description=Install k3s server (first server, HA bootstrap)
+        Description=Install k3s node
         Wants=network-online.target NetworkManager-wait-online.service
         After=network-online.target NetworkManager-wait-online.service rpm-ostree-firstboot.service
         ConditionPathExists=/var/lib/rpm-ostree-firstboot.stamp
@@ -142,11 +140,15 @@ systemd:
 
         [Service]
         Type=oneshot
-        # Protect against early DoT hiccups by requiring DNS resolution before install
         ExecStartPre=/usr/bin/bash -lc 'for i in {1..60}; do getent hosts get.k3s.io >/dev/null 2>&1 && exit 0; sleep 1; done; echo "dns not resolving get.k3s.io"; exit 1'
+{% if is_bootstrap %}
         Environment="INSTALL_K3S_EXEC=server --disable traefik --cluster-init --token {{ proxmox_k3s_cluster_token }}"
+{% elif is_control_plane %}
+        Environment="INSTALL_K3S_EXEC=server --disable traefik --server https://{{ proxmox_k3s_control_plane_start_ip }}:6443 --token {{ proxmox_k3s_cluster_token }}"
+{% elif is_worker %}
+        Environment="INSTALL_K3S_EXEC=agent --server https://{{ proxmox_k3s_control_plane_start_ip }}:6443 --token {{ proxmox_k3s_cluster_token }}"
+{% endif %}
         ExecStart=/usr/bin/sh -c 'curl -sfL https://get.k3s.io | sh -'
-        # Mark complete and reboot unconditionally so staged k3s-selinux is active
         ExecStart=/usr/bin/touch /var/lib/install-k3s.stamp
         ExecStart=/usr/bin/systemctl reboot
         RemainAfterExit=yes
@@ -154,13 +156,12 @@ systemd:
         [Install]
         WantedBy=multi-user.target
 
-    # Enable services created by layering
     - name: qemu-guest-agent.service
       enabled: true
+
     - name: tailscaled.service
       enabled: true
 
-    # One-time Tailscale auth after tailscaled is running
     - name: tailscale-up.service
       enabled: true
       contents: |
@@ -176,7 +177,7 @@ systemd:
         Type=oneshot
         ExecStartPre=/usr/bin/bash -lc 'for i in {1..30}; do systemctl is-active --quiet tailscaled && exit 0; sleep 1; done; echo "tailscaled not active"; exit 1'
         Environment="TS_AUTHKEY={{ lookup('community.general.onepassword', 'Tailscale', field='coachlight-homelab auth key', vault='HomeLab') }}"
-        ExecStart=/usr/bin/tailscale up --ssh --authkey=${TS_AUTHKEY} --hostname=%H --accept-routes=true --force-reauth=false --operator=sfroeber --advertise-tags=tag:cluster-control,tag:server-utility
+        ExecStart=/usr/bin/tailscale up --ssh --authkey=${TS_AUTHKEY} --hostname=%H --accept-routes=true --force-reauth=false --operator=sfroeber{% if tailscale_advertise_tags | default([]) | length > 0 %} --advertise-tags={{ tailscale_advertise_tags | join(',') }}{% endif %}
         ExecStartPost=/usr/bin/touch /var/lib/tailscale/.authed
         Restart=on-failure
         RestartSec=10s

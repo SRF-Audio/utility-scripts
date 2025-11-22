@@ -1,0 +1,37 @@
+# roles/butane_install/tasks/main.yml
+- name: Assert butane_install inputs are defined
+  ansible.builtin.assert:
+    that:
+      - butane_install_cli_name is defined
+      - butane_install_cli_name | length > 0
+      - butane_install_package_name is defined
+      - butane_install_package_name | length > 0
+    fail_msg: butane_install_cli_name and butane_install_package_name must be defined and non-empty.
+
+- name: Test for existing Butane CLI {{ butane_install_cli_name }}
+  ansible.builtin.include_role:
+    name: cli_tester
+  vars:
+    cli_tester_cli_name: "{{ butane_install_cli_name }}"
+    cli_tester_artifacts_path: "{{ butane_install_artifacts_path }}"
+
+- name: Ensure Installation of {{ butane_install_package_name }}
+  ansible.builtin.package:
+    name: "{{ butane_install_package_name }}"
+    state: present
+  become: true
+  when: not cli_tester_is_cli_installed | default(false)
+  register: butane_install_package_result
+
+- name: Record butane_install role artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    role_artifacts_path: "{{ butane_install_artifacts_path }}"
+    # noqa: var-naming
+    calling_role_name: "butane_install"
+    calling_role_artifacts_inputs:
+      butane_install_cli_name: "{{ butane_install_cli_name }}"
+      butane_install_package_name: "{{ butane_install_package_name }}"
+      butane_install_package_changed: "{{ butane_install_package_result.changed | default(false) }}"
+      butane_install_is_cli_installed: "{{ cli_tester_is_cli_installed | default(false) }}"

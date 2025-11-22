@@ -1,0 +1,2 @@
+cli_tester_cli_name: ""
+cli_tester_artifacts_path: "{{ artifacts_path }}"

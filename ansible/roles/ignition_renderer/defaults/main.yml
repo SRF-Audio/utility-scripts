@@ -1,0 +1,4 @@
+ignition_renderer_artifacts_path: "{{ artifacts_path }}"
+ignition_renderer_template_src: "fcos-k3s-node.bu.j2"
+ignition_renderer_output_dir: "{{ ignition_renderer_artifacts_path }}/ignitions"
+ignition_renderer_butane_cli_name: "butane"

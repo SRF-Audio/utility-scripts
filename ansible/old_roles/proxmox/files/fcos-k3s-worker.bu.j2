@@ -99,7 +99,7 @@ systemd:
         [Service]
         Type=oneshot
         Environment="TS_AUTHKEY={{ lookup('community.general.onepassword', 'Tailscale', field='coachlight-homelab auth key', vault='HomeLab') }}"
-        ExecStart=/usr/bin/podman exec tailscaled tailscale up --ssh --hostname=%H
+        ExecStart=/usr/bin/podman exec tailscaled tailscale up --ssh --hostname=%H --authkey=${TS_AUTHKEY} --advertise-tags=tag:cluster-worker,tag:server-utility
         ExecStartPost=/usr/bin/touch /var/lib/tailscale/.authed
 
         [Install]

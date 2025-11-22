@@ -1,0 +1,3 @@
+tailscale_advertise_tags:
+  - tag:cluster-control
+  - tag:server-utility

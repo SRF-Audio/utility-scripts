@@ -1,0 +1,11 @@
+argument_specs:
+  main:
+    options:
+      cli_tester_cli_name:
+        type: str
+        required: true
+        description: Name of the CLI binary to test for.
+      cli_tester_artifacts_path:
+        type: str
+        required: true
+        description: Base artifacts path for cli_tester role outputs.

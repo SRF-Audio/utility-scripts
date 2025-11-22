@@ -1,0 +1,56 @@
+- name: Check for coreos-installer via cli_tester
+  ansible.builtin.include_role:
+    name: cli_tester
+  vars:
+    cli_tester_cli_name: coreos-installer
+    cli_tester_artifacts_path: "{{ coreos_cli_install_artifacts_path }}"
+
+- name: Gather minimal facts needed for os_family
+  ansible.builtin.setup:
+    filter:
+      - ansible_os_family
+
+- name: Install coreos-installer when not present
+  when: not cli_tester_is_cli_installed | default(false)
+  block:
+    - name: Install coreos-installer on RedHat family
+      ansible.builtin.dnf:
+        name: coreos-installer
+        state: present
+      become: true
+      when: ansible_facts['os_family'] == 'RedHat'
+
+    - name: Install coreos-installer on Debian family
+      ansible.builtin.apt:
+        name: coreos-installer
+        state: present
+      become: true
+      when: ansible_facts['os_family'] == 'Debian'
+
+    - name: Attempt to install coreos-installer on unsupported OS family
+      when: ansible_facts['os_family'] not in ['RedHat', 'Debian']
+      block:
+        - name: Try installing coreos-installer via package manager
+          ansible.builtin.package:
+            name: coreos-installer
+            state: present
+          become: true
+          failed_when: false
+          register: coreos_cli_install_package_attempt
+
+        - name: Fail if coreos-installer installation attempt failed
+          ansible.builtin.fail:
+            msg: "Failed to install coreos-installer via package manager on unsupported OS family {{ ansible_facts['os_family'] }}."
+          when: coreos_cli_install_package_attempt.rc != 0
+
+- name: Record coreos_cli_install role artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    role_artifacts_path: "{{ coreos_cli_install_artifacts_path }}"
+    # noqa: var-naming
+    calling_role_name: "coreos_cli_install"
+    calling_role_artifacts_inputs:
+      is_cli_installed: "{{ cli_tester_is_cli_installed | default(false) }}"
+      cli_path: "{{ cli_tester_cli_binary_check.stdout | default('') }}"
+      os_family: "{{ ansible_facts['os_family'] }}"

@@ -1,0 +1,15 @@
+argument_specs:
+  main:
+    options:
+      butane_install_cli_name:
+        type: str
+        required: false
+        description: Name of the Butane CLI binary to test for.
+      butane_install_package_name:
+        type: str
+        required: false
+        description: Package name used to install Butane.
+      butane_install_artifacts_path:
+        type: str
+        required: false
+        description: Base artifacts path for butane_install role outputs.

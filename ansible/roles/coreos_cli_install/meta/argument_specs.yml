@@ -1,0 +1,7 @@
+argument_specs:
+  main:
+    options:
+      coreos_cli_install_artifacts_path:
+        type: str
+        required: true
+        description: Base artifacts path for coreos_cli_install role outputs.

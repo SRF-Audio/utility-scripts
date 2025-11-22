@@ -1,0 +1,60 @@
+# roles/cli_tester/tasks/main.yml
+- name: Ensure 'which' is installed
+  block:
+    - name: Test for which binary
+      ansible.builtin.command:
+        cmd: which which
+      register: cli_tester_which_check
+      changed_when: false
+      failed_when: false
+
+    - name: Ensure which is present
+      ansible.builtin.package:
+        name: which
+        state: present
+      become: true
+      when: cli_tester_which_check.rc != 0
+  rescue:
+    - name: Fail with sudo password hint if needed
+      ansible.builtin.fail:
+        msg: >
+          Ensuring 'which' is installed failed because sudo requires a password.
+          Rerun this playbook with the --ask-become-pass flag or configure passwordless privilege escalation.
+      when: >
+        'sudo: a password is required' in (ansible_failed_result.msg | default('')) or
+        'sudo: a password is required' in (ansible_failed_result.stderr | default(''))
+
+    - name: Fail due to unexpected error ensuring which is installed
+      ansible.builtin.fail:
+        msg: >
+          Failed to verify or install 'which'. Underlying error:
+          {{ ansible_failed_result | to_nice_json }}
+
+- name: Assert cli_tester_cli_name is defined and non-empty
+  ansible.builtin.assert:
+    that:
+      - cli_tester_cli_name is defined
+      - cli_tester_cli_name | length > 0
+    fail_msg: cli_tester_cli_name must be defined and non-empty.
+
+- name: Test for CLI {{ cli_tester_cli_name }}
+  ansible.builtin.command:
+    cmd: "which {{ cli_tester_cli_name }}"
+  register: cli_tester_cli_binary_check
+  changed_when: false
+  failed_when: false
+
+- name: Set installed fact for {{ cli_tester_cli_name }}
+  ansible.builtin.set_fact:
+    cli_tester_is_cli_installed: "{{ cli_tester_cli_binary_check.rc == 0 }}"
+
+- name: Pass cli_tester role artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    role_artifacts_path: "{{ cli_tester_artifacts_path }}"
+    # noqa: var-naming
+    calling_role_name: "cli_tester_{{ cli_tester_cli_name }}"
+    calling_role_artifacts_inputs:
+      cli_name: "{{ cli_tester_cli_name }}"
+      is_cli_installed: "{{ cli_tester_is_cli_installed }}"

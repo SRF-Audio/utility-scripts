@@ -1,9 +1,18 @@
+- name: Loop through control host dependencies checker
+  ansible.builtin.include_role:
+    name: cli_tester
+  loop: "{{ control_host_dependencies_system_packages | default([]) }}"
+  loop_control:
+    loop_var: control_host_dependencies_system_package
+  vars:
+    cli_tester_cli_name: "{{ control_host_dependencies_system_package }}"
+
 - name: Ensure system packages are installed
   ansible.builtin.package:
     name: "{{ control_host_dependencies_system_packages }}"
     state: present
-  when: (control_host_dependencies_system_packages | default([])) | length > 0
   become: true
+  when: (control_host_dependencies_system_packages | default([])) | length > 0
 
 - name: Ensure pip dependencies are present
   ansible.builtin.pip:
