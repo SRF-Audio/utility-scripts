@@ -1,0 +1,15 @@
+- name: Set dynamic role artifacts fact for {{ calling_role_name }}
+  ansible.builtin.set_fact:
+    "{{ calling_role_name ~ '_artifacts' }}": "{{ calling_role_artifacts_inputs }}"
+
+- name: Ensure role artifacts directory exists for {{ calling_role_name }}
+  ansible.builtin.file:
+    path: "{{ role_artifacts_path }}/{{ calling_role_name }}"
+    state: directory
+    mode: "0755"
+
+- name: Write role artifacts file for {{ calling_role_name }}
+  ansible.builtin.copy:
+    dest: "{{ role_artifacts_path }}/{{ calling_role_name }}/{{ calling_role_name ~ '_artifacts' }}.yml"
+    content: "{{ { (calling_role_name ~ '_artifacts'): calling_role_artifacts_inputs } | to_nice_yaml }}"
+    mode: "0644"

@@ -1,0 +1,65 @@
+# Use this as a dictionary to confirm how to use the copier role correctly.
+
+- name: Case 1- Control host downloaded something → copy it to some remote
+  hosts: proxmox_nodes
+  gather_facts: false
+
+  tasks:
+    - name: Copy FCOS image from control to {{ inventory_hostname }}
+      ansible.builtin.import_role:
+        name: file_copier
+      vars:
+        file_copier_items:
+          - src: "{{ playbook_dir }}/.artifacts/fcos/image.qcow2"
+            dest: "/var/lib/vz/template/qcow2/image.qcow2"
+            remote_src: false
+
+- name: Case 2, Step 1- Gather artifact from source host
+  hosts: source_host
+  gather_facts: false
+
+  tasks:
+    - name: Fetch artifact to control node
+      ansible.builtin.fetch:
+        src: "/tmp/artifact.tar.gz"
+        dest: "{{ playbook_dir }}/.artifacts/from_source/"
+        flat: true
+
+- name: Case 2, Step 2- Distribute artifact to target hosts
+  hosts: target_hosts
+  gather_facts: false
+
+  tasks:
+    - name: Copy artifact from control node to {{ inventory_hostname }}
+      ansible.builtin.import_role:
+        name: file_copier
+      vars:
+        file_copier_items:
+          - src: "{{ playbook_dir }}/.artifacts/from_source/artifact.tar.gz"
+            dest: "/opt/artifacts/artifact.tar.gz"
+            remote_src: false
+
+- name: Case 3- Bring remote logs back to control node
+  hosts: log_hosts
+  gather_facts: false
+
+  tasks:
+    - name: Fetch logs from {{ inventory_hostname }}
+      ansible.builtin.fetch:
+        src: "/var/log/myapp/app.log"
+        dest: "{{ playbook_dir }}/.artifacts/logs/{{ inventory_hostname }}/"
+        flat: true
+
+- name: Case 4- Duplicate config on each node
+  hosts: all_nodes
+  gather_facts: false
+
+  tasks:
+    - name: Copy config file locally on {{ inventory_hostname }}
+      ansible.builtin.import_role:
+        name: file_copier
+      vars:
+        file_copier_items:
+          - src: "/etc/myapp/config.yml"
+            dest: "/etc/myapp/config.backup.yml"
+            remote_src: true

@@ -13,43 +13,68 @@ Produce minimal, idiomatic, copy-paste-ready Ansible. Prefer modules; enforce id
 - https://docs.ansible.com/ansible/latest/collections/index.html
 - https://docs.ansible.com/ansible/2.8/user_guide/playbooks_best_practices.html
 
-# Directives
+# Global constraints
 
-- Use fully-qualified collection names (FQCN) everywhere.
-- Prefer official modules; only use command/shell if no module exists.
-- When using command/shell: add `creates:`/`removes:`; constrain with `chdir:`, `stdin:`, `environment:`; guard with `changed_when:`/`failed_when:` for safety. Never run destructive actions unguarded.
-- Idempotency first. Do not shell out where a module fits.
-- Never hard-code secrets. Read from environment/secret stores.
-- No comments in Ansible code. Code only.
+Follow official Ansible best practices and use fully qualified collection names (e.g. ansible.builtin._, community.general._, community.proxmox._, amazon.aws._).
 
-# Registers & Skips
+Role folder structure must be:
 
-- Assume tasks may be skipped; always read with safe defaults:
-  - `{{ var.rc | default(0) }}`
-  - `{{ var.stdout | default('') }}`
-  - `{{ var.skipped | default(false) }}`
-  - Use `default(value, true)` when empty/falsey should also default.
-- Omit optionals cleanly: `{{ maybe | default(omit) }}`.
-- Loops:
-  - Iterate with `loop: "{{ reg.results | default([]) }}"`.
-  - Operate only on executed items: `(| rejectattr('skipped','defined') | list)` .
-- Centralize any result normalization in one `always:` block after the conditional task. Reuse the original `when` predicate downstream.
+roles/<ROLE_NAME>/meta/argument_specs.yml
 
-# Structure & Hygiene
+roles/<ROLE_NAME>/defaults/main.yml
 
-- Keep configuration minimal; avoid variable creep.
-- Separate concerns: split long/mixed blocks into roles/includes (`include_role`, `import_tasks`) with focused purpose.
-- Use handlers only for actual service notifications.
-- Variable hygiene:
-  - Declare role vars via role scaffolding (`meta/argument_specs.yml` etc.) or prompt/assert required vars.
-  - Scope vars appropriately; avoid unnecessary `set_fact`.
-- Prefer official integrations (e.g., `community.general.terraform` rather than raw CLI).
-- If cluster access is needed, prompt for kubeconfig path when not provided.
+roles/<ROLE_NAME>/tasks/main.yml
 
-# Style
+roles/<ROLE_NAME>/{files,templates,vars,handlers} only if needed.
 
-- Concise tasks. No inline comments. Docstrings only when explicitly requested.
-- Outputs/file changes must be idiomatic and not mix unrelated content.
+All role variables (inputs, internal facts, artifacts) must be prefixed with the role name and an underscore, e.g.:
+
+Inputs: <ROLE_NAME>\_artifacts_path, <ROLE_NAME>\_foo, <ROLE_NAME>\_bar
+
+Internal facts: <ROLE_NAME>\_state, <ROLE_NAME>\_tmp\*\*
+
+artifacts: <ROLE_NAME>\_artifacts as a dict.
+
+meta/argument_specs.yml:
+
+Define a main argument spec, listing all supported variables for the role.
+
+Every variable in tasks must be declared in argument*specs.yml (except ansible*\* magic vars and role_path).
+
+defaults/main.yml:
+
+Define sensible default values for all input variables declared in argument_specs.yml, UNLESS they are "developer experience" required variables for what that role is supposed to do.
+Boilerplate things like artifacts_path should come from all.yml and be defaulted. But things that the role cannot function without should be required in argument_specs.yml.
+
+# Idempotency
+
+Prefer Ansible modules over commands.
+
+Use creates, removes, or changed_when/failed_when to avoid false changes.
+
+All tasks should be safe to run multiple times without breaking or recreating existing resources.
+
+# Debuggability
+
+Use clear task names that describe what is being validated or changed.
+
+Use proper jinja2 templating within task names to reflect dynamic values when useful. (e.g. `- name: Install package {{ item }}`).
+
+Use register + debug when useful, but avoid excessive noise.
+
+# artifacts
+
+At the end of tasks/main.yml, set a single fact "<ROLE_NAME>\_artifacts" (a dict) that describes the role’s artifacts.
+
+Immediately after setting that fact, include the role_artifacts role to normalize artifacts:
+
+include_role: name=role_artifacts
+
+Use a standardized input variable name: calling_role_artifacts_inputs containing <ROLE_NAME>\_artifacts.
+
+No inline comments in YAML. Docstrings in Python only when requested.
+
+The role must be self-contained, reusable, and not depend on inventory group names beyond what is explicitly described in the role-specific spec.
 
 # Reviewer Behavior
 

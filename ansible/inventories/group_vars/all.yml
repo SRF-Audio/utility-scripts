@@ -17,3 +17,4 @@ ansible_host: >-
         lan_ip | default(ts_ip)
       )
   }}
+artifacts_path: "{{ playbook_dir }}/.artifacts"

@@ -8,14 +8,14 @@ control_host_dependencies_system_packages:
   - xz
   - gzip
 
-image_fetch_manifest_url: "https://builds.coreos.fedoraproject.org/streams/stable.json"
-image_fetch_stream: "stable"
-image_fetch_arch: "x86_64"
-image_fetch_platform: "qemu"
-image_fetch_format: "qcow2.xz"
-image_fetch_dest_dir: "{{ playbook_dir }}/.artifacts/fcos"
-image_fetch_decompress: true
-image_fetch_artifact_path: "{{ playbook_dir }}/.artifacts/image_fetch_outputs.json"
+coreos_image_fetch_manifest_url: "https://builds.coreos.fedoraproject.org/streams/stable.json"
+coreos_image_fetch_stream: "stable"
+coreos_image_fetch_arch: "x86_64"
+coreos_image_fetch_platform: "qemu"
+coreos_image_fetch_format: "qcow2.xz"
+coreos_image_fetch_dest_dir: "{{ playbook_dir }}/.artifacts/fcos"
+coreos_image_fetch_decompress: true
+coreos_image_fetch_artifact_path: "{{ playbook_dir }}/.artifacts/coreos_image_fetch_artifacts.json"
 
 file_publish_default_mode: "0644"
 file_publish_destination: "/mnt/pve/proxmox-cluster-storage"
@@ -33,4 +33,4 @@ file_publish_targets:
   - coachlight-homelab-1
   - coachlight-homelab-2
   - coachlight-homelab-3
-file_publish_artifact_path: "{{ playbook_dir }}/.artifacts/file_publish_outputs.json"
+file_publish_artifact_path: "{{ playbook_dir }}/.artifacts/file_publish_artifacts.json"

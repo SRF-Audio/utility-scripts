@@ -1,0 +1,2 @@
+file_copier_items: []
+file_copier_artifacts_path: "{{ artifacts_path }}/file_copier_artifacts"

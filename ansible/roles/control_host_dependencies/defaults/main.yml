@@ -1,0 +1,4 @@
+---
+control_host_dependencies_system_packages: []
+control_host_dependencies_pip_packages: []
+control_host_dependencies_pip_executable: pip3

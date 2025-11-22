@@ -1,13 +1,59 @@
-- name: Ensure pip dependencies are present
-  ansible.builtin.pip:
-    name: "{{ control_host_dependencies_pip_packages }}"
-    state: present
-    executable: "{{ control_host_dependencies_python_executable }}"
-  when: control_host_dependencies_pip_packages | length > 0
-
 - name: Ensure system packages are installed
   ansible.builtin.package:
     name: "{{ control_host_dependencies_system_packages }}"
     state: present
-  when: control_host_dependencies_system_packages | length > 0
+  when: (control_host_dependencies_system_packages | default([])) | length > 0
   become: true
+
+- name: Ensure pip dependencies are present
+  ansible.builtin.pip:
+    name: "{{ control_host_dependencies_pip_packages }}"
+    state: present
+    executable: "{{ control_host_dependencies_pip_executable | default(omit) }}"
+  when: (control_host_dependencies_pip_packages | default([])) | length > 0
+  become: true
+
+- name: Determine tools requiring validation
+  ansible.builtin.set_fact:
+    control_host_dependencies_tools_to_check: >-
+      {{
+        ['butane', 'coreos-installer']
+        | intersect(
+            (control_host_dependencies_system_packages | default([]))
+            + (control_host_dependencies_pip_packages | default([]))
+          )
+      }}
+
+- name: Test for which
+  ansible.builtin.command: "which which"
+  failed_when: false
+  changed_when: false
+  register: control_host_dependencies_which_check
+
+- name: Install which if missing
+  ansible.builtin.package:
+    name: which
+    state: present
+  when: control_host_dependencies_which_check.rc != 0
+  become: true
+
+- name: Validate tool availability
+  ansible.builtin.command: "which {{ item }}"
+  changed_when: false
+  loop: "{{ control_host_dependencies_tools_to_check }}"
+  when: (control_host_dependencies_tools_to_check | default([])) | length > 0
+
+- name: Collect control host dependency artifacts
+  ansible.builtin.set_fact:
+    control_host_dependencies_artifacts:
+      packages_installed: "{{ control_host_dependencies_system_packages | default([]) }}"
+      pip_packages_installed: "{{ control_host_dependencies_pip_packages | default([]) }}"
+      tools_checked: "{{ control_host_dependencies_tools_to_check | default([]) }}"
+
+- name: Publish control host dependency artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    # noqa: var-naming
+    calling_role_name: "control_host_dependencies"
+    calling_role_artifacts_inputs: "{{ control_host_dependencies_artifacts }}"

@@ -1,0 +1,38 @@
+argument_specs:
+  main:
+    options:
+      file_copier_items:
+        type: list
+        elements: dict
+        required: true
+        description: List of file copy operations to perform on the current host.
+        options:
+          src:
+            type: str
+            required: true
+            description: Source path for the copy operation.
+          dest:
+            type: str
+            required: true
+            description: Destination path for the copy operation.
+          remote_src:
+            type: bool
+            required: false
+            default: false
+            description: Whether src is on the remote host.
+          owner:
+            type: str
+            required: false
+          group:
+            type: str
+            required: false
+          mode:
+            type: str
+            required: false
+          backup:
+            type: bool
+            required: false
+      file_copier_artifacts_path:
+        type: str
+        required: false
+        description: Optional path to write role outputs if needed by caller.

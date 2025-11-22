@@ -1,0 +1,5 @@
+coreos_image_fetch_stream: stable
+coreos_image_fetch_platform: proxmoxve
+coreos_image_fetch_format: qcow2.xz
+coreos_image_fetch_download_dir: "{{ artifacts_path }}/coreos_image_fetch"
+coreos_image_fetch_force_download: false

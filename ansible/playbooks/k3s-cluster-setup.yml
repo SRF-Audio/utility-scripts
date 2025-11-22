@@ -1,26 +1,7 @@
 - name: K3S Cluster Node Image Fetch
-  hosts: localhost
+  hosts: local
   gather_facts: true
+  pre_tasks:
   roles:
     - control_host_dependencies
-    - image_fetch
-
-- name: K3S Cluster File Publishing
-  hosts: localhost
-  gather_facts: true
-  roles:
-    - file_publish
-  pre_tasks:
-    - name: Retrieve image fetch outputs from artifacts if not already set
-      set_fact:
-        image_fetch_outputs: "{{ lookup('file', playbook_dir + '/artifacts/image_fetch_outputs.json') | from_json }}"
-      when: image_fetch_outputs is not defined
-
-    - name: Create CoreOS image publish item
-      set_fact:
-        image_fetch_file_publish_items: >-
-          [{
-            'src': image_fetch_outputs.files.uncompressed.path,
-            'dest': file_publish_destination,
-            'mode': file_publish_default_mode
-          }]
+    - coreos_image_fetch
