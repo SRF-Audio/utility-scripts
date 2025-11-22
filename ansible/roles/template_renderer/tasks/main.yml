@@ -1,0 +1,30 @@
+- name: Assert template_renderer required inputs are defined
+  ansible.builtin.assert:
+    that:
+      - template_renderer_src is defined
+      - template_renderer_src | length > 0
+      - template_renderer_dest is defined
+      - template_renderer_dest | length > 0
+    fail_msg: template_renderer_src and template_renderer_dest must be defined and non-empty.
+
+- name: Render template {{ template_renderer_src }} to {{ template_renderer_dest }}
+  ansible.builtin.template:
+    src: "{{ template_renderer_src }}"
+    dest: "{{ template_renderer_dest }}"
+    mode: "{{ template_renderer_mode | default(omit) }}"
+    owner: "{{ template_renderer_owner | default(omit) }}"
+    group: "{{ template_renderer_group | default(omit) }}"
+    force: "{{ template_renderer_force }}"
+    vars: "{{ template_renderer_vars | default({}) }}"
+  register: template_renderer_result
+
+- name: Record template_renderer artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    # noqa: var-naming
+    calling_role_name: template_renderer
+    calling_role_artifacts_inputs:
+      template_renderer_src: "{{ template_renderer_src }}"
+      template_renderer_dest: "{{ template_renderer_dest }}"
+      template_renderer_changed: "{{ template_renderer_result.changed }}"

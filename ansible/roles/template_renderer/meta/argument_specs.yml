@@ -1,0 +1,31 @@
+argument_specs:
+  main:
+    options:
+      template_renderer_src:
+        type: str
+        required: true
+        description: Source Jinja2 template path.
+      template_renderer_dest:
+        type: str
+        required: true
+        description: Destination path for the rendered template.
+      template_renderer_mode:
+        type: str
+        required: false
+        description: File mode for the rendered file.
+      template_renderer_owner:
+        type: str
+        required: false
+        description: Owner for the rendered file.
+      template_renderer_group:
+        type: str
+        required: false
+        description: Group for the rendered file.
+      template_renderer_force:
+        type: bool
+        required: false
+        description: Whether to replace the remote file when contents are different.
+      template_renderer_vars:
+        type: dict
+        required: false
+        description: Extra variables to pass to the template renderer.
