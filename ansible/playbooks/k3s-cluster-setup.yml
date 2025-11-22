@@ -1,7 +1,27 @@
-- name: K3S Cluster Node Image Fetch
+- name: Fetch Fedora CoreOS image on control host
   hosts: local
-  gather_facts: true
-  pre_tasks:
+  gather_facts: false
+
   roles:
-    - control_host_dependencies
-    - coreos_image_fetch
+    - role: control_host_dependencies
+    - role: coreos_image_fetch
+
+- name: Copy Fedora CoreOS image into Proxmox shared storage
+  hosts: coachlight-homelab-1
+  gather_facts: false
+
+  vars:
+    coreos_image_source_host: "{{ groups['local'][0] }}"
+
+    proxmox_cluster_storage_mount: "/mnt/pve/proxmox-cluster-storage"
+    proxmox_cluster_storage_template_dir: >-
+      {{ proxmox_cluster_storage_mount }}/template/qemu
+
+    file_copier_items:
+      - src: "{{ hostvars[coreos_image_source_host].coreos_image_fetch_image_path }}"
+        dest: >-
+          {{ proxmox_cluster_storage_template_dir }}/
+          {{ hostvars[coreos_image_source_host].coreos_image_fetch_image_path | basename }}
+
+  roles:
+    - role: file_copier

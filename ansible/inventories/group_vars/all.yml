@@ -13,8 +13,9 @@ ansible_host: >-
       and (ts_ip | default('') | length > 0)
     )
     | ternary(
-        ts_ip | default(lan_ip),
-        lan_ip | default(ts_ip)
+        ts_ip,
+        lan_ip | default(inventory_hostname)
       )
   }}
+
 artifacts_path: "{{ playbook_dir }}/.artifacts"
