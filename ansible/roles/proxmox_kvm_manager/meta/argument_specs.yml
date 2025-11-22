@@ -1,0 +1,43 @@
+argument_specs:
+  main:
+    options:
+      proxmox_kvm_manager_api_host:
+        type: str
+        required: true
+        description: Proxmox API host or IP address.
+      proxmox_kvm_manager_api_user:
+        type: str
+        required: true
+        description: Proxmox API user.
+      proxmox_kvm_manager_api_password:
+        type: str
+        required: false
+        description: Proxmox API password. Either this or token-based auth must be provided.
+      proxmox_kvm_manager_api_token_id:
+        type: str
+        required: false
+        description: Proxmox API token ID for token-based authentication.
+      proxmox_kvm_manager_api_token_secret:
+        type: str
+        required: false
+        description: Proxmox API token secret for token-based authentication.
+      proxmox_kvm_manager_node:
+        type: str
+        required: true
+        description: Proxmox node name hosting the VM.
+      proxmox_kvm_manager_vmid:
+        type: int
+        required: true
+        description: VMID of the target virtual machine.
+      proxmox_kvm_manager_state:
+        type: str
+        required: false
+        description: Desired VM state such as present, started, stopped, or current.
+      proxmox_kvm_manager_validate_certs:
+        type: bool
+        required: false
+        description: Whether to validate TLS certificates when connecting to the Proxmox API.
+      proxmox_kvm_manager_module_params:
+        type: dict
+        required: false
+        description: Additional parameters to pass directly to community.proxmox.proxmox_kvm.

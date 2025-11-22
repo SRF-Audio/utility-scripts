@@ -1,0 +1,61 @@
+- name: Assert proxmox_kvm_manager required inputs are defined
+  ansible.builtin.assert:
+    that:
+      - proxmox_kvm_manager_api_host is defined
+      - proxmox_kvm_manager_api_host | length > 0
+      - proxmox_kvm_manager_api_user is defined
+      - proxmox_kvm_manager_api_user | length > 0
+      - proxmox_kvm_manager_node is defined
+      - proxmox_kvm_manager_node | length > 0
+      - proxmox_kvm_manager_vmid is defined
+      - proxmox_kvm_manager_state is defined
+      - proxmox_kvm_manager_state | length > 0
+      - (proxmox_kvm_manager_api_password is defined and proxmox_kvm_manager_api_password | length > 0) or
+        (proxmox_kvm_manager_api_token_id is defined and proxmox_kvm_manager_api_token_id | length > 0 and
+        proxmox_kvm_manager_api_token_secret is defined and proxmox_kvm_manager_api_token_secret | length > 0)
+    fail_msg: Required proxmox_kvm_manager variables must be defined. Either api_password or api_token_id and api_token_secret must be provided.
+  no_log: true
+
+- name: Build proxmox_kvm_manager effective parameters
+  ansible.builtin.set_fact:
+    proxmox_kvm_manager_effective_params: >-
+      {{
+        proxmox_kvm_manager_module_params | default({}, true)
+        | combine({
+            'api_host': proxmox_kvm_manager_api_host,
+            'api_user': proxmox_kvm_manager_api_user,
+            'node': proxmox_kvm_manager_node,
+            'vmid': proxmox_kvm_manager_vmid,
+            'state': proxmox_kvm_manager_state,
+            'validate_certs': proxmox_kvm_manager_validate_certs
+          }, recursive=False)
+        | combine(
+            (proxmox_kvm_manager_api_password is defined and proxmox_kvm_manager_api_password | length > 0)
+            | ternary({'api_password': proxmox_kvm_manager_api_password}, {}),
+            recursive=False
+          )
+        | combine(
+            (proxmox_kvm_manager_api_token_id is defined and proxmox_kvm_manager_api_token_id | length > 0 and
+             proxmox_kvm_manager_api_token_secret is defined and proxmox_kvm_manager_api_token_secret | length > 0)
+            | ternary({
+                'api_token_id': proxmox_kvm_manager_api_token_id,
+                'api_token_secret': proxmox_kvm_manager_api_token_secret
+              }, {}),
+            recursive=False
+          )
+      }}
+  no_log: true
+
+- name: Manage Proxmox VM {{ proxmox_kvm_manager_vmid }} with proxmox_kvm
+  community.proxmox.proxmox_kvm: "{{ proxmox_kvm_manager_effective_params }}"
+  register: proxmox_kvm_manager_result
+
+- name: Record proxmox_kvm_manager artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    # noqa: var-naming
+    calling_role_name: proxmox_kvm_manager
+    calling_role_artifacts_inputs:
+      proxmox_kvm_manager_effective_params: "{{ proxmox_kvm_manager_effective_params }}"
+      proxmox_kvm_manager_result: "{{ proxmox_kvm_manager_result }}"
