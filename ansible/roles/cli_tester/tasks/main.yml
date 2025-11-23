@@ -1,19 +1,23 @@
 # roles/cli_tester/tasks/main.yml
-- name: Ensure 'which' is installed
-  block:
-    - name: Test for which binary
-      ansible.builtin.command:
-        cmd: which which
-      register: cli_tester_which_check
-      changed_when: false
-      failed_when: false
+- name: Assert cli_tester_cli_name is defined and non-empty
+  ansible.builtin.assert:
+    that:
+      - cli_tester_cli_name is defined
+      - cli_tester_cli_name | length > 0
+    fail_msg: cli_tester_cli_name must be defined and non-empty.
 
-    - name: Ensure which is present
+- name: Ensure 'which' is installed on {{ inventory_hostname }}
+  when: not (cli_tester_which_ready | default(false))
+  block:
+    - name: Install which package on {{ inventory_hostname }}
       ansible.builtin.package:
         name: which
         state: present
       become: true
-      when: cli_tester_which_check.rc != 0
+
+    - name: Mark 'which' as ready for cli_tester on {{ inventory_hostname }}
+      ansible.builtin.set_fact:
+        cli_tester_which_ready: true
   rescue:
     - name: Fail with sudo password hint if needed
       ansible.builtin.fail:
@@ -30,13 +34,6 @@
           Failed to verify or install 'which'. Underlying error:
           {{ ansible_failed_result | to_nice_json }}
 
-- name: Assert cli_tester_cli_name is defined and non-empty
-  ansible.builtin.assert:
-    that:
-      - cli_tester_cli_name is defined
-      - cli_tester_cli_name | length > 0
-    fail_msg: cli_tester_cli_name must be defined and non-empty.
-
 - name: Test for CLI {{ cli_tester_cli_name }}
   ansible.builtin.command:
     cmd: "which {{ cli_tester_cli_name }}"
@@ -48,7 +45,7 @@
   ansible.builtin.set_fact:
     cli_tester_is_cli_installed: "{{ cli_tester_cli_binary_check.rc == 0 }}"
 
-- name: Pass cli_tester role artifacts
+- name: Pass cli_tester role artifacts for {{ cli_tester_cli_name }}
   ansible.builtin.include_role:
     name: role_artifacts
   vars:

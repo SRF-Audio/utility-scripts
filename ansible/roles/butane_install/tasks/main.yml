@@ -1,4 +1,3 @@
-# roles/butane_install/tasks/main.yml
 - name: Assert butane_install inputs are defined
   ansible.builtin.assert:
     that:
@@ -23,7 +22,7 @@
   when: not cli_tester_is_cli_installed | default(false)
   register: butane_install_package_result
 
-- name: Record butane_install role artifacts
+- name: Record butane_install role artifacts for {{ butane_install_cli_name }}
   ansible.builtin.include_role:
     name: role_artifacts
   vars:

@@ -3,9 +3,9 @@
   gather_facts: false
 
   roles:
-    # - role: control_host_dependencies
-    # - role: coreos_cli_install
-    # - role: coreos_image_fetch
+    - role: control_host_dependencies
+    - role: coreos_cli_install
+    - role: coreos_image_fetch
     - role: ignition_renderer
       vars:
         ignition_renderer_cluster_layout: "{{ proxmox_cluster_layout }}"

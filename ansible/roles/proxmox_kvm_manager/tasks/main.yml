@@ -16,7 +16,7 @@
     fail_msg: Required proxmox_kvm_manager variables must be defined. Either api_password or api_token_id and api_token_secret must be provided.
   no_log: true
 
-- name: Build proxmox_kvm_manager effective parameters
+- name: Build proxmox_kvm_manager effective parameters for VM {{ proxmox_kvm_manager_vmid }}
   ansible.builtin.set_fact:
     proxmox_kvm_manager_effective_params: >-
       {{
@@ -46,11 +46,11 @@
       }}
   no_log: true
 
-- name: Manage Proxmox VM {{ proxmox_kvm_manager_vmid }} with proxmox_kvm
+- name: Create Proxmox VM template {{ proxmox_kvm_manager_vmid }}
   community.proxmox.proxmox_kvm: "{{ proxmox_kvm_manager_effective_params }}"
   register: proxmox_kvm_manager_result
 
-- name: Record proxmox_kvm_manager artifacts
+- name: Record proxmox_kvm_manager artifacts for VM {{ proxmox_kvm_manager_vmid }}
   ansible.builtin.include_role:
     name: role_artifacts
   vars:

@@ -17,7 +17,7 @@
     force: "{{ template_renderer_force }}"
   register: template_renderer_result
 
-- name: Record template_renderer artifacts
+- name: Record template_renderer artifacts for {{ template_renderer_dest }}
   ansible.builtin.include_role:
     name: role_artifacts
   vars:

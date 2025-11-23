@@ -7,7 +7,7 @@
       - file_copier_items | length > 0
     fail_msg: "file_copier_items must be a non-empty list."
 
-- name: Assert each file_copier item has required fields
+- name: Assert each file_copier item has required fields for {{ item.src | default('unknown src') }}
   ansible.builtin.assert:
     that:
       - item.src is defined
@@ -18,8 +18,8 @@
   loop: "{{ file_copier_items }}"
   loop_control:
     label: "{{ item | to_nice_json }}"
-
-- name: Ensure parent directories exist for file_copier items on {{ inventory_hostname }}
+# noqa: name[template]
+- name: Ensure parent directory exists for file_copier dest {{ item }} on {{ inventory_hostname }}
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -34,8 +34,8 @@
     }}
   loop_control:
     label: "{{ item }}"
-
-- name: Copy file_copier items on {{ inventory_hostname }}
+# noqa: name[template]
+- name: Copy file_copier item on {{ inventory_hostname }} from {{ item.src }} to {{ item.dest }}
   ansible.builtin.copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"

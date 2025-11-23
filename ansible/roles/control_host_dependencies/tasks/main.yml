@@ -1,4 +1,4 @@
-- name: Loop through control host dependencies checker
+- name: Loop through control host dependencies checker for {{ control_host_dependencies_system_package }}
   ansible.builtin.include_role:
     name: cli_tester
   loop: "{{ control_host_dependencies_system_packages | default([]) }}"
@@ -7,14 +7,14 @@
   vars:
     cli_tester_cli_name: "{{ control_host_dependencies_system_package }}"
 
-- name: Ensure system packages are installed
+- name: Ensure system packages are installed for control host dependencies {{ [control_host_dependencies_system_packages | length, 'packages'] | join(' ') }}
   ansible.builtin.package:
     name: "{{ control_host_dependencies_system_packages }}"
     state: present
   become: true
   when: (control_host_dependencies_system_packages | default([])) | length > 0
 
-- name: Ensure pip dependencies are present
+- name: Ensure pip dependencies are present for control host dependencies {{ [control_host_dependencies_pip_packages | length, 'packages'] | join(' ') }}
   ansible.builtin.pip:
     name: "{{ control_host_dependencies_pip_packages }}"
     state: present
@@ -32,25 +32,6 @@
             + (control_host_dependencies_pip_packages | default([]))
           )
       }}
-
-- name: Test for which
-  ansible.builtin.command: "which which"
-  failed_when: false
-  changed_when: false
-  register: control_host_dependencies_which_check
-
-- name: Install which if missing
-  ansible.builtin.package:
-    name: which
-    state: present
-  when: control_host_dependencies_which_check.rc != 0
-  become: true
-
-- name: Validate tool availability
-  ansible.builtin.command: "which {{ item }}"
-  changed_when: false
-  loop: "{{ control_host_dependencies_tools_to_check }}"
-  when: (control_host_dependencies_tools_to_check | default([])) | length > 0
 
 - name: Collect control host dependency artifacts
   ansible.builtin.set_fact:

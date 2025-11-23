@@ -20,32 +20,34 @@
     state: directory
     mode: "0755"
 
-- name: Render Butane templates for control plane nodes
+# noqa: name[template]
+- name: Render Butane template for control plane node {{ item.name }} from {{ ignition_renderer_template_src }}
   ansible.builtin.include_role:
     name: template_renderer
   vars:
     template_renderer_src: "{{ ignition_renderer_template_src }}"
     template_renderer_dest: "{{ ignition_renderer_output_dir }}/{{ item.name }}.bu"
+    # noqa: var-naming
     proxmox_vm_hostname: "{{ item.name }}"
     proxmox_k3s_role: "{{ item.role }}"
   loop: "{{ ignition_renderer_cluster_layout.control_planes }}"
   loop_control:
     label: "{{ item.name }}"
-
-- name: Render Butane templates for worker nodes
+# noqa: name[template]
+- name: Render Butane template for worker node {{ item.name }} from {{ ignition_renderer_template_src }}
   ansible.builtin.include_role:
     name: template_renderer
   vars:
     template_renderer_src: "{{ ignition_renderer_template_src }}"
     template_renderer_dest: "{{ ignition_renderer_output_dir }}/{{ item.name }}.bu"
-    template_renderer_vars:
-      proxmox_vm_hostname: "{{ item.name }}"
-      proxmox_k3s_role: "worker"
+    # noqa: var-naming
+    proxmox_vm_hostname: "{{ item.name }}"
+    proxmox_k3s_role: "worker"
   loop: "{{ ignition_renderer_cluster_layout.workers }}"
   loop_control:
     label: "{{ item.name }}"
 
-- name: Render ignition JSON for control plane nodes using Butane
+- name: Render ignition JSON using Butane for control plane node {{ item.name }}
   ansible.builtin.command:
     cmd: >
       {{ ignition_renderer_butane_cli_name }}
@@ -59,7 +61,7 @@
     label: "{{ item.name }}"
   register: ignition_renderer_control_plane_butane_result
 
-- name: Render ignition JSON for worker nodes using Butane
+- name: Render ignition JSON using Butane for worker node {{ item.name }}
   ansible.builtin.command:
     cmd: >
       {{ ignition_renderer_butane_cli_name }}
