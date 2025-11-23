@@ -5,6 +5,10 @@ proxmox_fcos_version: 1.5.0
 
 proxmox_storage: local-zfs
 proxmox_storage_type: scsi
+proxmox_cluster_storage_mount: "/mnt/pve/proxmox-cluster-storage"
+proxmox_cluster_storage_template_dir: "{{ proxmox_cluster_storage_mount }}/template/qemu"
+proxmox_cluster_storage_snippets_dir: "{{ proxmox_cluster_storage_mount }}/snippets"
+
 proxmox_bridge: vmbr0
 
 proxmox_k3s_control_plane_subnet: 192.168.226.0/24

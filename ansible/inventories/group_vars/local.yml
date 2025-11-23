@@ -16,9 +16,10 @@ coreos_image_fetch_format: "qcow2.xz"
 coreos_image_fetch_dest_dir: "{{ playbook_dir }}/.artifacts/fcos"
 coreos_image_fetch_decompress: true
 coreos_image_fetch_artifact_path: "{{ playbook_dir }}/.artifacts/coreos_image_fetch_artifacts.json"
+ignition_renderer_output_dir: "{{ artifacts_path }}/ignitions"
 
 file_publish_default_mode: "0644"
-file_publish_destination: "/mnt/pve/proxmox-cluster-storage"
+file_publish_destination: "{{ proxmox_cluster_storage_mount }}"
 file_publish_items: [] # Only set if you want to override the dynamic values in playbooks/k3s-cluster-setup.yml
 # Example usage:
 # file_publish_items:

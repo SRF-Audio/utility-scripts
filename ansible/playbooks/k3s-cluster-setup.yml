@@ -10,22 +10,32 @@
       vars:
         ignition_renderer_cluster_layout: "{{ proxmox_cluster_layout }}"
 
-- name: Copy Fedora CoreOS image into Proxmox shared storage
+- name: Copy Fedora CoreOS image and ignition configs into Proxmox shared storage
   hosts: coachlight-homelab-1
-  gather_facts: false
+  gather_facts: true
 
   vars:
     coreos_image_source_host: "{{ groups['local'][0] }}"
+    coreos_ignition_source_dir: "{{ hostvars[coreos_image_source_host].ignition_renderer_output_dir }}"
 
-    proxmox_cluster_storage_mount: "/mnt/pve/proxmox-cluster-storage"
-    proxmox_cluster_storage_template_dir: >-
-      {{ proxmox_cluster_storage_mount }}/template/qemu
+  tasks:
+    - name: Initialize file_copier_items with Fedora CoreOS image
+      ansible.builtin.set_fact:
+        file_copier_items:
+          - src: "{{ hostvars[coreos_image_source_host].coreos_image_fetch_image_path }}"
+            dest: >-
+              {{ proxmox_cluster_storage_template_dir }}/
+              {{ hostvars[coreos_image_source_host].coreos_image_fetch_image_path | basename }}
 
-    file_copier_items:
-      - src: "{{ hostvars[coreos_image_source_host].coreos_image_fetch_image_path }}"
-        dest: >-
-          {{ proxmox_cluster_storage_template_dir }}/
-          {{ hostvars[coreos_image_source_host].coreos_image_fetch_image_path | basename }}
+    - name: Add ignition configs for each k3s node to file_copier_items
+      ansible.builtin.set_fact:
+        file_copier_items: "{{ file_copier_items + [ {
+          'src': coreos_ignition_source_dir ~ '/' ~ item.name ~ '.ign',
+          'dest': proxmox_cluster_storage_snippets_dir ~ '/' ~ item.name ~ '.ign'} ] }}"
+      loop: "{{ proxmox_cluster_layout.control_planes + proxmox_cluster_layout.workers }}"
+      loop_control:
+        label: "{{ item.name }}"
 
-  roles:
-    - role: file_copier
+    - name: Copy Fedora CoreOS image and ignition configs into Proxmox shared storage on {{ inventory_hostname }}
+      ansible.builtin.include_role:
+        name: file_copier

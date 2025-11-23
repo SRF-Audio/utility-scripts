@@ -2,3 +2,4 @@ collections:
   - artis3n.tailscale
   - community.general
   - community.proxmox
+  - ansible.posix

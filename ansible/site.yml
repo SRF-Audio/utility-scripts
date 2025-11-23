@@ -1,3 +1,27 @@
+- hosts: local
+  gather_facts: false
+  tasks:
+    - name: Read sudo password from 1Password once
+      ansible.builtin.set_fact:
+        homelab_become_pass: >-
+          {{ lookup('community.general.onepassword',
+                    'ydeuaeonuaoyhbvrg5d3pq4rgq',
+                    field='password',
+                    vault='HomeLab') }}
+        ignition_template_ssh_key: >-
+          "{{ lookup('community.general.onepassword',
+                     'coachlight-homelab SSH key',
+                     field='public_key',
+                     vault='HomeLab') }}"
+        ignition_template_ts_auth_key: >-
+          {{ lookup('community.general.onepassword', 'Tailscale', field='coachlight-homelab auth key', vault='HomeLab') }}
+      run_once: true
+      delegate_to: localhost
+
+    - name: Set become vars for this play
+      ansible.builtin.set_fact:
+        ansible_become_pass: "{{ homelab_become_pass }}"
+
 # - name: Playbook to set up desktops and laptops
 #   import_playbook: playbooks/workstations.yml
 # - name: Playbook to prepare newly installed Proxmox nodes for clustering

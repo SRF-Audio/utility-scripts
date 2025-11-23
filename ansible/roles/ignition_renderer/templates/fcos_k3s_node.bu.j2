@@ -11,10 +11,7 @@ passwd:
     - name: sfroeber
       groups: ["wheel"]
       ssh_authorized_keys:
-        - "{{ lookup('community.general.onepassword',
-                     'coachlight-homelab SSH key',
-                     field='public_key',
-                     vault='HomeLab') }}"
+        - "{{ ignition_template_ssh_key }}"
 
 storage:
   files:
@@ -177,7 +174,7 @@ systemd:
         [Service]
         Type=oneshot
         ExecStartPre=/usr/bin/bash -lc 'for i in {1..30}; do systemctl is-active --quiet tailscaled && exit 0; sleep 1; done; echo "tailscaled not active"; exit 1'
-        Environment="TS_AUTHKEY={{ lookup('community.general.onepassword', 'Tailscale', field='coachlight-homelab auth key', vault='HomeLab') }}"
+        Environment="TS_AUTHKEY={{ ignition_template_ts_auth_key }}"
         ExecStart=/usr/bin/tailscale up --ssh --authkey=${TS_AUTHKEY} --hostname=%H --accept-routes=true --force-reauth=false --operator=sfroeber{% if tailscale_advertise_tags | default([]) | length > 0 %} --advertise-tags={{ tailscale_advertise_tags | join(',') }}{% endif %}
         ExecStartPost=/usr/bin/touch /var/lib/tailscale/.authed
         Restart=on-failure
