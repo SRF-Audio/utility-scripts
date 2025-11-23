@@ -15,7 +15,6 @@
     owner: "{{ template_renderer_owner | default(omit) }}"
     group: "{{ template_renderer_group | default(omit) }}"
     force: "{{ template_renderer_force }}"
-    vars: "{{ template_renderer_vars | default({}) }}"
   register: template_renderer_result
 
 - name: Record template_renderer artifacts
@@ -23,7 +22,7 @@
     name: role_artifacts
   vars:
     # noqa: var-naming
-    calling_role_name: template_renderer
+    calling_role_name: template_renderer_{{ template_renderer_dest | basename | replace('.', '_') }}
     calling_role_artifacts_inputs:
       template_renderer_src: "{{ template_renderer_src }}"
       template_renderer_dest: "{{ template_renderer_dest }}"

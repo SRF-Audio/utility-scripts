@@ -4,6 +4,7 @@ version: {{ proxmox_fcos_version }}
 {% set is_control_plane = proxmox_k3s_role in ['bootstrap', 'join'] %}
 {% set is_bootstrap = proxmox_k3s_role == 'bootstrap' %}
 {% set is_worker = proxmox_k3s_role == 'worker' %}
+{% set proxmox_k3s_control_plane_start_ip = proxmox_cluster_layout.control_planes[0].ip %}
 
 passwd:
   users:

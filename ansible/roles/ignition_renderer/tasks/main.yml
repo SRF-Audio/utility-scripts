@@ -7,7 +7,7 @@
       - '"workers" in ignition_renderer_cluster_layout'
     fail_msg: ignition_renderer_cluster_layout must be defined and contain control_planes and workers.
 
-- name: Ensure Butane CLI {{ ignition_renderer_butane_cli_name }} is installed
+- name: Ensure installation of {{ ignition_renderer_butane_cli_name }}
   ansible.builtin.include_role:
     name: butane_install
   vars:
@@ -26,9 +26,8 @@
   vars:
     template_renderer_src: "{{ ignition_renderer_template_src }}"
     template_renderer_dest: "{{ ignition_renderer_output_dir }}/{{ item.name }}.bu"
-    template_renderer_vars:
-      proxmox_vm_hostname: "{{ item.name }}"
-      proxmox_k3s_role: "{{ item.role }}"
+    proxmox_vm_hostname: "{{ item.name }}"
+    proxmox_k3s_role: "{{ item.role }}"
   loop: "{{ ignition_renderer_cluster_layout.control_planes }}"
   loop_control:
     label: "{{ item.name }}"
