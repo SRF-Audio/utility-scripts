@@ -1,4 +1,5 @@
-- hosts: local
+- name: Get secrets from 1Password (Performance optimization)
+  hosts: local
   gather_facts: false
   tasks:
     - name: Read sudo password from 1Password once
