@@ -39,3 +39,10 @@
     - name: Copy Fedora CoreOS image and ignition configs into Proxmox shared storage on {{ inventory_hostname }}
       ansible.builtin.include_role:
         name: file_copier
+
+- name: Create and start Proxmox VMs for k3s cluster
+  hosts: local
+  gather_facts: true
+
+  roles:
+    - role: proxmox_k3s_vm_scaffolder

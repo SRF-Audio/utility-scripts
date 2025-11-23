@@ -1,0 +1,47 @@
+argument_specs:
+  main:
+    options:
+      proxmox_cluster_layout:
+        type: dict
+        required: true
+        description: Proxmox cluster layout containing control_planes and workers.
+      proxmox_api_host:
+        type: str
+        required: true
+        description: Proxmox API host.
+      proxmox_api_user:
+        type: str
+        required: true
+        description: Proxmox API user.
+      proxmox_api_password:
+        type: str
+        required: false
+        description: Proxmox API password.
+      proxmox_api_token_id:
+        type: str
+        required: false
+        description: Proxmox API token ID.
+      proxmox_api_token_secret:
+        type: str
+        required: false
+        description: Proxmox API token secret.
+      proxmox_validate_certs:
+        type: bool
+        required: false
+        description: Whether to validate TLS certificates for the Proxmox API.
+      proxmox_storage:
+        type: str
+        required: true
+        description: Proxmox storage ID for VM disks.
+      proxmox_cluster_storage_id:
+        type: str
+        required: true
+        description: Proxmox storage ID for ignition and cloud-init.
+      proxmox_k3s_fcos_template_path:
+        type: str
+        required: true
+        description: Full path on the Proxmox node to the FCOS qcow2 image.
+      proxmox_bridge:
+        type: str
+        required: true
+        description: Proxmox bridge name for VM networking.

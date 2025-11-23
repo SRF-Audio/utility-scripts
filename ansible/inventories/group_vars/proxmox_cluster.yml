@@ -18,12 +18,6 @@ proxmox_k3s_data_device: /dev/vdb
 proxmox_k3s_data_label: K3S_DATA
 proxmox_k3s_data_mount: /var/lib/rancher/k3s
 
-proxmox_k3s_cluster_token: >-
-  {{ lookup('community.general.onepassword',
-            'Coachlight k3s Cluster',
-            field='cluster token',
-            vault='HomeLab') }}
-
 proxmox_cluster_layout:
   proxmox_nodes:
     - name: coachlight-homelab-1
