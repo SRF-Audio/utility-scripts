@@ -84,3 +84,15 @@ proxmox_cluster_layout:
       cpu: 8
       memory: 8192
       disk: 240
+
+# Proxmox API connection (used from the control host / localhost)
+proxmox_api_host: "{{ hostvars[groups['proxmox'][0]].ansible_host }}"
+proxmox_api_user: "sfroeber@pam"
+
+# Storage ID as known to Proxmox (the *name* in Datacenter -> Storage)
+proxmox_cluster_storage_id: "proxmox-cluster-storage"
+
+# FCOS qcow2 path on the Proxmox node, matching where file_copier puts it
+proxmox_k3s_fcos_template_path: >-
+  {{ proxmox_cluster_storage_template_dir }}/
+  {{ hostvars[groups['local'][0]].coreos_image_fetch_image_path | basename }}

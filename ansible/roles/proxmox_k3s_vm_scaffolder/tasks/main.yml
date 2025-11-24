@@ -20,8 +20,10 @@
       memory: "{{ item.memory }}"
       cores: "{{ item.cpu }}"
       sockets: 1
-      net0: "virtio={{ item.mac }},bridge={{ proxmox_bridge }}"
-      ide2: "{{ proxmox_cluster_storage_id }}:cloudinit"
+      net:
+        net0: "virtio={{ item.mac }},bridge={{ proxmox_bridge }}"
+      ide:
+        ide2: "{{ proxmox_cluster_storage_id }}:cloudinit"
       cicustom: "user={{ proxmox_cluster_storage_id }}:snippets/{{ item.name }}.ign"
       agent: 1
       scsihw: virtio-scsi-pci

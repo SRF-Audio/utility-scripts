@@ -29,6 +29,11 @@
                     'Coachlight k3s Cluster',
                     field='cluster token',
                     vault='HomeLab') }}
+        # proxmox_api_user: >-
+        #   {{ lookup('community.general.onepassword',
+        #             'Coachlight ProxMox Cluster',
+        #             field='username',
+        #             vault='HomeLab') }}
         proxmox_api_password: >-
           {{ lookup('community.general.onepassword',
                     'Coachlight ProxMox Cluster',
