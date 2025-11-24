@@ -3,88 +3,108 @@
     path: "{{ ansible_env.HOME }}/.oh-my-zsh"
   register: omz
 
-- name: Install oh-my-zsh
+- name: Download oh-my-zsh installer script
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+    dest: /tmp/omz_install.sh
+    mode: "0755"
   when: not omz.stat.exists
-  block:
-    - name: Download oh-my-zsh installer script
-      ansible.builtin.get_url:
-        url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
-        dest: /tmp/omz_install.sh
-        mode: "0755"
 
-    - name: Run oh-my-zsh installer
-      ansible.builtin.command: /tmp/omz_install.sh --unattended
-      args:
-        creates: "{{ ansible_env.HOME }}/.oh-my-zsh"
-        executable: /bin/zsh
+- name: Run oh-my-zsh installer
+  ansible.builtin.command: /tmp/omz_install.sh --unattended
+  args:
+    creates: "{{ ansible_env.HOME }}/.oh-my-zsh"
+    executable: /bin/zsh
+  when: not omz.stat.exists
 
-    - name: Ensure local fonts directory exists
-      ansible.builtin.file:
-        path: "{{ ansible_env.HOME }}/.local/share/fonts"
-        state: directory
-        mode: "0755"
+- name: Ensure local fonts directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.local/share/fonts"
+    state: directory
+    mode: "0755"
 
-    - name: Install MesloLGS NF fonts for Powerlevel10k
-      ansible.builtin.get_url:
-        url: "{{ item }}"
-        dest: "{{ ansible_env.HOME }}/.local/share/fonts/{{ item | basename }}"
-        mode: "0644"
-      loop:
-        - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf
-        - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf
-        - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf
-        - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf
+- name: Install MesloLGS NF fonts for Powerlevel10k
+  ansible.builtin.get_url:
+    url: "{{ item }}"
+    dest: "{{ ansible_env.HOME }}/.local/share/fonts/{{ item | basename }}"
+    mode: "0644"
+  loop:
+    - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf
+    - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf
+    - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf
+    - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf
+  register: meslo_fonts
 
-    - name: Install fontconfig package
-      ansible.builtin.dnf:
-        name: fontconfig
-        state: present
-      become: true
+- name: Install fontconfig package
+  ansible.builtin.package:
+    name: fontconfig
+    state: present
+  become: true
 
-    - name: Refresh font cache
-      ansible.builtin.command:
-        cmd: fc-cache -f
-      changed_when: false
+- name: Refresh font cache
+  ansible.builtin.command:
+    cmd: fc-cache -f
+  when: meslo_fonts is changed
+  changed_when: false
 
-    - name: Define Konsole profile variables
-      ansible.builtin.set_fact:
-        konsole_profile_name: "Powerlevel10k"
-        konsole_profile_path: "{{ ansible_env.HOME }}/.local/share/konsole/Powerlevel10k.profile"
-        konsole_font_value: "MesloLGS NF,10,-1,5,50,0,0,0,0,0"
+- name: Define Konsole profile variables
+  ansible.builtin.set_fact:
+    konsole_profile_name: "Powerlevel10k"
+    konsole_profile_path: "{{ ansible_env.HOME }}/.local/share/konsole/Powerlevel10k.profile"
+    konsole_font_value: "MesloLGS NF,10,-1,5,50,0,0,0,0,0"
 
-    - name: Ensure Konsole profile file exists (no overwrite)
-      ansible.builtin.file:
-        path: "{{ konsole_profile_path }}"
-        state: touch
-        mode: "0600"
+- name: Ensure Konsole profile directory exists
+  ansible.builtin.file:
+    path: "{{ konsole_profile_path | dirname }}"
+    state: directory
+    mode: "0755"
 
-    - name: Set Konsole profile font to MesloLGS NF
-      community.general.ini_file:
-        path: "{{ konsole_profile_path }}"
-        section: "Appearance"
-        option: "Font"
-        value: "{{ konsole_font_value }}"
-        no_extra_spaces: true
-        mode: "0600"
+- name: Ensure Konsole profile file exists (no overwrite)
+  ansible.builtin.file:
+    path: "{{ konsole_profile_path }}"
+    state: touch
+    mode: "0600"
 
-    - name: Make this the default Konsole profile
-      community.general.ini_file:
-        path: "{{ ansible_env.HOME }}/.config/konsolerc"
-        section: "Desktop Entry"
-        option: "DefaultProfile"
-        value: "{{ konsole_profile_name }}.profile"
-        no_extra_spaces: true
-        mode: "0600"
+- name: Set Konsole profile font to MesloLGS NF
+  community.general.ini_file:
+    path: "{{ konsole_profile_path }}"
+    section: "Appearance"
+    option: "Font"
+    value: "{{ konsole_font_value }}"
+    no_extra_spaces: true
+    mode: "0600"
 
-    - name: Clone Powerlevel10k theme into oh-my-zsh custom themes directory
-      ansible.builtin.git:
-        repo: https://github.com/romkatv/powerlevel10k.git
-        dest: "{{ ansible_env.HOME }}/.oh-my-zsh/custom/themes/powerlevel10k"
-        depth: 1
-        version: master
+- name: Make this the default Konsole profile
+  community.general.ini_file:
+    path: "{{ ansible_env.HOME }}/.config/konsolerc"
+    section: "Desktop Entry"
+    option: "DefaultProfile"
+    value: "{{ konsole_profile_name }}.profile"
+    no_extra_spaces: true
+    mode: "0600"
 
-    - name: Set ZSH_THEME to "powerlevel10k" in .zshrc
-      ansible.builtin.lineinfile:
-        path: ~/.zshrc
-        regexp: "^ZSH_THEME="
-        line: 'ZSH_THEME="powerlevel10k/powerlevel10k"'
+- name: Clone Powerlevel10k theme into oh-my-zsh custom themes directory
+  ansible.builtin.git:
+    repo: https://github.com/romkatv/powerlevel10k.git
+    dest: "{{ ansible_env.HOME }}/.oh-my-zsh/custom/themes/powerlevel10k"
+    depth: 1
+    version: master
+
+- name: Set ZSH_THEME to "powerlevel10k" in .zshrc
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    regexp: "^ZSH_THEME="
+    line: 'ZSH_THEME="powerlevel10k/powerlevel10k"'
+
+- name: Install Powerlevel10k config
+  ansible.builtin.copy:
+    src: p10k.zsh
+    dest: "{{ ansible_env.HOME }}/.p10k.zsh"
+    mode: "0644"
+
+- name: Ensure Powerlevel10k config is sourced from .zshrc
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    regexp: '^\[\[ ! -f ~/.p10k.zsh \]\] \|\| source ~/.p10k.zsh'
+    line: "[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh"
+    insertafter: "^ZSH_THEME=" # or wherever you like
