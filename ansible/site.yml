@@ -1,8 +1,16 @@
 - name: Get secrets from 1Password (Performance optimization)
   hosts: local
-  gather_facts: false
+  gather_facts: true
   tasks:
-    - name: Read sudo password from 1Password once
+    - name: Debug package manager and OS
+      ansible.builtin.debug:
+        var: ansible_facts.pkg_mgr
+
+    - name: Debug distribution info
+      ansible.builtin.debug:
+        msg: "{{ ansible_facts.os_family }} {{ ansible_facts.distribution }} {{ ansible_facts.distribution_version }}"
+
+    - name: Read credentials from 1Password once
       ansible.builtin.set_fact:
         homelab_become_pass: >-
           {{ lookup('community.general.onepassword',
@@ -10,10 +18,10 @@
                     field='password',
                     vault='HomeLab') }}
         ignition_template_ssh_key: >-
-          "{{ lookup('community.general.onepassword',
+          {{ lookup('community.general.onepassword',
                      'coachlight-homelab SSH key',
                      field='public_key',
-                     vault='HomeLab') }}"
+                     vault='HomeLab') }}
         ignition_template_ts_auth_key: >-
           {{ lookup('community.general.onepassword', 'Tailscale', field='coachlight-homelab auth key', vault='HomeLab') }}
         proxmox_k3s_cluster_token: >-

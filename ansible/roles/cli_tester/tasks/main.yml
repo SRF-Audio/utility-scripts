@@ -6,14 +6,48 @@
       - cli_tester_cli_name | length > 0
     fail_msg: cli_tester_cli_name must be defined and non-empty.
 
+- name: Check for 'which' command on {{ inventory_hostname }}
+  ansible.builtin.command:
+    cmd: "which which"
+  register: cli_tester_which_check
+  changed_when: false
+  failed_when: false
+
+- name: Set which ready fact on {{ inventory_hostname }}
+  ansible.builtin.set_fact:
+    cli_tester_which_ready: true
+  when: cli_tester_which_check is succeeded
+
 - name: Ensure 'which' is installed on {{ inventory_hostname }}
   when: not (cli_tester_which_ready | default(false))
   block:
+    - name: Install which on RedHat-family with dnf/yum
+      ansible.builtin.dnf:
+        name: which
+        state: present
+      become: true
+      when:
+        - not (cli_tester_which_ready | default(false))
+        - ansible_facts.os_family == 'RedHat'
+        - ansible_facts.pkg_mgr in ['dnf', 'yum']
+
+    - name: Install which on Debian-family with apt
+      ansible.builtin.apt:
+        name: which
+        state: present
+        update_cache: true
+      become: true
+      when:
+        - not (cli_tester_which_ready | default(false))
+        - ansible_facts.os_family == 'Debian'
+
     - name: Install which package on {{ inventory_hostname }}
       ansible.builtin.package:
         name: which
         state: present
       become: true
+      when:
+        - ansible_facts.os_family not in ['RedHat', 'Debian']
 
     - name: Mark 'which' as ready for cli_tester on {{ inventory_hostname }}
       ansible.builtin.set_fact:

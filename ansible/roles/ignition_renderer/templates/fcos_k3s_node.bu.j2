@@ -10,9 +10,10 @@ passwd:
   users:
     - name: sfroeber
       groups: ["wheel"]
-      ssh_authorized_keys:
-        - "{{ ignition_template_ssh_key }}"
-
+      ssh_authorized_keys: 
+{% for key in ignition_template_ssh_key.split('\n') if key %}
+        - "{{ key }}"
+{% endfor %}
 storage:
   files:
     - path: /etc/hostname
