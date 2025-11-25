@@ -12,8 +12,7 @@
   tasks:
     - name: Calculate final FCOS qcow2 template path on Proxmox
       ansible.builtin.set_fact:
-        proxmox_k3s_fcos_template_path: >-
-          {{ proxmox_cluster_storage_template_dir }}/{{ coreos_image_fetch_image_path | basename }}
+        proxmox_k3s_fcos_template_path: "{{ proxmox_cluster_storage_template_dir }}/{{ coreos_image_fetch_image_path | basename }}"
       when: coreos_image_fetch_image_path is defined
       tags: always
 
@@ -30,9 +29,7 @@
       ansible.builtin.set_fact:
         file_copier_items:
           - src: "{{ hostvars[coreos_image_source_host].coreos_image_fetch_image_path }}"
-            dest: >-
-              {{ proxmox_cluster_storage_template_dir }}/
-              {{ hostvars[coreos_image_source_host].coreos_image_fetch_image_path | basename }}
+            dest: "{{ proxmox_cluster_storage_template_dir }}/{{ hostvars[coreos_image_source_host].coreos_image_fetch_image_path | basename }}"
 
     - name: Add ignition configs for each k3s node to file_copier_items
       ansible.builtin.set_fact:

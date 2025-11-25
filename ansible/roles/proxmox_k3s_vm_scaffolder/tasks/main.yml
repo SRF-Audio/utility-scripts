@@ -17,6 +17,8 @@
     proxmox_kvm_manager_validate_certs: "{{ proxmox_validate_certs }}"
     proxmox_kvm_manager_module_params:
       name: "{{ item.name }}"
+      autostart: true
+      localtime: true
       memory: "{{ item.memory }}"
       cores: "{{ item.cpu }}"
       sockets: 1
@@ -28,7 +30,13 @@
         scsi0: "{{ proxmox_storage }}:0,import-from={{ proxmox_k3s_fcos_template_path }},format=qcow2,iothread=1"
       ostype: l26
       boot: "order=scsi0"
-      args: "-fw_cfg name=opt/org.fedoraproject.butane/config,file={{ proxmox_cluster_storage_snippets_dir }}/{{ item.name }}.ign"
+      pool: kubernetes
+      onboot: true
+      tags:
+        - coachlight-homelab
+        - cluster-service
+        - "{{ 'cluster-control' if item.role is defined else 'cluster-worker' }}"
+      args: "-fw_cfg name=opt/org.fedoraproject.coreos/config,{{ proxmox_cluster_storage_snippets_dir }}/{{ item.name }}.ign"
   loop: "{{ proxmox_k3s_vm_scaffolder_all_vms }}"
   loop_control:
     label: "{{ item.name }}"
