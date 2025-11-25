@@ -37,7 +37,7 @@
         proxmox_api_password: >-
           {{ lookup('community.general.onepassword',
                     'Coachlight ProxMox Cluster',
-                    field='ng7tr2fe5zm32b3ukayno6lciy',
+                    field='password',
                     vault='HomeLab') }}
       run_once: true
       delegate_to: localhost

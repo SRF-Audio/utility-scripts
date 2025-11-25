@@ -1,4 +1,4 @@
-- name: Assert proxmox_kvm_manager required inputs are defined
+- name: Assert proxmox_kvm_manager required inputs are defined for VM {{ proxmox_kvm_manager_vmid }}
   ansible.builtin.assert:
     that:
       - proxmox_kvm_manager_api_host is defined
@@ -44,7 +44,7 @@
             recursive=False
           )
       }}
-  no_log: true
+  # no_log: true
 
 - name: Create Proxmox VM template {{ proxmox_kvm_manager_vmid }}
   community.proxmox.proxmox_kvm: "{{ proxmox_kvm_manager_effective_params }}"
@@ -55,7 +55,7 @@
     name: role_artifacts
   vars:
     # noqa: var-naming
-    calling_role_name: proxmox_kvm_manager
+    calling_role_name: proxmox_kvm_manager_{{ proxmox_kvm_manager_vmid }}
     calling_role_artifacts_inputs:
       proxmox_kvm_manager_effective_params: "{{ proxmox_kvm_manager_effective_params }}"
       proxmox_kvm_manager_result: "{{ proxmox_kvm_manager_result }}"

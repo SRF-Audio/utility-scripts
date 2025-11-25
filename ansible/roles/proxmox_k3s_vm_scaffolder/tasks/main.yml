@@ -2,7 +2,7 @@
   ansible.builtin.set_fact:
     proxmox_k3s_vm_scaffolder_all_vms: "{{ proxmox_cluster_layout.control_planes + proxmox_cluster_layout.workers }}"
 
-- name: Create empty VM shell for each k3s node
+- name: Create k3s VM with FCOS disk attached as scsi0
   ansible.builtin.include_role:
     name: proxmox_kvm_manager
   vars:
@@ -26,29 +26,11 @@
         ide2: "{{ proxmox_cluster_storage_id }}:cloudinit"
       cicustom: "user={{ proxmox_cluster_storage_id }}:snippets/{{ item.name }}.ign"
       agent: 1
-      scsihw: virtio-scsi-pci
+      scsihw: virtio-scsi-single
+      scsi:
+        scsi0: "{{ proxmox_storage }}:0,import-from={{ proxmox_k3s_fcos_template_path }},format=qcow2,iothread=1"
       ostype: l26
-  loop: "{{ proxmox_k3s_vm_scaffolder_all_vms }}"
-  loop_control:
-    label: "{{ item.name }}"
-
-- name: Attach FCOS disk to scsi0 for each k3s node
-  ansible.builtin.include_role:
-    name: proxmox_vm_disk_manager
-  vars:
-    proxmox_vm_disk_manager_api_host: "{{ proxmox_api_host }}"
-    proxmox_vm_disk_manager_api_user: "{{ proxmox_api_user }}"
-    proxmox_vm_disk_manager_api_password: "{{ proxmox_api_password | default(omit) }}"
-    proxmox_vm_disk_manager_api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
-    proxmox_vm_disk_manager_api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
-    proxmox_vm_disk_manager_node: "{{ item.proxmox_node }}"
-    proxmox_vm_disk_manager_vmid: "{{ item.vmid }}"
-    proxmox_vm_disk_manager_disk: scsi0
-    proxmox_vm_disk_manager_state: present
-    proxmox_vm_disk_manager_validate_certs: "{{ proxmox_validate_certs }}"
-    proxmox_vm_disk_manager_module_params:
-      storage: "{{ proxmox_storage }}"
-      import_from: "{{ proxmox_k3s_fcos_template_path }}"
+      boot: "order=scsi0"
   loop: "{{ proxmox_k3s_vm_scaffolder_all_vms }}"
   loop_control:
     label: "{{ item.name }}"
@@ -73,41 +55,22 @@
   loop_control:
     label: "{{ item.name }}"
 
-- name: Wait for scsi0 disk to appear in VM config
-  community.proxmox.proxmox_kvm:
-    api_host: "{{ proxmox_api_host }}"
-    api_user: "{{ proxmox_api_user }}"
-    api_password: "{{ proxmox_api_password | default(omit) }}"
-    api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
-    api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
-    node: "{{ item.proxmox_node }}"
-    vmid: "{{ item.vmid }}"
-    state: current
-    validate_certs: "{{ proxmox_validate_certs }}"
-  register: proxmox_k3s_vm_scaffolder_current
-  until: "'scsi0' in (proxmox_k3s_vm_scaffolder_current.vminfo.hardware.keys() | default([]))"
-  retries: 10
-  delay: 3
-  loop: "{{ proxmox_k3s_vm_scaffolder_all_vms }}"
-  loop_control:
-    label: "{{ item.name }}"
-
-- name: Set boot order to scsi0 for each k3s node
+- name: Resize primary disk for each k3s node
   ansible.builtin.include_role:
-    name: proxmox_kvm_manager
+    name: proxmox_vm_disk_manager
   vars:
-    proxmox_kvm_manager_api_host: "{{ proxmox_api_host }}"
-    proxmox_kvm_manager_api_user: "{{ proxmox_api_user }}"
-    proxmox_kvm_manager_api_password: "{{ proxmox_api_password | default(omit) }}"
-    proxmox_kvm_manager_api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
-    proxmox_kvm_manager_api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
-    proxmox_kvm_manager_node: "{{ item.proxmox_node }}"
-    proxmox_kvm_manager_vmid: "{{ item.vmid }}"
-    proxmox_kvm_manager_state: present
-    proxmox_kvm_manager_validate_certs: "{{ proxmox_validate_certs }}"
-    proxmox_kvm_manager_module_params:
-      boot: "order=scsi0"
-      update: true
+    proxmox_vm_disk_manager_api_host: "{{ proxmox_api_host }}"
+    proxmox_vm_disk_manager_api_user: "{{ proxmox_api_user }}"
+    proxmox_vm_disk_manager_api_password: "{{ proxmox_api_password | default(omit) }}"
+    proxmox_vm_disk_manager_api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+    proxmox_vm_disk_manager_api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+    proxmox_vm_disk_manager_node: "{{ item.proxmox_node }}"
+    proxmox_vm_disk_manager_vmid: "{{ item.vmid }}"
+    proxmox_vm_disk_manager_disk: scsi0
+    proxmox_vm_disk_manager_state: resized
+    proxmox_vm_disk_manager_validate_certs: "{{ proxmox_validate_certs }}"
+    proxmox_vm_disk_manager_module_params:
+      size: "{{ item.disk }}G" # absolute size => idempotent
   loop: "{{ proxmox_k3s_vm_scaffolder_all_vms }}"
   loop_control:
     label: "{{ item.name }}"
@@ -126,25 +89,6 @@
     proxmox_kvm_manager_state: started
     proxmox_kvm_manager_validate_certs: "{{ proxmox_validate_certs }}"
     proxmox_kvm_manager_module_params: {}
-  loop: "{{ proxmox_k3s_vm_scaffolder_all_vms }}"
-  loop_control:
-    label: "{{ item.name }}"
-
-- name: Wait for each k3s VM to be running
-  community.proxmox.proxmox_kvm:
-    api_host: "{{ proxmox_api_host }}"
-    api_user: "{{ proxmox_api_user }}"
-    api_password: "{{ proxmox_api_password | default(omit) }}"
-    api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
-    api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
-    node: "{{ item.proxmox_node }}"
-    vmid: "{{ item.vmid }}"
-    state: current
-    validate_certs: "{{ proxmox_validate_certs }}"
-  register: proxmox_k3s_vm_scaffolder_running
-  until: "proxmox_k3s_vm_scaffolder_running.status == 'running'"
-  retries: 20
-  delay: 3
   loop: "{{ proxmox_k3s_vm_scaffolder_all_vms }}"
   loop_control:
     label: "{{ item.name }}"
