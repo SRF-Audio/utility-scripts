@@ -9,6 +9,13 @@
     - role: ignition_renderer
       vars:
         ignition_renderer_cluster_layout: "{{ proxmox_cluster_layout }}"
+  tasks:
+    - name: Calculate final FCOS qcow2 template path on Proxmox
+      ansible.builtin.set_fact:
+        proxmox_k3s_fcos_template_path: >-
+          {{ proxmox_cluster_storage_template_dir }}/{{ coreos_image_fetch_image_path | basename }}
+      when: coreos_image_fetch_image_path is defined
+      tags: always
 
 - name: Copy Fedora CoreOS image and ignition configs into Proxmox shared storage
   hosts: coachlight-homelab-1
@@ -46,3 +53,11 @@
 
   roles:
     - role: proxmox_k3s_vm_scaffolder
+
+- name: Delete k3s VMs from Proxmox
+  hosts: local
+  gather_facts: true
+  roles:
+    - role: proxmox_k3s_vm_destroyer
+  tags:
+    - vm_delete

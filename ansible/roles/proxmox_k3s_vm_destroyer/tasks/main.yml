@@ -1,0 +1,21 @@
+- name: Build combined VM list for k3s cluster
+  ansible.builtin.set_fact:
+    proxmox_k3s_vm_destroyer_all_vms: "{{ proxmox_cluster_layout.control_planes + proxmox_cluster_layout.workers }}"
+
+- name: Delete k3s VM {{ item.name }}
+  ansible.builtin.include_role:
+    name: proxmox_kvm_manager
+  vars:
+    proxmox_kvm_manager_api_host: "{{ proxmox_api_host }}"
+    proxmox_kvm_manager_api_user: "{{ proxmox_api_user }}"
+    proxmox_kvm_manager_api_password: "{{ proxmox_api_password | default(omit) }}"
+    proxmox_kvm_manager_api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+    proxmox_kvm_manager_api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+    proxmox_kvm_manager_node: "{{ item.proxmox_node }}"
+    proxmox_kvm_manager_vmid: "{{ item.vmid }}"
+    proxmox_kvm_manager_state: absent
+    proxmox_kvm_manager_validate_certs: "{{ proxmox_validate_certs }}"
+    proxmox_kvm_manager_module_params: {}
+  loop: "{{ proxmox_k3s_vm_destroyer_all_vms }}"
+  loop_control:
+    label: "{{ item.name }}"

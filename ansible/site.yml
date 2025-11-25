@@ -1,6 +1,7 @@
 - name: Get secrets from 1Password (Performance optimization)
   hosts: local
   gather_facts: true
+  tags: always
   tasks:
     - name: Debug package manager and OS
       ansible.builtin.debug:
