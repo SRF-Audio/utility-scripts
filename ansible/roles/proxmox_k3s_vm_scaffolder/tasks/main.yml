@@ -17,7 +17,6 @@
     proxmox_kvm_manager_validate_certs: "{{ proxmox_validate_certs }}"
     proxmox_kvm_manager_module_params:
       name: "{{ item.name }}"
-      autostart: true
       localtime: true
       memory: "{{ item.memory }}"
       cores: "{{ item.cpu }}"
