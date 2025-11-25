@@ -36,7 +36,9 @@
         - coachlight-homelab
         - cluster-service
         - "{{ 'cluster-control' if item.role is defined else 'cluster-worker' }}"
-      args: "-fw_cfg name=opt/org.fedoraproject.coreos/config,{{ proxmox_cluster_storage_snippets_dir }}/{{ item.name }}.ign"
+      ide:
+        ide2: "{{ proxmox_cluster_storage_id }}:cloudinit"
+      cicustom: "vendor={{ proxmox_cluster_storage_id }}:snippets/{{ item.name }}.ign"
   loop: "{{ proxmox_k3s_vm_scaffolder_all_vms }}"
   loop_control:
     label: "{{ item.name }}"
