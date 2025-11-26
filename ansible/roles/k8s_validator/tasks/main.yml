@@ -1,0 +1,95 @@
+- name: Assert k3s_cluster_domain is defined
+  ansible.builtin.assert:
+    that:
+      - k3s_cluster_domain is defined
+      - k3s_cluster_domain | length > 0
+    fail_msg: "k3s_cluster_domain must be defined for k8s_validator."
+
+- name: Perform Kubernetes cluster validation
+  when: not (is_k3s_cluster_valid | default(false) | bool)
+  block:
+    - name: Ensure Python toolchain packages are present on Debian family
+      ansible.builtin.package:
+        name:
+          - python3
+          - python3-pip
+        state: present
+      when: ansible_os_family == "Debian"
+      become: true
+
+    - name: Ensure Python toolchain packages are present on RedHat family
+      ansible.builtin.package:
+        name:
+          - python3
+          - python3-pip
+        state: present
+      when: ansible_os_family == "RedHat"
+      become: true
+
+    - name: Assert Python version is supported for k8s_validator
+      ansible.builtin.assert:
+        that:
+          - ansible_python_version is version('3.9', '>=')
+        fail_msg: "Python 3.9 or higher is required for k8s_validator."
+
+    - name: Ensure required Python Kubernetes libraries are installed
+      ansible.builtin.pip:
+        name:
+          - "kubernetes>=24.2.0"
+          - "PyYAML>=3.11"
+          - jsonpatch
+        state: present
+        executable: pip3
+      become: true
+
+    - name: Gather Kubernetes cluster info
+      kubernetes.core.k8s_cluster_info:
+        api_key: "{{ k8s_validator_api_key | default(omit, true) }}"
+        ca_cert: "{{ k8s_validator_ca_cert | default(omit, true) }}"
+        client_cert: "{{ k8s_validator_client_cert | default(omit, true) }}"
+        client_key: "{{ k8s_validator_client_key | default(omit, true) }}"
+        context: "{{ k8s_validator_context | default(omit, true) }}"
+        host: "{{ k8s_validator_host | default(omit, true) }}"
+        impersonate_groups: "{{ k8s_validator_impersonate_groups | default(omit, true) }}"
+        impersonate_user: "{{ k8s_validator_impersonate_user | default(omit, true) }}"
+        invalidate_cache: "{{ k8s_validator_invalidate_cache | default(omit, true) }}"
+        kubeconfig: "{{ k8s_validator_kubeconfig | default(omit, true) }}"
+        no_proxy: "{{ k8s_validator_no_proxy | default(omit, true) }}"
+        password: "{{ k8s_validator_password | default(omit, true) }}"
+        persist_config: "{{ k8s_validator_persist_config | default(omit, true) }}"
+        proxy: "{{ k8s_validator_proxy | default(omit, true) }}"
+        proxy_headers: "{{ k8s_validator_proxy_headers | default(omit, true) }}"
+        username: "{{ k8s_validator_username | default(omit, true) }}"
+        validate_certs: "{{ k8s_validator_validate_certs | default(omit, true) }}"
+      register: k8s_validator_cluster_info
+
+    - name: Set Kubernetes API host fact
+      ansible.builtin.set_fact:
+        k8s_validator_connection_host: "{{ k8s_validator_cluster_info.connection.host | default('') }}"
+
+    - name: Assert Kubernetes API host matches expected k3s_cluster_domain
+      ansible.builtin.assert:
+        that:
+          - k8s_validator_connection_host | length > 0
+          - k8s_validator_connection_host is search(k3s_cluster_domain)
+        fail_msg: >-
+          Kubernetes API host '{{ k8s_validator_connection_host }}' does not
+          contain expected domain '{{ k3s_cluster_domain }}'.
+
+    - name: Mark k3s cluster as valid globally
+      ansible.builtin.set_fact:
+        # noqa: var-naming
+        is_k3s_cluster_valid: true
+
+    - name: Persist k8s_validator artifacts
+      ansible.builtin.include_role:
+        name: role_artifacts
+      vars:
+        # noqa: var-naming
+        calling_role_name: "k8s_validator"
+        calling_role_artifacts_inputs:
+          k3s_cluster_name: "{{ k3s_cluster_name }}"
+          effective_context: "{{ k8s_validator_effective_context }}"
+          cluster_version: "{{ k8s_validator_cluster_info.version.kubernetes | default('', true) }}"
+          is_k3s_cluster_valid: "{{ is_k3s_cluster_valid }}"
+          k8s_cluster_info: "{{ k8s_validator_cluster_info }}"

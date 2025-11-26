@@ -1,0 +1,31 @@
+- name: Deploy Coachlight HomeLab Infra Stack into k3s cluster
+  hosts: local
+  gather_facts: true
+  tags: coachlight_infra_stack_deploy
+  vars:
+    k8s_validator_kubeconfig: "{{ k3s_kubeconfig_path }}"
+    # k8s_validator_kubeconfig: "{{ lookup('env', 'HOME') ~ '/.kube/config' }}" # bad path test
+    k8s_validator_context: "{{ k3s_cluster_name }}"
+
+  pre_tasks:
+    - name: Import k8s_validator role
+      ansible.builtin.import_role:
+        name: k8s_validator
+
+    - name: Add control-plane taints to control-plane nodes
+      kubernetes.core.k8s_taint:
+        state: present
+        name: "{{ item }}"
+        taints:
+          - key: "node-role.kubernetes.io/control-plane"
+            value: "true"
+            effect: "NoSchedule"
+      loop: "{{ groups['control_plane'] | default([]) }}"
+
+  roles:
+    - role: argocd_deploy
+      vars:
+        argocd_deploy_kubeconfig: "{{ k8s_validator_kubeconfig }}"
+        argocd_deploy_context: "{{ k8s_validator_context }}"
+        argocd_deploy_cluster_name: "{{ k3s_cluster_name }}"
+    - role: longhorn_deploy

@@ -1,0 +1,4 @@
+---
+argocd_deploy_namespace: argocd
+argocd_deploy_manifest_src: "https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
+argocd_deploy_cluster_name: "{{ k3s_cluster_name | default('default') }}"

@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: longhorn
+  namespace: argocd
+spec:
+  project: coachlight-k3s-infra
+  source:
+    repoURL: https://charts.longhorn.io
+    chart: longhorn
+    targetRevision: 1.10.1
+    helm:
+      valuesObject:
+        preUpgradeChecker:
+          jobEnabled: false
+        persistence:
+          defaultClass: true
+          defaultClassReplicaCount: 3
+        defaultSettings:
+          defaultDataPath: "/var/lib/longhorn"
+          defaultReplicaCount: 3
+          defaultDataLocality: "best-effort"
+          replicaAutoBalance: "least-effort"
+          storageOverProvisioningPercentage: "200"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: longhorn
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

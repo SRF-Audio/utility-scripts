@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: coachlight-k3s-infra
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: >
+    Infrastructure project for the Coachlight k3s homelab cluster. Owns
+    platform components such as Argo CD, Longhorn, ingress, DNS, and
+    observability services, and may manage cluster-scoped resources. Not
+    intended for application workloads.
+  sourceRepos:
+    - "*"
+
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+    - server: https://kubernetes.default.svc
+      namespace: longhorn
+    - server: https://kubernetes.default.svc
+      namespace: infra-*
+
+  orphanedResources:
+    warn: true
+
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"

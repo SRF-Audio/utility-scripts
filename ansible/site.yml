@@ -52,3 +52,7 @@
 #   import_playbook: playbooks/proxmox.yml
 - name: Playbook to prepare newly installed Proxmox nodes for clustering
   import_playbook: playbooks/k3s-cluster-setup.yml
+  when: "'k3s_cluster_setup' in ansible_run_tags or 'k3s_cluster_delete' in ansible_run_tags"
+- name: Deploy Coachlight HomeLab Infra Stack
+  import_playbook: playbooks/coachlight-infra-stack.yml
+  when: "'coachlight_infra_stack_deploy' in ansible_run_tags"

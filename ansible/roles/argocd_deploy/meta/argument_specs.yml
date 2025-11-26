@@ -1,0 +1,26 @@
+argument_specs:
+  main:
+    description: |
+      Deploy Argo CD into a Kubernetes cluster. 
+      Calls k8s_object_manager role to apply Argo CD manifests with validation and artifact capture.
+    options:
+      argocd_deploy_kubeconfig:
+        type: raw
+        required: true
+        description: Path to kubeconfig file or configuration dict.
+      argocd_deploy_context:
+        type: str
+        required: true
+        description: Kubernetes context name to use for deployment.
+      argocd_deploy_namespace:
+        type: str
+        required: false
+        description: Namespace where Argo CD will be deployed.
+      argocd_deploy_manifest_src:
+        type: str
+        required: false
+        description: Source URL or path to the Argo CD install manifest.
+      argocd_deploy_cluster_name:
+        type: str
+        required: false
+        description: Logical cluster name used for artifact recording.

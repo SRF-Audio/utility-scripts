@@ -1,0 +1,88 @@
+argument_specs:
+  main:
+    description: |
+      Wrapper role around kubernetes.core.k8s_cluster_info to validate access to a Kubernetes cluster.
+      Parameteters for the kubernetes.core.k8s_cluster_info module.
+      https://docs.ansible.com/projects/ansible/latest/collections/kubernetes/core/k8s_cluster_info_module.html#ansible-collections-kubernetes-core-k8s-cluster-info-module
+    options:
+      k8s_validator_api_key:
+        type: str
+        required: false
+        description: Token used to authenticate with the Kubernetes API.
+      k8s_validator_ca_cert:
+        type: path
+        required: false
+        description: Path to CA certificate used to authenticate with the API.
+      k8s_validator_client_cert:
+        type: path
+        required: false
+        description: Path to client certificate used to authenticate with the API.
+      k8s_validator_client_key:
+        type: path
+        required: false
+        description: Path to client key used to authenticate with the API.
+      k8s_validator_context:
+        type: str
+        required: false
+        description: Kubernetes context name to use.
+      k8s_validator_host:
+        type: str
+        required: false
+        description: URL for accessing the Kubernetes API.
+      k8s_validator_impersonate_groups:
+        type: list
+        elements: str
+        required: false
+        description: Groups to impersonate for the operation.
+      k8s_validator_impersonate_user:
+        type: str
+        required: false
+        description: Username to impersonate for the operation.
+      k8s_validator_invalidate_cache:
+        type: bool
+        required: false
+        description: Invalidate cache before retrieving information about cluster.
+      k8s_validator_kubeconfig:
+        type: raw
+        required: false
+        description: Path to kubeconfig file or configuration dict.
+      k8s_validator_no_proxy:
+        type: str
+        required: false
+        description: Comma-separated list of hosts/domains/IP/CIDR that should not go through proxy.
+      k8s_validator_password:
+        type: str
+        required: false
+        description: Password for authenticating with the API.
+      k8s_validator_persist_config:
+        type: bool
+        required: false
+        description: Whether or not to save kubeconfig refresh tokens.
+      k8s_validator_proxy:
+        type: str
+        required: false
+        description: URL of an HTTP proxy to use for the connection.
+      k8s_validator_proxy_headers:
+        type: dict
+        required: false
+        description: Headers used for the HTTP proxy.
+      k8s_validator_basic_auth:
+        type: str
+        required: false
+        description: Colon-separated username:password for basic authentication header.
+      k8s_validator_proxy_basic_auth:
+        type: str
+        required: false
+        description: Colon-separated username:password for proxy basic authentication header.
+      k8s_validator_user_agent:
+        type: str
+        required: false
+        description: User agent string to use for the connection.
+      k8s_validator_username:
+        type: str
+        required: false
+        description: Username for authenticating with the API.
+      k8s_validator_validate_certs:
+        type: bool
+        required: false
+        description: Whether or not to verify the API server SSL certificates.

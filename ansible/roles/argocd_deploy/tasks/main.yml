@@ -1,0 +1,88 @@
+---
+- name: Assert required Argo CD deployment inputs are defined
+  ansible.builtin.assert:
+    that:
+      - argocd_deploy_kubeconfig is defined
+      - argocd_deploy_context is defined
+      - argocd_deploy_kubeconfig | string | length > 0
+      - argocd_deploy_context | length > 0
+    fail_msg: "argocd_deploy_kubeconfig and argocd_deploy_context must be defined for argocd_deploy."
+
+- name: Create Argo CD namespace {{ argocd_deploy_namespace }}
+  ansible.builtin.include_role:
+    name: k8s_object_manager
+  vars:
+    k8s_object_manager_kubeconfig: "{{ argocd_deploy_kubeconfig }}"
+    k8s_object_manager_context: "{{ argocd_deploy_context }}"
+    k8s_object_manager_state: present
+    k8s_object_manager_kind: Namespace
+    k8s_object_manager_api_version: v1
+    k8s_object_manager_name: "{{ argocd_deploy_namespace }}"
+  register: argocd_deploy_namespace_include
+
+- name: Capture Argo CD namespace creation result
+  ansible.builtin.set_fact:
+    argocd_deploy_namespace_result: "{{ k8s_object_manager_result }}"
+  when: argocd_deploy_namespace_include is succeeded
+
+- name: Apply Argo CD install manifest to namespace {{ argocd_deploy_namespace }}
+  ansible.builtin.include_role:
+    name: k8s_object_manager
+  vars:
+    k8s_object_manager_kubeconfig: "{{ argocd_deploy_kubeconfig }}"
+    k8s_object_manager_context: "{{ argocd_deploy_context }}"
+    k8s_object_manager_state: present
+    k8s_object_manager_namespace: "{{ argocd_deploy_namespace }}"
+    k8s_object_manager_src: "{{ argocd_deploy_manifest_src }}"
+  register: argocd_deploy_manifest_include
+
+- name: Capture Argo CD manifest apply result
+  ansible.builtin.set_fact:
+    argocd_deploy_manifest_result: "{{ k8s_object_manager_result }}"
+  when: argocd_deploy_manifest_include is succeeded
+
+- name: Discover additional Argo CD resource manifests in role files/
+  ansible.builtin.find:
+    paths: "{{ role_path }}/files"
+    patterns:
+      - "*.yml"
+      - "*.yaml"
+    file_type: file
+  register: argocd_deploy_manifest_files
+
+- name: Record additional Argo CD manifest paths
+  ansible.builtin.set_fact:
+    argocd_deploy_additional_manifests: >-
+      {{ argocd_deploy_manifest_files.files | default([]) | map(attribute='path') | list }}
+  when:
+    - argocd_deploy_manifest_files is defined
+    - argocd_deploy_manifest_files.files | length > 0
+
+- name: Apply additional Argo CD resource manifests from files/
+  ansible.builtin.include_role:
+    name: k8s_object_manager
+  vars:
+    k8s_object_manager_kubeconfig: "{{ argocd_deploy_kubeconfig }}"
+    k8s_object_manager_context: "{{ argocd_deploy_context }}"
+    k8s_object_manager_state: present
+    k8s_object_manager_namespace: "{{ argocd_deploy_namespace }}"
+    k8s_object_manager_src: "{{ item.path }}"
+  loop: "{{ argocd_deploy_manifest_files.files | default([]) }}"
+  loop_control:
+    label: "{{ item.path }}"
+  when:
+    - argocd_deploy_manifest_files is defined
+    - argocd_deploy_manifest_files.files | length > 0
+
+- name: Persist argocd_deploy artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    calling_role_name: "argocd_deploy"
+    calling_role_artifacts_inputs:
+      k3s_cluster_name: "{{ argocd_deploy_cluster_name | default(k3s_cluster_name | default('', true), true) }}"
+      namespace: "{{ argocd_deploy_namespace }}"
+      manifest_src: "{{ argocd_deploy_manifest_src }}"
+      namespace_result: "{{ argocd_deploy_namespace_result | default({}, true) }}"
+      manifest_result: "{{ argocd_deploy_manifest_result | default({}, true) }}"
+      additional_manifests: "{{ argocd_deploy_additional_manifests | default([], true) }}"

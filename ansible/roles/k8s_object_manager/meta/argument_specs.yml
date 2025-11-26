@@ -1,0 +1,147 @@
+argument_specs:
+  main:
+    description: |
+      Wrapper role around kubernetes.core.k8s to manage Kubernetes objects with
+      consistent validation and artifact capture.
+      Accepts all parameters from kubernetes.core.k8s:
+      https://docs.ansible.com/projects/ansible/latest/collections/kubernetes/core/k8s_module.html#ansible-collections-kubernetes-core-k8s-module
+
+      Calls k8s_validator role to validate cluster connectivity before applying objects.
+    options:
+      k8s_object_manager_api_key:
+        type: str
+        required: false
+      k8s_object_manager_api_version:
+        type: str
+        required: false
+      k8s_object_manager_append_hash:
+        type: bool
+        required: false
+      k8s_object_manager_apply:
+        type: bool
+        required: false
+      k8s_object_manager_ca_cert:
+        type: path
+        required: false
+      k8s_object_manager_client_cert:
+        type: path
+        required: false
+      k8s_object_manager_client_key:
+        type: path
+        required: false
+      k8s_object_manager_context:
+        type: str
+        required: false
+      k8s_object_manager_continue_on_error:
+        type: bool
+        required: false
+      k8s_object_manager_delete_all:
+        type: bool
+        required: false
+      k8s_object_manager_delete_options:
+        type: dict
+        required: false
+      k8s_object_manager_force:
+        type: bool
+        required: false
+      k8s_object_manager_generate_name:
+        type: str
+        required: false
+      k8s_object_manager_hidden_fields:
+        type: list
+        elements: str
+        required: false
+      k8s_object_manager_host:
+        type: str
+        required: false
+      k8s_object_manager_impersonate_groups:
+        type: list
+        elements: str
+        required: false
+      k8s_object_manager_impersonate_user:
+        type: str
+        required: false
+      k8s_object_manager_kind:
+        type: str
+        required: false
+      k8s_object_manager_kubeconfig:
+        type: raw
+        required: false
+      k8s_object_manager_label_selectors:
+        type: list
+        elements: str
+        required: false
+      k8s_object_manager_merge_type:
+        type: list
+        elements: str
+        required: false
+      k8s_object_manager_name:
+        type: str
+        required: false
+      k8s_object_manager_namespace:
+        type: str
+        required: false
+      k8s_object_manager_no_proxy:
+        type: str
+        required: false
+      k8s_object_manager_password:
+        type: str
+        required: false
+      k8s_object_manager_persist_config:
+        type: bool
+        required: false
+      k8s_object_manager_proxy:
+        type: str
+        required: false
+      k8s_object_manager_proxy_headers:
+        type: dict
+        required: false
+      k8s_object_manager_basic_auth:
+        type: str
+        required: false
+      k8s_object_manager_proxy_basic_auth:
+        type: str
+        required: false
+      k8s_object_manager_user_agent:
+        type: str
+        required: false
+      k8s_object_manager_resource_definition:
+        type: raw
+        required: false
+      k8s_object_manager_server_side_apply:
+        type: dict
+        required: false
+      k8s_object_manager_src:
+        type: path
+        required: false
+      k8s_object_manager_state:
+        type: str
+        required: false
+        choices:
+          - present
+          - absent
+          - patched
+      k8s_object_manager_template:
+        type: raw
+        required: false
+      k8s_object_manager_username:
+        type: str
+        required: false
+      k8s_object_manager_validate:
+        type: dict
+        required: false
+      k8s_object_manager_validate_certs:
+        type: bool
+        required: false
+      k8s_object_manager_wait:
+        type: bool
+        required: false
+      k8s_object_manager_wait_condition:
+        type: dict
+        required: false
+      k8s_object_manager_wait_sleep:
+        type: int
+        required: false
+      k8s_object_manager_wait_timeout:
+        type: int
+        required: false
