@@ -7,12 +7,21 @@ kernel_arguments:
 
 {% set is_control_plane = proxmox_k3s_role in ['bootstrap', 'join'] %}
 {% set is_bootstrap = proxmox_k3s_role == 'bootstrap' %}
-{% set is_worker = proxmox_k3s_role == 'worker' %}
+{% set is_worker = proxmox_k3s_role in ['worker', 'media_worker'] %}
 {% set proxmox_k3s_control_plane_start_ip = proxmox_cluster_layout.control_planes[0].ip %}
 {% set tailscale_extra_args = '' %}
 {% if tailscale_advertise_tags | default([]) | length > 0 %}
-{%   set tailscale_extra_args = ' --advertise-tags=' ~ (tailscale_advertise_tags | join(',')) %}
+{%   set tailscale_extra_args = '--advertise-tags=' ~ (tailscale_advertise_tags | join(',')) %}
 {% endif %}
+{% set k3s_tls_sans = [
+  'k3s-cp-1.rohu-shark.ts.net',
+  'k3s-cp-2.rohu-shark.ts.net',
+  'k3s-cp-3.rohu-shark.ts.net',
+] %}
+{% set k3s_tls_san_flags = k3s_tls_sans
+    | map('regex_replace', '^(.*)$', '--tls-san \\1')
+    | join(' ') %}
+
 
 
 passwd:
@@ -39,19 +48,20 @@ storage:
       contents:
         inline: "{{ proxmox_vm_hostname }}"
 
-{% if is_control_plane %}
+
     - path: /etc/systemd/resolved.conf.d/nextdns.conf
       mode: 0644
       overwrite: true
       contents:
         inline: |
           [Resolve]
-          DNS=45.90.28.0#e3698d.dns.nextdns.io
-          DNS=2a07:a8c0::#e3698d.dns.nextdns.io
-          DNS=45.90.30.0#e3698d.dns.nextdns.io
-          DNS=2a07:a8c1::#e3698d.dns.nextdns.io
+          DNS=45.90.28.0#{{ item.name }}-62778c.dns.nextdns.io
+          DNS=2a07:a8c0::#{{ item.name }}-62778c.dns.nextdns.io
+          DNS=45.90.30.0#{{ item.name }}-62778c.dns.nextdns.io
+          DNS=2a07:a8c1::#{{ item.name }}-62778c.dns.nextdns.io
           DNSOverTLS=yes
 
+{% if is_control_plane %}
     - path: /etc/rancher/k3s/config.yaml
       mode: 0644
       overwrite: true
@@ -61,7 +71,16 @@ storage:
           write-kubeconfig-group: wheel
           kubelet-arg:
             - resolv-conf=/run/systemd/resolve/resolv.conf
+{% elif is_worker %}
+    - path: /etc/rancher/k3s/config.yaml
+      mode: 0644
+      overwrite: true
+      contents:
+        inline: |
+          kubelet-arg:
+            - resolv-conf=/run/systemd/resolve/resolv.conf
 {% endif %}
+
 
     - path: /etc/sudoers.d/010-sfroeber
       mode: 0440
@@ -138,7 +157,7 @@ systemd:
         Wants=network-online.target NetworkManager-wait-online.service
         After=network-online.target NetworkManager-wait-online.service
         ConditionPathExists=!/var/lib/rpm-ostree-firstboot.stamp
-        Before=install-k3s.service
+        Before=k3s-install.service
 
         [Service]
         Type=oneshot
@@ -169,7 +188,7 @@ systemd:
         [Install]
         WantedBy=multi-user.target
 
-    - name: install-k3s.service
+    - name: k3s-install.service
       enabled: true
       contents: |
         [Unit]
@@ -177,17 +196,18 @@ systemd:
         Wants=network-online.target NetworkManager-wait-online.service
         After=network-online.target NetworkManager-wait-online.service rpm-ostree-firstboot.service
         ConditionPathExists=/var/lib/rpm-ostree-firstboot.stamp
-        ConditionPathExists=!/var/lib/install-k3s.stamp
+        ConditionPathExists=!/var/lib/k3s-install.stamp
 
         [Service]
         Type=oneshot
         ExecStartPre=/usr/bin/bash -lc 'for i in {1..60}; do getent hosts github.com >/dev/null 2>&1 && exit 0; sleep 1; done; echo "dns not resolving github.com"; exit 1'
-        ExecStart=/usr/bin/bash -lc 'set -e; mkdir -p /usr/local/bin /var/lib/rancher/k3s/agent/images; curl -sfL "https://github.com/k3s-io/k3s/releases/download/{{ proxmox_k3s_version | replace("+", "%2B") }}/k3s" -o /usr/local/bin/k3s; chmod 0755 /usr/local/bin/k3s; curl -sfL "https://github.com/k3s-io/k3s/releases/download/{{ proxmox_k3s_version | replace("+", "%2B") }}/k3s-airgap-images-amd64.tar.gz" -o /var/lib/rancher/k3s/agent/images/k3s-airgap-images-amd64.tar.gz'
-        ExecStartPost=/usr/bin/touch /var/lib/install-k3s.stamp
+        ExecStart=/usr/bin/bash -lc 'set -e; mkdir -p /usr/local/bin /var/lib/rancher/k3s/agent/images; curl -sfL "https://github.com/k3s-io/k3s/releases/download/{{ proxmox_k3s_version | replace("+", "%2B") | replace("%", "%%") }}/k3s" -o /usr/local/bin/k3s; chmod 0755 /usr/local/bin/k3s; curl -sfL "https://github.com/k3s-io/k3s/releases/download/{{ proxmox_k3s_version | replace("+", "%2B") | replace("%", "%%") }}/k3s-airgap-images-amd64.tar.gz" -o /var/lib/rancher/k3s/agent/images/k3s-airgap-images-amd64.tar.gz; touch /var/lib/k3s-install.stamp'
         RemainAfterExit=yes
 
         [Install]
         WantedBy=multi-user.target
+
+
 
 
     - name: k3s.service
@@ -196,20 +216,30 @@ systemd:
         [Unit]
         Description=Lightweight Kubernetes
         Documentation=https://k3s.io
-        Wants=network-online.target
-        After=network-online.target install-k3s.service
-        Requires=install-k3s.service
+        Wants=network-online.target tailscale-up.service
+        After=network-online.target k3s-install.service tailscale-up.service
+        Requires=k3s-install.service
 
         [Service]
         Type=notify
         KillMode=process
         Delegate=yes
 {% if is_bootstrap %}
-        ExecStart=/usr/local/bin/k3s server --disable traefik --cluster-init --disable traefik --token {{ proxmox_k3s_cluster_token }}
+        ExecStart=/usr/local/bin/k3s server \
+          --disable traefik \
+          --cluster-init \
+          --token {{ proxmox_k3s_cluster_token }} \
+          {{ k3s_tls_san_flags }}
 {% elif is_control_plane %}
-        ExecStart=/usr/local/bin/k3s server --disable traefik --server https://{{ proxmox_k3s_control_plane_start_ip }}:6443 --token {{ proxmox_k3s_cluster_token }}
+        ExecStart=/usr/local/bin/k3s server \
+          --disable traefik \
+          --server https://{{ proxmox_k3s_control_plane_start_ip }}:6443 \
+          --token {{ proxmox_k3s_cluster_token }} \
+          {{ k3s_tls_san_flags }}
 {% elif is_worker %}
-        ExecStart=/usr/local/bin/k3s agent --server https://{{ proxmox_k3s_control_plane_start_ip }}:6443 --token {{ proxmox_k3s_cluster_token }}
+        ExecStart=/usr/local/bin/k3s agent \
+          --server https://{{ proxmox_k3s_control_plane_start_ip }}:6443 \
+          --token {{ proxmox_k3s_cluster_token }}
 {% endif %}
         Restart=always
         RestartSec=5s
@@ -219,9 +249,6 @@ systemd:
 
         [Install]
         WantedBy=multi-user.target
-
-
-
 
     - name: qemu-guest-agent.service
       enabled: true
@@ -244,11 +271,11 @@ systemd:
         [Service]
         Type=oneshot
         ExecStartPre=/usr/bin/bash -lc 'for i in {1..30}; do systemctl is-active --quiet tailscaled && exit 0; sleep 1; done; echo "tailscaled not active"; exit 1'
-        ExecStart=/usr/local/sbin/tailscale up --ssh --authkey={{ ignition_template_ts_auth_key }} --hostname=%H --accept-routes=true --force-reauth=false --operator=sfroeber{{ tailscale_extra_args }}
-        ExecStartPost=/usr/bin/touch /var/lib/tailscale/.authed
+        ExecStart=/usr/bin/bash -lc '/usr/local/sbin/tailscale up --ssh --authkey={{ ignition_template_ts_auth_key }} --hostname=%H --force-reauth=false --operator=sfroeber {{ tailscale_extra_args }} && touch /var/lib/tailscale/.authed'
         Restart=on-failure
         RestartSec=10s
 
         [Install]
         WantedBy=multi-user.target
+
 

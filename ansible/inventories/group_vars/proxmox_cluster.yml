@@ -63,7 +63,7 @@ proxmox_cluster_layout:
       ip: 192.168.226.96
       mac: "52:54:00:12:34:04"
       proxmox_node: coachlight-homelab-1
-      class: worker
+      role: worker
       cpu: 4
       memory: 4096
       disk: 150
@@ -72,7 +72,7 @@ proxmox_cluster_layout:
       ip: 192.168.226.97
       mac: "52:54:00:12:34:05"
       proxmox_node: coachlight-homelab-2
-      class: worker
+      role: worker
       cpu: 4
       memory: 4096
       disk: 150
@@ -81,7 +81,7 @@ proxmox_cluster_layout:
       ip: 192.168.226.98
       mac: "52:54:00:12:34:06"
       proxmox_node: coachlight-homelab-3
-      class: media_worker
+      role: media_worker
       cpu: 8
       memory: 8192
       disk: 240

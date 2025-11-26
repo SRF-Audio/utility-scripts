@@ -2,7 +2,7 @@
   ansible.builtin.set_fact:
     proxmox_k3s_vm_destroyer_all_vms: "{{ proxmox_cluster_layout.control_planes + proxmox_cluster_layout.workers }}"
 
-- name: Stop k3s VM {{ item.name }} if running
+- name: Stop k3s VM {{ item.name }}
   ansible.builtin.include_role:
     name: proxmox_kvm_manager
   vars:
@@ -38,3 +38,15 @@
   loop: "{{ proxmox_k3s_vm_destroyer_all_vms }}"
   loop_control:
     label: "{{ item.name }}"
+
+- name: Delete ignition snippet {{ item.name }}.ign from Proxmox node {{ item.proxmox_node }}
+  ansible.builtin.file:
+    path: "{{ proxmox_cluster_storage_snippets_dir }}/{{ item.name }}.ign"
+    state: absent
+  loop: "{{ proxmox_k3s_vm_destroyer_all_vms }}"
+  loop_control:
+    label: "{{ item.proxmox_node }}:{{ item.name }}.ign"
+  when:
+    - proxmox_cluster_storage_snippets_dir is defined
+    - proxmox_cluster_storage_snippets_dir | length > 0
+  delegate_to: "{{ item.proxmox_node }}"

@@ -29,3 +29,7 @@ argument_specs:
         type: bool
         required: false
         description: Whether to validate TLS certificates for the Proxmox API.
+      proxmox_cluster_storage_snippets_dir:
+        type: str
+        required: false
+        description: Directory on Proxmox nodes where ignition snippet .ign files are stored.
