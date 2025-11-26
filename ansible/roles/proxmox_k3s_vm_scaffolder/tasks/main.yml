@@ -17,6 +17,7 @@
     proxmox_kvm_manager_validate_certs: "{{ proxmox_validate_certs }}"
     proxmox_kvm_manager_module_params:
       name: "{{ item.name }}"
+      localtime: true
       memory: "{{ item.memory }}"
       cores: "{{ item.cpu }}"
       sockets: 1
@@ -29,7 +30,6 @@
       ostype: l26
       boot: "order=scsi0"
       onboot: true
-      localtime: true
       args: "-fw_cfg name=opt/com.coreos/config,file={{ proxmox_cluster_storage_snippets_dir }}/{{ item.name }}.ign"
       pool: kubernetes
       tags:
