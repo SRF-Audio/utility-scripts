@@ -24,7 +24,7 @@
                      field='public_key',
                      vault='HomeLab') }}
         ignition_template_ts_auth_key: >-
-          {{ lookup('community.general.onepassword', 'Tailscale', field='coachlight-homelab auth key', vault='HomeLab') }}
+          {{ lookup('community.general.onepassword', 'Tailscale', field='k3s cluster nodes', vault='HomeLab') }}
         proxmox_k3s_cluster_token: >-
           {{ lookup('community.general.onepassword',
                     'Coachlight k3s Cluster',
@@ -41,7 +41,6 @@
                     field='password',
                     vault='HomeLab') }}
       run_once: true
-      delegate_to: localhost
 
     - name: Set become vars for this play
       ansible.builtin.set_fact:

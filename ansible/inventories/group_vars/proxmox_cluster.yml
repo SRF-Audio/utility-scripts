@@ -13,10 +13,11 @@ proxmox_bridge: vmbr0
 
 proxmox_k3s_control_plane_subnet: 192.168.226.0/24
 proxmox_k3s_control_plane_gateway: 192.168.226.1
-
+proxmox_k3s_version: "v1.34.2+k3s1"
 proxmox_k3s_data_device: /dev/vdb
 proxmox_k3s_data_label: K3S_DATA
 proxmox_k3s_data_mount: /var/lib/rancher/k3s
+proxmox_k3s_tailscale_version: "1.90.9"
 
 proxmox_cluster_layout:
   proxmox_nodes:
@@ -60,7 +61,7 @@ proxmox_cluster_layout:
     - name: k3s-wkr-1
       vmid: 200
       ip: 192.168.226.96
-      mac: "52:54:00:12:34:20"
+      mac: "52:54:00:12:34:04"
       proxmox_node: coachlight-homelab-1
       class: worker
       cpu: 4
@@ -69,7 +70,7 @@ proxmox_cluster_layout:
     - name: k3s-wkr-2
       vmid: 201
       ip: 192.168.226.97
-      mac: "52:54:00:12:34:21"
+      mac: "52:54:00:12:34:05"
       proxmox_node: coachlight-homelab-2
       class: worker
       cpu: 4
@@ -78,7 +79,7 @@ proxmox_cluster_layout:
     - name: k3s-wkr-3
       vmid: 202
       ip: 192.168.226.98
-      mac: "52:54:00:12:34:22"
+      mac: "52:54:00:12:34:06"
       proxmox_node: coachlight-homelab-3
       class: media_worker
       cpu: 8

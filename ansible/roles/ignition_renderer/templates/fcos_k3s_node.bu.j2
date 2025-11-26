@@ -1,21 +1,38 @@
 variant: {{ proxmox_fcos_variant }}
 version: {{ proxmox_fcos_version }}
 
+kernel_arguments:
+  should_exist:
+    - selinux=0
+
 {% set is_control_plane = proxmox_k3s_role in ['bootstrap', 'join'] %}
 {% set is_bootstrap = proxmox_k3s_role == 'bootstrap' %}
 {% set is_worker = proxmox_k3s_role == 'worker' %}
 {% set proxmox_k3s_control_plane_start_ip = proxmox_cluster_layout.control_planes[0].ip %}
+{% set tailscale_extra_args = '' %}
+{% if tailscale_advertise_tags | default([]) | length > 0 %}
+{%   set tailscale_extra_args = ' --advertise-tags=' ~ (tailscale_advertise_tags | join(',')) %}
+{% endif %}
+
 
 passwd:
   users:
     - name: sfroeber
       groups: ["wheel"]
-      ssh_authorized_keys: 
+      ssh_authorized_keys:
 {% for key in ignition_template_ssh_key.split('\n') if key %}
         - "{{ key }}"
 {% endfor %}
+
 storage:
   files:
+    - path: /etc/selinux/config
+      mode: 0644
+      overwrite: true
+      contents:
+        inline: |
+          SELINUX=disabled
+          SELINUXTYPE=targeted
     - path: /etc/hostname
       mode: 0644
       overwrite: true
@@ -46,20 +63,6 @@ storage:
             - resolv-conf=/run/systemd/resolve/resolv.conf
 {% endif %}
 
-    - path: /etc/yum.repos.d/tailscale.repo
-      mode: 0644
-      overwrite: true
-      contents:
-        inline: |
-          [tailscale-stable]
-          name=Tailscale stable
-          baseurl=https://pkgs.tailscale.com/stable/fedora/$basearch
-          enabled=1
-          type=rpm
-          repo_gpgcheck=1
-          gpgcheck=1
-          gpgkey=file:///etc/pki/rpm-gpg/tailscale.gpg
-
     - path: /etc/sudoers.d/010-sfroeber
       mode: 0440
       overwrite: true
@@ -75,6 +78,27 @@ storage:
         inline: |
           export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 {% endif %}
+
+    - path: /etc/systemd/system/tailscaled.service
+      mode: 0644
+      overwrite: true
+      contents:
+        inline: |
+          [Unit]
+          Description=Tailscale node agent
+          Documentation=man:tailscaled(8)
+          After=network-online.target tailscale-install.service
+          Wants=network-online.target
+          Requires=tailscale-install.service
+
+          [Service]
+          Type=notify
+          ExecStart=/usr/local/sbin/tailscaled --state=/var/lib/tailscale/tailscaled.state
+          Restart=on-failure
+          RestartSec=5s
+
+          [Install]
+          WantedBy=multi-user.target
 
   directories:
     - path: /etc/systemd/resolved.conf.d
@@ -110,7 +134,7 @@ systemd:
       enabled: true
       contents: |
         [Unit]
-        Description=Layer qemu-guest-agent and tailscale on first boot, then reboot
+        Description=Layer qemu-guest-agent on first boot, then reboot
         Wants=network-online.target NetworkManager-wait-online.service
         After=network-online.target NetworkManager-wait-online.service
         ConditionPathExists=!/var/lib/rpm-ostree-firstboot.stamp
@@ -118,11 +142,29 @@ systemd:
 
         [Service]
         Type=oneshot
-        ExecStartPre=/usr/bin/bash -lc 'for i in {1..60}; do ping -c1 -W1 1.1.1.1 >/dev/null 2>&1 && getent hosts pkgs.tailscale.com >/dev/null 2>&1 && exit 0; sleep 1; done; echo "network/dns not ready"; exit 1'
-        ExecStartPre=/usr/bin/bash -lc '[ -f /etc/pki/rpm-gpg/tailscale.gpg ] || (curl -fsSL https://pkgs.tailscale.com/stable/fedora/repo.gpg -o /etc/pki/rpm-gpg/tailscale.gpg && chmod 0644 /etc/pki/rpm-gpg/tailscale.gpg)'
-        ExecStart=/usr/bin/rpm-ostree install --allow-inactive --assumeyes qemu-guest-agent tailscale
+        ExecStart=/usr/bin/rpm-ostree install --allow-inactive --assumeyes qemu-guest-agent
         ExecStart=/usr/bin/touch /var/lib/rpm-ostree-firstboot.stamp
         ExecStart=/usr/bin/systemctl reboot
+        RemainAfterExit=yes
+
+        [Install]
+        WantedBy=multi-user.target
+
+    - name: tailscale-install.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Install Tailscale static binaries
+        Wants=network-online.target NetworkManager-wait-online.service
+        After=network-online.target NetworkManager-wait-online.service rpm-ostree-firstboot.service
+        ConditionPathExists=/var/lib/rpm-ostree-firstboot.stamp
+        ConditionPathExists=!/var/lib/tailscale/.installed
+
+        [Service]
+        Type=oneshot
+        ExecStartPre=/usr/bin/bash -lc 'for i in {1..60}; do ping -c1 -W1 1.1.1.1 >/dev/null 2>&1 && getent hosts pkgs.tailscale.com >/dev/null 2>&1 && exit 0; sleep 1; done; echo "network/dns not ready"; exit 1'
+        ExecStart=/usr/bin/bash -lc 'set -e; mkdir -p /usr/local/sbin /var/lib/tailscale; curl -fsSL https://pkgs.tailscale.com/stable/tailscale_{{ proxmox_k3s_tailscale_version }}_amd64.tgz -o /var/lib/tailscale/tailscale.tgz; tar -xzf /var/lib/tailscale/tailscale.tgz -C /usr/local/sbin --strip-components=1; chmod 0755 /usr/local/sbin/tailscale /usr/local/sbin/tailscaled; touch /var/lib/tailscale/.installed'
+        RemainAfterExit=yes
 
         [Install]
         WantedBy=multi-user.target
@@ -131,7 +173,7 @@ systemd:
       enabled: true
       contents: |
         [Unit]
-        Description=Install k3s node
+        Description=Install k3s binary and airgap images
         Wants=network-online.target NetworkManager-wait-online.service
         After=network-online.target NetworkManager-wait-online.service rpm-ostree-firstboot.service
         ConditionPathExists=/var/lib/rpm-ostree-firstboot.stamp
@@ -139,21 +181,47 @@ systemd:
 
         [Service]
         Type=oneshot
-        ExecStartPre=/usr/bin/bash -lc 'for i in {1..60}; do getent hosts get.k3s.io >/dev/null 2>&1 && exit 0; sleep 1; done; echo "dns not resolving get.k3s.io"; exit 1'
-{% if is_bootstrap %}
-        Environment="INSTALL_K3S_EXEC=server --disable traefik --cluster-init --token {{ proxmox_k3s_cluster_token }}"
-{% elif is_control_plane %}
-        Environment="INSTALL_K3S_EXEC=server --disable traefik --server https://{{ proxmox_k3s_control_plane_start_ip }}:6443 --token {{ proxmox_k3s_cluster_token }}"
-{% elif is_worker %}
-        Environment="INSTALL_K3S_EXEC=agent --server https://{{ proxmox_k3s_control_plane_start_ip }}:6443 --token {{ proxmox_k3s_cluster_token }}"
-{% endif %}
-        ExecStart=/usr/bin/sh -c 'curl -sfL https://get.k3s.io | sh -'
-        ExecStart=/usr/bin/touch /var/lib/install-k3s.stamp
-        ExecStart=/usr/bin/systemctl reboot
+        ExecStartPre=/usr/bin/bash -lc 'for i in {1..60}; do getent hosts github.com >/dev/null 2>&1 && exit 0; sleep 1; done; echo "dns not resolving github.com"; exit 1'
+        ExecStart=/usr/bin/bash -lc 'set -e; mkdir -p /usr/local/bin /var/lib/rancher/k3s/agent/images; curl -sfL "https://github.com/k3s-io/k3s/releases/download/{{ proxmox_k3s_version | replace("+", "%2B") }}/k3s" -o /usr/local/bin/k3s; chmod 0755 /usr/local/bin/k3s; curl -sfL "https://github.com/k3s-io/k3s/releases/download/{{ proxmox_k3s_version | replace("+", "%2B") }}/k3s-airgap-images-amd64.tar.gz" -o /var/lib/rancher/k3s/agent/images/k3s-airgap-images-amd64.tar.gz'
+        ExecStartPost=/usr/bin/touch /var/lib/install-k3s.stamp
         RemainAfterExit=yes
 
         [Install]
         WantedBy=multi-user.target
+
+
+    - name: k3s.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Lightweight Kubernetes
+        Documentation=https://k3s.io
+        Wants=network-online.target
+        After=network-online.target install-k3s.service
+        Requires=install-k3s.service
+
+        [Service]
+        Type=notify
+        KillMode=process
+        Delegate=yes
+{% if is_bootstrap %}
+        ExecStart=/usr/local/bin/k3s server --disable traefik --cluster-init --disable traefik --token {{ proxmox_k3s_cluster_token }}
+{% elif is_control_plane %}
+        ExecStart=/usr/local/bin/k3s server --disable traefik --server https://{{ proxmox_k3s_control_plane_start_ip }}:6443 --token {{ proxmox_k3s_cluster_token }}
+{% elif is_worker %}
+        ExecStart=/usr/local/bin/k3s agent --server https://{{ proxmox_k3s_control_plane_start_ip }}:6443 --token {{ proxmox_k3s_cluster_token }}
+{% endif %}
+        Restart=always
+        RestartSec=5s
+        LimitNOFILE=1048576
+        LimitNPROC=infinity
+        LimitCORE=infinity
+
+        [Install]
+        WantedBy=multi-user.target
+
+
+
 
     - name: qemu-guest-agent.service
       enabled: true
@@ -170,16 +238,17 @@ systemd:
         After=network-online.target NetworkManager-wait-online.service systemd-resolved.service tailscaled.service
         Requires=tailscaled.service
         ConditionPathExists=/var/lib/rpm-ostree-firstboot.stamp
+        ConditionPathExists=/var/lib/tailscale/.installed
         ConditionPathExists=!/var/lib/tailscale/.authed
 
         [Service]
         Type=oneshot
         ExecStartPre=/usr/bin/bash -lc 'for i in {1..30}; do systemctl is-active --quiet tailscaled && exit 0; sleep 1; done; echo "tailscaled not active"; exit 1'
-        Environment="TS_AUTHKEY={{ ignition_template_ts_auth_key }}"
-        ExecStart=/usr/bin/tailscale up --ssh --authkey=${TS_AUTHKEY} --hostname=%H --accept-routes=true --force-reauth=false --operator=sfroeber{% if tailscale_advertise_tags | default([]) | length > 0 %} --advertise-tags={{ tailscale_advertise_tags | join(',') }}{% endif %}
+        ExecStart=/usr/local/sbin/tailscale up --ssh --authkey={{ ignition_template_ts_auth_key }} --hostname=%H --accept-routes=true --force-reauth=false --operator=sfroeber{{ tailscale_extra_args }}
         ExecStartPost=/usr/bin/touch /var/lib/tailscale/.authed
         Restart=on-failure
         RestartSec=10s
 
         [Install]
         WantedBy=multi-user.target
+

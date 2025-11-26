@@ -15,7 +15,8 @@
     proxmox_kvm_manager_vmid: "{{ item.vmid }}"
     proxmox_kvm_manager_state: absent
     proxmox_kvm_manager_validate_certs: "{{ proxmox_validate_certs }}"
-    proxmox_kvm_manager_module_params: {}
+    proxmox_kvm_manager_module_params:
+      force: true
   loop: "{{ proxmox_k3s_vm_destroyer_all_vms }}"
   loop_control:
     label: "{{ item.name }}"

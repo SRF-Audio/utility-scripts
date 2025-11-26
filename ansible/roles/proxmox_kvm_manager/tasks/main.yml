@@ -46,7 +46,7 @@
       }}
   # no_log: true
 
-- name: Create Proxmox VM template {{ proxmox_kvm_manager_vmid }}
+- name: Operate on Proxmox VM template {{ proxmox_kvm_manager_vmid }}
   community.proxmox.proxmox_kvm: "{{ proxmox_kvm_manager_effective_params }}"
   register: proxmox_kvm_manager_result
 
