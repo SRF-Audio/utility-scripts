@@ -153,7 +153,7 @@ systemd:
       enabled: true
       contents: |
         [Unit]
-        Description=Layer qemu-guest-agent on first boot, then reboot
+        Description=Layer qemu-guest-agent and python3 on first boot, then reboot
         Wants=network-online.target NetworkManager-wait-online.service
         After=network-online.target NetworkManager-wait-online.service
         ConditionPathExists=!/var/lib/rpm-ostree-firstboot.stamp
@@ -161,13 +161,14 @@ systemd:
 
         [Service]
         Type=oneshot
-        ExecStart=/usr/bin/rpm-ostree install --allow-inactive --assumeyes qemu-guest-agent
+        ExecStart=/usr/bin/rpm-ostree install --allow-inactive --assumeyes qemu-guest-agent python3 tmux
         ExecStart=/usr/bin/touch /var/lib/rpm-ostree-firstboot.stamp
         ExecStart=/usr/bin/systemctl reboot
         RemainAfterExit=yes
 
         [Install]
         WantedBy=multi-user.target
+
 
     - name: tailscale-install.service
       enabled: true

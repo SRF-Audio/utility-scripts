@@ -1,7 +1,7 @@
 - name: Fetch Fedora CoreOS image on control host
   hosts: local
   gather_facts: false
-
+  tags: k3s_cluster_setup
   roles:
     - role: control_host_dependencies
     - role: coreos_cli_install
@@ -19,7 +19,7 @@
 - name: Copy Fedora CoreOS image and ignition configs into Proxmox shared storage
   hosts: coachlight-homelab-1
   gather_facts: true
-
+  tags: k3s_cluster_setup
   vars:
     coreos_image_source_host: "{{ groups['local'][0] }}"
     coreos_ignition_source_dir: "{{ hostvars[coreos_image_source_host].ignition_renderer_output_dir }}"
@@ -47,7 +47,7 @@
 - name: Create and start Proxmox VMs for k3s cluster
   hosts: local
   gather_facts: true
-
+  tags: k3s_cluster_setup
   roles:
     - role: proxmox_k3s_vm_scaffolder
 
