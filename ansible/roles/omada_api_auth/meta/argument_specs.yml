@@ -1,0 +1,15 @@
+argument_specs:
+  main:
+    options:
+      omada_api_base_url:
+        type: str
+        required: true
+        description: Base URL for Omada controller including scheme and port.
+      omada_api_username:
+        type: str
+        required: true
+        description: Username for Omada API authentication.
+      omada_api_password:
+        type: str
+        required: true
+        description: Password for Omada API authentication.

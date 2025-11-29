@@ -1,0 +1,49 @@
+- name: Assert required Omada API auth inputs are defined
+  ansible.builtin.assert:
+    that:
+      - omada_api_base_url is defined
+      - omada_api_username is defined
+      - omada_api_password is defined
+      - omada_api_base_url | length > 0
+      - omada_api_username | length > 0
+      - omada_api_password | length > 0
+    fail_msg: "omada_api_base_url, omada_api_username, and omada_api_password must be defined for omada_api_auth."
+
+- name: Get Omada controller info
+  ansible.builtin.uri:
+    url: "{{ omada_api_base_url }}/api/info"
+    method: GET
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  register: omada_api_info
+
+- name: Set Omada controller id
+  ansible.builtin.set_fact:
+    omada_api_controller_id: "{{ omada_api_info.json.result.omadacId }}"
+
+- name: Login to Omada API
+  ansible.builtin.uri:
+    url: "{{ omada_api_base_url }}/{{ omada_api_controller_id }}/api/v2/login"
+    method: POST
+    validate_certs: false
+    body_format: json
+    body:
+      username: "{{ omada_api_username }}"
+      password: "{{ omada_api_password }}"
+    status_code: 200
+    return_content: true
+  register: omada_api_login
+
+- name: Assert Omada API login succeeded
+  ansible.builtin.assert:
+    that:
+      - omada_api_login.json.errorCode is defined
+      - omada_api_login.json.errorCode == 0
+    fail_msg: "Omada API login failed. Check credentials and controller status."
+
+- name: Set Omada API token, cookies, and base path
+  ansible.builtin.set_fact:
+    omada_api_token: "{{ omada_api_login.json.result.token }}"
+    omada_api_cookies: "{{ omada_api_login.cookies_string | default('') }}"
+    omada_api_base_path: "{{ omada_api_base_url }}/{{ omada_api_controller_id }}/api/v2"

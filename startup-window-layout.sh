@@ -64,15 +64,15 @@ require printf
 
 # ---- Desired layout (app id → x y w h). Duplicate keys allowed (two Firefox windows).
 readarray -t TARGETS <<'EOF'
-md.obsidian.Obsidian x=0 y=720 w=1280 h=720
-1password x=0 y=0 w=1280 h=720
-org.kde.xwaylandvideobridge x=0 y=66 w=34 h=34
+md.obsidian.Obsidian x=5120 y=0 w=1440 h=1280
+org.kde.konsole x=5120 y=1280 w=1440 h=1280
+code x=2560 y=435 w=2560 h=1396
 org.mozilla.firefox x=1280 y=0 w=1280 h=1440
-org.mozilla.firefox x=5120 y=87 w=720 h=2560
-com.discordapp.Discord x=5840 y=1367.3333333333333 w=720 h=1280
-org.kde.konsole x=2560 y=1218 w=2560 h=676
-code x=2560 y=498 w=2560 h=720
-org.signal.Signal x=5840 y=87 w=720 h=1280
+org.mozilla.firefox x=0 y=0 w=1280 h=1440
+org.signal.Signal x=1330 y=1440 w=960 h=540
+1password x=1330 y=1980 w=960 h=540
+com.discordapp.Discord x=370 y=1440 w=960 h=542
+com.slack.Slack x=370 y=1980 w=960 h=540
 EOF
 
 log "Starting…"
