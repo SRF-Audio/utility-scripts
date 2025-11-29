@@ -1,0 +1,3 @@
+synology_csi_deploy_repo_url: "https://github.com/SynologyOpenSource/synology-csi.git"
+synology_csi_deploy_tmp_dir: "{{ artifacts_path }}/synology_csi_deploy"
+synology_csi_deploy_nfs_storage_path: "{{ proxmox_k3s_cluster_storage_nfs_path }}"

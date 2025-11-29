@@ -1,0 +1,13 @@
+# roles/tailscale_install/tasks/main.yml
+- name: Download Tailscale install script
+  ansible.builtin.get_url:
+    url: https://tailscale.com/install.sh
+    dest: /tmp/tailscale-install.sh
+    mode: "0755"
+    force: true
+
+- name: Run Tailscale install script
+  ansible.builtin.command:
+    cmd: /tmp/tailscale-install.sh
+  register: tailscale_install_result
+  changed_when: "'installed' in tailscale_install_result.stdout or 'installing' in tailscale_install_result.stdout"

@@ -20,7 +20,7 @@
           - key: "node-role.kubernetes.io/control-plane"
             value: "true"
             effect: "NoSchedule"
-      loop: "{{ groups['control_plane'] | default([]) }}"
+      loop: "{{ groups['k3s_control_plane'] | default([]) }}"
 
   roles:
     - role: argocd_deploy
@@ -29,3 +29,8 @@
         argocd_deploy_context: "{{ k8s_validator_context }}"
         argocd_deploy_cluster_name: "{{ k3s_cluster_name }}"
     - role: longhorn_deploy
+    - role: tailscale_operator_deploy
+      vars:
+        tailscale_operator_deploy_oauth_client_id: "{{ tailscale_oauth_client_id }}"
+        tailscale_operator_deploy_oauth_client_secret: "{{ tailscale_oauth_client_secret }}"
+    - role: synology_csi_deploy

@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: coachlight-k3s-db
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: >
+    Database services for the Coachlight k3s homelab cluster. Owns shared
+    data backends such as InfluxDB, MongoDB, and other stateful stores
+    which may be used by multiple applications.
+
+  sourceRepos:
+    - "*"
+
+  # e.g. db-influxdb, db-mongo, db-redis, etc.
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: db-*
+
+  orphanedResources:
+    warn: true
+
+  # DB operators often need CRDs, ClusterRoles, etc.
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"

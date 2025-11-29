@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tailscale-operator
+  namespace: argocd
+spec:
+  project: coachlight-k3s-infra
+  source:
+    repoURL: https://pkgs.tailscale.com/helmcharts
+    chart: tailscale-operator
+    targetRevision: "1.90.8"
+    helm:
+      valuesObject:
+        oauth:
+          clientId: "{{ tailscale_operator_deploy_oauth_client_id }}"
+          clientSecret: "{{ tailscale_operator_deploy_oauth_client_secret }}"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: infra-tailscale-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

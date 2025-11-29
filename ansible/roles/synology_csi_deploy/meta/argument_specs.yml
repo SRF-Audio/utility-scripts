@@ -1,0 +1,35 @@
+argument_specs:
+  main:
+    short_description: Deploy Synology CSI Argo CD Application into the k3s cluster
+    description: >
+      Renders and applies an Argo CD Application manifest for the Synology CSI Helm
+      chart, using environment-scoped paths and inventory-driven NFS exports.
+    options:
+      synology_csi_deploy_repo_url:
+        type: str
+        required: false
+        description: Upstream Synology CSI Git repository URL for reference.
+      synology_csi_deploy_tmp_dir:
+        type: path
+        required: false
+        description: Temporary directory used to render the Synology CSI Application manifest.
+      synology_csi_deploy_nfs_storage_path:
+        type: str
+        required: false
+        description: NFS export path on the Synology NAS used for k3s persistent storage.
+      k3s_synology_csi_nas_username:
+        type: str
+        required: true
+        description: DSM username used by the Synology CSI client.
+      k3s_synology_csi_nas_password:
+        type: str
+        required: true
+        description: DSM password used by the Synology CSI client.
+      k8s_validator_kubeconfig:
+        type: raw
+        required: true
+        description: Kubeconfig path or dict used to connect to the target Kubernetes cluster.
+      k8s_validator_context:
+        type: str
+        required: true
+        description: Kubernetes context name to use with the provided kubeconfig.

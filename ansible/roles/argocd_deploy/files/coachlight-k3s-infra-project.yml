@@ -8,23 +8,29 @@ metadata:
 spec:
   description: >
     Infrastructure project for the Coachlight k3s homelab cluster. Owns
-    platform components such as Argo CD, Longhorn, ingress, DNS, and
-    observability services, and may manage cluster-scoped resources. Not
+    platform components such as Argo CD, storage, ingress, DNS, backup,
+    and networking add-ons, and may manage cluster-scoped resources. Not
     intended for application workloads.
+
+  # For homelab simplicity; you can tighten this later
   sourceRepos:
     - "*"
 
   destinations:
+    # Argo CD itself (control plane)
     - server: https://kubernetes.default.svc
       namespace: argocd
-    - server: https://kubernetes.default.svc
-      namespace: longhorn
+
+    # All infra components should live in infra-* namespaces, e.g.:
+    # infra-longhorn, infra-synology-csi, infra-velero, infra-tailscale,
+    # infra-1password, infra-ingress, infra-dns, etc.
     - server: https://kubernetes.default.svc
       namespace: infra-*
 
   orphanedResources:
     warn: true
 
+  # Infra is allowed to manage cluster-scoped resources (CRDs, ClusterRoles, etc.)
   clusterResourceWhitelist:
     - group: "*"
       kind: "*"

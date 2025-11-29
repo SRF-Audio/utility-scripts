@@ -24,7 +24,7 @@ spec:
           storageOverProvisioningPercentage: "200"
   destination:
     server: https://kubernetes.default.svc
-    namespace: longhorn
+    namespace: infra-longhorn
   syncPolicy:
     automated:
       prune: true

@@ -1,0 +1,2 @@
+tailscale_install_script_url: "https://tailscale.com/install.sh"
+tailscale_install_script_dest: "/tmp/tailscale-install.sh"

@@ -3,3 +3,7 @@ ansible/.vault_password.txt
 *.bu
 *.ign
 ansible/playbooks/.artifacts/*
+*/**/*.log
+*/**/*.tmp
+*/**/*.bak
+*/**/*.old

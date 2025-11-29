@@ -1,0 +1,42 @@
+- name: Set Synology NAS LAN facts
+  ansible.builtin.set_fact:
+    synology_csi_deploy_nas_host: "{{ groups['synology_nas'][0] }}"
+    synology_csi_deploy_nas_lan_ip: "{{ hostvars[groups['synology_nas'][0]].lan_ip }}"
+
+- name: Ensure Synology CSI tmp directory exists
+  ansible.builtin.file:
+    path: "{{ synology_csi_deploy_tmp_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Create Argo Application from template
+  ansible.builtin.template:
+    src: synology_csi.yml.j2
+    dest: "{{ synology_csi_deploy_tmp_dir }}/synology_csi.yml"
+    mode: "0644"
+  register: synology_csi_deploy_application_file
+
+- name: Import k8s_object_manager role to deploy Synology CSI Application
+  ansible.builtin.import_role:
+    name: k8s_object_manager
+  vars:
+    k8s_object_manager_src: "{{ synology_csi_deploy_application_file.dest }}"
+    k8s_object_manager_state: present
+    k8s_object_manager_apply: true
+    k8s_object_manager_wait: true
+
+- name: Clean up Synology CSI tmp directory
+  ansible.builtin.file:
+    path: "{{ synology_csi_deploy_tmp_dir }}"
+    state: absent
+
+- name: Call role_artifacts for synology_csi_deploy
+  ansible.builtin.import_role:
+    name: role_artifacts
+  vars:
+    # noqa: var-naming
+    calling_role_name: "synology_csi_deploy"
+    calling_role_artifacts_inputs:
+      kubeconfig: "{{ k8s_validator_kubeconfig }}"
+      context: "{{ k8s_validator_context }}"
+      application_file: "{{ synology_csi_deploy_application_file.dest }}"

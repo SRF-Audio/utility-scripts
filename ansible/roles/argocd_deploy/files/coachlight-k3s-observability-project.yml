@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: coachlight-k3s-observability
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: >
+    Observability stack for the Coachlight k3s homelab cluster. Owns
+    metrics, logging, and telemetry components such as Prometheus,
+    Grafana, Alloy, Loki, and related tooling.
+
+  sourceRepos:
+    - "*"
+
+  # e.g. observability-prometheus, observability-grafana,
+  # observability-loki, observability-alloy, etc.
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: observability-*
+
+  orphanedResources:
+    warn: true
+
+  # Observability tools also tend to ship CRDs and cluster roles.
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"

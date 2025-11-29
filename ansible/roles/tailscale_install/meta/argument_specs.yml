@@ -1,0 +1,17 @@
+argument_specs:
+  main:
+    options:
+      tailscale_install_script_url:
+        type: str
+        required: false
+        default: "https://tailscale.com/install.sh"
+        description: URL of the Tailscale install script.
+      tailscale_install_script_dest:
+        type: str
+        required: false
+        default: "/tmp/tailscale-install.sh"
+        description: Destination path for the Tailscale install script.
+      artifacts_path:
+        type: str
+        required: true
+        description: Base path for artifacts output, used by role_artifacts.
