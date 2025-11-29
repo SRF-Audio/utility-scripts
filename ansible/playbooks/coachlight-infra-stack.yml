@@ -34,3 +34,8 @@
         tailscale_operator_deploy_oauth_client_id: "{{ tailscale_oauth_client_id }}"
         tailscale_operator_deploy_oauth_client_secret: "{{ tailscale_oauth_client_secret }}"
     - role: synology_csi_deploy
+    - role: homepage_deploy
+    - role: argocd_api_auth
+      vars:
+        argocd_api_username: "{{ argocd_admin_username }}"
+        argocd_api_password: "{{ argocd_admin_password }}"

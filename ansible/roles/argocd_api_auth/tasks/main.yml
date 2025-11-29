@@ -1,0 +1,39 @@
+# roles/argocd_api_auth_auth/tasks/main.yml
+- name: Assert required Argo CD API auth inputs are defined
+  ansible.builtin.assert:
+    that:
+      - argocd_api_auth_base_url is defined
+      - argocd_api_auth_username is defined
+      - argocd_api_auth_password is defined
+      - argocd_api_auth_base_url | length > 0
+      - argocd_api_auth_username | length > 0
+      - argocd_api_auth_password | length > 0
+    fail_msg: "argocd_api_auth_base_url, argocd_api_auth_username, and argocd_api_auth_password must be defined for argocd_api_auth_auth."
+
+- name: Perform Argo CD API login via http_api_auth
+  ansible.builtin.include_role:
+    name: http_api_auth
+  vars:
+    http_api_name: "argocd"
+    http_api_base_url: "{{ argocd_api_auth_base_url }}"
+    http_api_auth_path: "/api/v1/session"
+    http_api_method: "POST"
+    http_api_body:
+      username: "{{ argocd_api_auth_username }}"
+      password: "{{ argocd_api_auth_password }}"
+    http_api_validate_certs: "{{ argocd_api_auth_validate_certs }}"
+
+- name: Assert Argo CD API login succeeded
+  ansible.builtin.assert:
+    that:
+      - argocd_auth_result.json.token is defined
+      - argocd_auth_result.json.token | length > 0
+    fail_msg: "Argo CD API login failed. Check credentials and server status."
+
+- name: Set Argo CD API token, headers, and base path
+  ansible.builtin.set_fact:
+    argocd_api_auth_token: "{{ argocd_auth_result.json.token }}"
+    argocd_api_auth_headers:
+      Authorization: "Bearer {{ argocd_api_auth_token }}"
+      Content-Type: "application/json"
+    argocd_api_auth_base_path: "{{ argocd_api_auth_base_url }}/api/v1"

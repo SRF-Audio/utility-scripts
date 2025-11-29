@@ -1,3 +1,4 @@
+# roles/omada_api_auth/tasks/main.yml
 - name: Assert required Omada API auth inputs are defined
   ansible.builtin.assert:
     that:
@@ -13,7 +14,7 @@
   ansible.builtin.uri:
     url: "{{ omada_api_base_url }}/api/info"
     method: GET
-    validate_certs: false
+    validate_certs: "{{ omada_api_validate_certs }}"
     return_content: true
     status_code: 200
   register: omada_api_info
@@ -22,28 +23,28 @@
   ansible.builtin.set_fact:
     omada_api_controller_id: "{{ omada_api_info.json.result.omadacId }}"
 
-- name: Login to Omada API
-  ansible.builtin.uri:
-    url: "{{ omada_api_base_url }}/{{ omada_api_controller_id }}/api/v2/login"
-    method: POST
-    validate_certs: false
-    body_format: json
-    body:
+- name: Perform Omada API login via http_api_auth
+  ansible.builtin.include_role:
+    name: http_api_auth
+  vars:
+    http_api_name: "omada"
+    http_api_base_url: "{{ omada_api_base_url }}/{{ omada_api_controller_id }}/api/v2"
+    http_api_auth_path: "/login"
+    http_api_method: "POST"
+    http_api_body:
       username: "{{ omada_api_username }}"
       password: "{{ omada_api_password }}"
-    status_code: 200
-    return_content: true
-  register: omada_api_login
+    http_api_validate_certs: "{{ omada_api_validate_certs }}"
 
 - name: Assert Omada API login succeeded
   ansible.builtin.assert:
     that:
-      - omada_api_login.json.errorCode is defined
-      - omada_api_login.json.errorCode == 0
+      - omada_auth_result.json.errorCode is defined
+      - omada_auth_result.json.errorCode == 0
     fail_msg: "Omada API login failed. Check credentials and controller status."
 
 - name: Set Omada API token, cookies, and base path
   ansible.builtin.set_fact:
-    omada_api_token: "{{ omada_api_login.json.result.token }}"
-    omada_api_cookies: "{{ omada_api_login.cookies_string | default('') }}"
+    omada_api_token: "{{ omada_auth_result.json.result.token }}"
+    omada_api_cookies: "{{ omada_auth_result.cookies_string | default('') }}"
     omada_api_base_path: "{{ omada_api_base_url }}/{{ omada_api_controller_id }}/api/v2"

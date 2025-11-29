@@ -1,0 +1,20 @@
+argument_specs:
+  main:
+    options:
+      argocd_api_auth_base_url:
+        type: str
+        required: true
+        description: Base URL for Argo CD server including scheme and port.
+      argocd_api_auth_username:
+        type: str
+        required: true
+        description: Username for Argo CD API authentication.
+      argocd_api_auth_password:
+        type: str
+        required: true
+        description: Password for Argo CD API authentication.
+      argocd_api_auth_validate_certs:
+        type: bool
+        required: false
+        default: false
+        description: Whether to validate TLS certificates for Argo CD API.

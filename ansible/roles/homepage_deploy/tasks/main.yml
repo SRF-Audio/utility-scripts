@@ -1,0 +1,43 @@
+- name: Ensure Homepage Argo CD Application is present
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('ansible.builtin.template', 'homepage-application.yml.j2') }}"
+
+- name: Discover Homepage ingress templates
+  ansible.builtin.find:
+    paths: "{{ homepage_deploy_ingress_templates_root }}"
+    patterns:
+      - "*.yml.j2"
+      - "*.yaml.j2"
+    file_type: file
+  register: homepage_deploy_ingress_templates
+  when:
+    - homepage_deploy_ingress_templates_root is defined
+    - homepage_deploy_ingress_templates_root | length > 0
+
+- name: Apply Homepage ingress templates
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('ansible.builtin.template', item.path) }}"
+  loop: "{{ homepage_deploy_ingress_templates.files | default([]) }}"
+  loop_control:
+    label: "{{ item.path }}"
+  when:
+    - homepage_deploy_ingress_templates is defined
+    - homepage_deploy_ingress_templates.files | length > 0
+
+- name: Register homepage_deploy role artifacts when homepage_deploy_artifacts_path is defined
+  ansible.builtin.import_role:
+    name: role_artifacts
+  vars:
+    role_homepage_deploy_artifacts_path: "{{ homepage_deploy_artifacts_path }}"
+    # noqa: var-naming
+    calling_role_name: homepage_deploy
+    calling_role_artifacts_inputs:
+      application_name: "{{ homepage_deploy_application_name }}"
+      application_namespace: "{{ homepage_deploy_argo_namespace }}"
+      homepage_deploy_namespace: "{{ homepage_deploy_namespace }}"
+      ingress_templates_root: "{{ homepage_deploy_ingress_templates_root }}"
+  when:
+    - homepage_deploy_artifacts_path is defined
+    - homepage_deploy_artifacts_path | length > 0

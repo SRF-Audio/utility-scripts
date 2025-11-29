@@ -1,0 +1,4 @@
+argocd_api_auth_base_url: "https://argocd.rohu-shark.ts.net"
+argocd_api_auth_username: ""
+argocd_api_auth_password: ""
+argocd_api_auth_validate_certs: false

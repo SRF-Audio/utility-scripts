@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-homepage
+  namespace: argocd
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: "Argo CD"
+    gethomepage.dev/description: "GitOps control plane"
+    gethomepage.dev/group: "GitOps"
+    gethomepage.dev/icon: "argocd.png"
+    gethomepage.dev/widget.type: "argocd"
+    gethomepage.dev/widget.url: "https://argocd.rohu-shark.ts.net"
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - argocd
+  rules:
+    - host: argocd
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 443

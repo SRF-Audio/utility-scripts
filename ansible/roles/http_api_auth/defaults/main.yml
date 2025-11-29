@@ -1,0 +1,6 @@
+http_api_method: POST
+http_api_body: {}
+http_api_headers: {}
+http_api_status_code: 200
+http_api_validate_certs: true
+http_api_register_prefix: ""

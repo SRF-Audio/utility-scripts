@@ -13,3 +13,8 @@ argument_specs:
         type: str
         required: true
         description: Password for Omada API authentication.
+      omada_api_validate_certs:
+        type: bool
+        required: false
+        default: false
+        description: Whether to validate TLS certificates for Omada API.

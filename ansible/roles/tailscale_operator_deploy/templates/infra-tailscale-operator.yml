@@ -12,8 +12,8 @@ spec:
     helm:
       valuesObject:
         oauth:
-          clientId: "kP2LpFfs5N11CNTRL"
-          clientSecret: "tskey-client-kP2LpFfs5N11CNTRL-HmtvMPtZe7Q24espak3w7QmYLJmrkDhH"
+          clientId: "k6YmEhKb4F11CNTRL"
+          clientSecret: "tskey-client-k6YmEhKb4F11CNTRL-zkNKd949a9G382rMet1w9GfHdjWmY1uz"
   destination:
     server: https://kubernetes.default.svc
     namespace: infra-tailscale-operator

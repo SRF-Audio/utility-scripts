@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+data:
+  url: https://argocd.rohu-shark.ts.net
+
+  # Service account for homepage
+  accounts.homepage: apiKey
+  dex.config: |
+    connectors:
+    - type: github
+      id: github
+      name: GitHub
+      config:
+        clientID: "{{ argocd_github_oauth_client_id }}"
+        clientSecret: "{{ argocd_github_oauth_client_secret }}"
+        redirectURI: https://argocd.rohu-shark.ts.net/api/dex/callback

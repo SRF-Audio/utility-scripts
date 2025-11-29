@@ -41,6 +41,13 @@
     argocd_deploy_manifest_result: "{{ k8s_object_manager_result }}"
   when: argocd_deploy_manifest_include is succeeded
 
+- name: Populate config template
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/argocd-config-patch.yml.j2"
+    dest: "{{ role_path }}/files/argocd-config-patch.yml"
+    mode: "0644"
+  register: argocd_deploy_config_patch_template
+
 - name: Discover additional Argo CD resource manifests in role files/
   ansible.builtin.find:
     paths: "{{ role_path }}/files"
@@ -73,6 +80,11 @@
   when:
     - argocd_deploy_manifest_files is defined
     - argocd_deploy_manifest_files.files | length > 0
+
+- name: Cleanup rendered config template file
+  ansible.builtin.file:
+    path: "{{ role_path }}/files/argocd-config-patch.yml"
+    state: absent
 
 - name: Persist argocd_deploy artifacts
   ansible.builtin.include_role:

@@ -60,6 +60,16 @@
                     'tpmiwkdnk3qafsg4u3r6l7simy',
                     field='password',
                     vault='HomeLab') }}
+        argocd_github_oauth_client_id: >-
+          {{ lookup('community.general.onepassword',
+                    'Github',
+                    field='argocd-client-id',
+                    vault='HomeLab') }}
+        argocd_github_oauth_client_secret: >-
+          {{ lookup('community.general.onepassword',
+                    'Github',
+                    field='argocd-client-secret',
+                    vault='HomeLab') }}
       run_once: true
 
     - name: Set become vars for this play

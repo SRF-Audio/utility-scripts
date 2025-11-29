@@ -1,0 +1,64 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ homepage_deploy_application_name }}
+  namespace: {{ homepage_deploy_argo_namespace }}
+spec:
+  project: {{ homepage_deploy_project }}
+  source:
+    repoURL: {{ homepage_deploy_chart_repo }}
+    chart: {{ homepage_deploy_chart_name }}
+    targetRevision: {{ homepage_deploy_chart_version }}
+    helm:
+      valuesObject:
+        service:
+          main:
+            annotations:
+              tailscale.com/expose: "true"
+              tailscale.com/hostname: "homepage"
+              tailscale.com/tags: "tag:k8s,tag:infra-monitoring"
+            ports:
+              http:
+                port: 80
+                targetPort: 3000
+        config:
+          widgets:
+            - datetime:
+                format:
+                  dateStyle: short
+                  timeStyle: short
+                  hourCycle: h23
+            - kubernetes:
+                cluster:
+                  show: true
+                  cpu: true
+                  memory: true
+                  showLabel: true
+                  label: "cluster"
+                nodes:
+                  show: true
+                  cpu: true
+                  memory: true
+                  showLabel: true
+          kubernetes:
+            mode: cluster
+          settings: {}
+        serviceAccount:
+          create: true
+          name: homepage
+        enableRbac: true
+        ingress:
+          main:
+            enabled: false
+        env:
+          - name: HOMEPAGE_ALLOWED_HOSTS
+            value: "homepage.rohu-shark.ts.net"    
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ homepage_deploy_namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

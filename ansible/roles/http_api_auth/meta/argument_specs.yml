@@ -1,0 +1,45 @@
+# roles/http_api_auth/meta/argument_specs.yml
+argument_specs:
+  main:
+    options:
+      http_api_name:
+        type: str
+        required: true
+        description: Logical name of the API, used for dynamic fact naming.
+      http_api_base_url:
+        type: str
+        required: true
+        description: Base URL for the API including scheme and optional port, without trailing slash.
+      http_api_auth_path:
+        type: str
+        required: true
+        description: Auth endpoint path beginning with a slash.
+      http_api_method:
+        type: str
+        required: false
+        default: POST
+        description: HTTP method for the auth request.
+      http_api_body:
+        type: dict
+        required: false
+        default: {}
+        description: Request body for the auth request.
+      http_api_headers:
+        type: dict
+        required: false
+        default: {}
+        description: Extra headers for the auth request.
+      http_api_status_code:
+        type: int
+        required: false
+        default: 200
+        description: Expected HTTP status code.
+      http_api_validate_certs:
+        type: bool
+        required: false
+        default: true
+        description: Whether to validate TLS certificates for the auth request.
+      http_api_register_prefix:
+        type: str
+        required: false
+        description: Optional prefix override for dynamic auth result fact name.
