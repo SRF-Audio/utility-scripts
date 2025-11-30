@@ -48,7 +48,7 @@
   ansible.builtin.include_role:
     name: role_artifacts
   vars:
-    # noqa: var-naming[no-role-prefix]
+    # noqa: var-naming
     role_artifacts_path: "{{ proxmox_maintenance_artifacts_path }}"
     calling_role_name: proxmox_maintenance
     calling_role_artifacts_inputs: "{{ proxmox_maintenance_artifacts }}"
