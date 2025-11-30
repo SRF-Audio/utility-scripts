@@ -37,14 +37,6 @@ jobs:
             sshpass \
             jq
 
-      - name: Upgrade pip and install Python test tooling
-        run: |
-          python3 -m pip install --upgrade pip
-          # Add whatever you actually use for tests; these are safe defaults
-          python3 -m pip install \
-            pytest \
-            pytest-ansible
-
       - name: Install Ansible Galaxy collections
         run: |
           ansible-galaxy collection install -r ansible/requirements.yml
