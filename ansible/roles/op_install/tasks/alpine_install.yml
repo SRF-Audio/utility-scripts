@@ -1,0 +1,22 @@
+# roles/op_install/tasks/alpine_install.yml
+- name: Ensure 1Password Alpine repository is configured
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/apk/repositories
+    line: https://downloads.1password.com/linux/alpinelinux/stable/
+    create: true
+    state: present
+
+- name: Ensure 1Password Alpine repository key is present
+  become: true
+  ansible.builtin.get_url:
+    url: https://downloads.1password.com/linux/keys/alpinelinux/support@1password.com-61ddfc31.rsa.pub
+    dest: /etc/apk/keys/support@1password.com-61ddfc31.rsa.pub
+    mode: "0644"
+
+- name: Ensure 1Password CLI is installed on Alpine
+  become: true
+  ansible.builtin.package:
+    name: 1password-cli
+    state: present
+    update_cache: true

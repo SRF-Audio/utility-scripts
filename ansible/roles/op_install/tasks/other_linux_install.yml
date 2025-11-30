@@ -1,0 +1,58 @@
+- name: Ensure unzip dependency is present
+  become: true
+  ansible.builtin.package:
+    name: unzip
+    state: present
+
+- name: Map architecture for 1Password binary
+  ansible.builtin.set_fact:
+    op_install_arch: >-
+      {{
+        {
+          'x86_64': 'amd64',
+          'amd64': 'amd64',
+          'aarch64': 'arm64',
+          'arm64': 'arm64',
+          'armv7l': 'arm',
+          'armv6l': 'arm',
+          'i386': '386',
+          'i686': '386'
+        }[ansible_architecture]
+        | default('amd64')
+      }}
+
+- name: Download 1Password CLI archive for generic Linux
+  become: true
+  ansible.builtin.get_url:
+    url: >-
+      https://cache.agilebits.com/dist/1P/op2/pkg/v{{ op_install_op_version }}/op_linux_{{ op_install_arch }}_v{{ op_install_op_version }}.zip
+    dest: /tmp/op_linux_{{ op_install_arch }}_v{{ op_install_op_version }}.zip
+    mode: "0644"
+
+- name: Extract 1Password CLI binary
+  become: true
+  ansible.builtin.unarchive:
+    src: /tmp/op_linux_{{ op_install_arch }}_v{{ op_install_op_version }}.zip
+    dest: /usr/local/bin/
+    remote_src: true
+
+- name: Ensure onepassword-cli group exists
+  become: true
+  ansible.builtin.group:
+    name: onepassword-cli
+    state: present
+    system: true
+
+- name: Set ownership and permissions on 1Password CLI binary
+  become: true
+  ansible.builtin.file:
+    path: /usr/local/bin/op
+    owner: root
+    group: onepassword-cli
+    mode: "2755"
+
+- name: Remove downloaded 1Password CLI archive
+  become: true
+  ansible.builtin.file:
+    path: /tmp/op_linux_{{ op_install_arch }}_v{{ op_install_op_version }}.zip
+    state: absent

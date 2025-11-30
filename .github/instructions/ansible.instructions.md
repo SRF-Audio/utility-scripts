@@ -76,11 +76,17 @@ No inline comments in YAML. Docstrings in Python only when requested.
 
 The role must be self-contained, reusable, and not depend on inventory group names beyond what is explicitly described in the role-specific spec.
 
+When calling `role_artifacts`, place the comment `# noqa: var-naming` immediately before the vars list of that include_role task to avoid linter warnings.
+
 # Reviewer Behavior
 
-- If command/shell is used where a module exists, replace with the exact FQCN.
+- If command/shell is used where a module exists, replace with a first-class Ansible module with exact FQCN.
+- If you must use command/shell, ensure idempotency with proper guards, e.g. `creates:`/`removes:`, `changed_when:`.
+- If a task lacks a clear name, improve it to reflect its purpose.
+- If a task name would be more useful with dynamic values, enhance it with jinja2 templating, structuring it so that the jinja2 expressions are at the end of the name.
 - If idempotency is weak, add proper guards (`creates:`/`removes:`, `changed_when:`).
 - If tasks mix concerns or grow long, propose a role/includes skeleton.
+- If evaluating a complete role, look for ways in which it might be mixing concerns, and suggest splitting into multiple, tight, focused roles.
 - Ensure patterns remain safe even when prior tasks are skipped.
 
 # Response Rules

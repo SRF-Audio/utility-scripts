@@ -1,0 +1,4 @@
+op_validator_op_executable: op
+op_validator_service_account_env_var: OP_SERVICE_ACCOUNT_TOKEN
+op_validator_op_account_type: "SERVICE_ACCOUNT"
+op_validator_artifacts_path: "{{ artifacts_base_path }}/op_validator"

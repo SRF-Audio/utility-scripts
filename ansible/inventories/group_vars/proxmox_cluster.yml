@@ -36,7 +36,7 @@ proxmox_cluster_layout:
       mac: "52:54:00:12:34:01"
       proxmox_node: coachlight-homelab-1
       role: bootstrap
-      cpu: 4
+      cpu: 2
       memory: 4096
       disk: 60
     - name: k3s-cp-2
@@ -45,7 +45,7 @@ proxmox_cluster_layout:
       mac: "52:54:00:12:34:02"
       proxmox_node: coachlight-homelab-2
       role: join
-      cpu: 4
+      cpu: 2
       memory: 4096
       disk: 60
     - name: k3s-cp-3
@@ -54,7 +54,7 @@ proxmox_cluster_layout:
       mac: "52:54:00:12:34:03"
       proxmox_node: coachlight-homelab-3
       role: join
-      cpu: 4
+      cpu: 2
       memory: 4096
       disk: 60
 

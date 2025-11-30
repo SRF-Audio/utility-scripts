@@ -1,0 +1,54 @@
+- name: Check for op CLI presence
+  ansible.builtin.command:
+    cmd: "{{ op_validator_op_executable }} --version"
+  register: op_validator_cli_check
+  changed_when: false
+  failed_when: op_validator_cli_check.rc != 0
+
+- name: Set op CLI installed fact
+  ansible.builtin.set_fact:
+    op_validator_cli_installed: "{{ op_validator_cli_check.rc == 0 }}"
+
+- name: Assert service account token is present
+  ansible.builtin.assert:
+    that:
+      - op_validator_op_service_account_token is string
+      - op_validator_op_service_account_token | length > 0
+    fail_msg: A valid 1Password service account token is required for op_validator_op_service_account_token.
+
+- name: Validate 1Password CLI authentication with service account token
+  ansible.builtin.command:
+    argv:
+      - "{{ op_validator_op_executable }}"
+      - user
+      - get
+      - --me
+      - --format
+      - json
+  environment:
+    OP_SERVICE_ACCOUNT_TOKEN: "{{ op_validator_op_service_account_token }}"
+  register: op_validator_whoami
+  changed_when: false
+  failed_when: op_validator_whoami.rc != 0
+
+- name: Validate that 1Password identity type matches expected account type
+  ansible.builtin.assert:
+    that:
+      - (op_validator_whoami.stdout | from_json).type | upper == op_validator_op_account_type | upper
+    fail_msg: >-
+      1Password CLI is not authenticated as the expected account type '{{ op_validator_op_account_type }}'.
+      The reported type was '{{ (op_validator_whoami.stdout | from_json).type | default("UNKNOWN") }}'.
+
+- name: Pass Role artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    role_artifacts_path: "{{ op_validator_artifacts_path }}"
+    calling_role_name: op_validator
+    calling_role_artifacts_inputs:
+      op_executable: "{{ op_validator_op_executable }}"
+      cli_installed: "{{ op_validator_cli_installed | bool }}"
+      cli_version: "{{ op_validator_cli_check.stdout | default('') }}"
+      service_account_token_present: "{{ op_validator_op_service_account_token | length > 0 }}"
+      authenticated: "{{ op_validator_whoami.rc == 0 }}"
+      whoami_json: "{{ op_validator_whoami.stdout | default('') }}"

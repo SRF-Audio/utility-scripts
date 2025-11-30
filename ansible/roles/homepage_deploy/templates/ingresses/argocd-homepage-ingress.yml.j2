@@ -12,10 +12,6 @@ metadata:
     gethomepage.dev/widget.type: "argocd"
     gethomepage.dev/widget.url: "https://argocd.rohu-shark.ts.net"
 spec:
-  ingressClassName: tailscale
-  tls:
-    - hosts:
-        - argocd
   rules:
     - host: argocd
       http:

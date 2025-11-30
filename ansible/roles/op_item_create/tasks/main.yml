@@ -1,0 +1,139 @@
+- name: Validate op_item_create_items input
+  ansible.builtin.assert:
+    that:
+      - op_item_create_items is iterable
+      - op_item_create_items | length > 0
+    fail_msg: |
+      op_item_create_items must be a non-empty list of item specifications.
+
+      Example:
+
+        op_item_create_items:
+          - name: my-login
+            category: login
+            url: https://example.com
+            tags: [nexgen, ansible_managed]
+            generate_password: true
+            password_recipe: 20,letters,digits
+            fields:
+              username[username]: myuser
+          - name: my-api-key
+            category: api_credential
+            tags: [nexgen, ansible_managed]
+            fields:
+              apikey[text]: "secret_api_key_value"
+
+- name: Initialize op_item_create result lists
+  ansible.builtin.set_fact:
+    op_item_create_existing_items: []
+    op_item_create_missing_items: []
+
+- name: Check if 1Password item already exists
+  ansible.builtin.command:
+    cmd: >-
+      {{ op_item_create_op_executable }}
+      item get
+      {{ op_item_create_item.name }}
+      --vault {{ op_item_create_vault_name }}
+      --format json
+  environment:
+    OP_SERVICE_ACCOUNT_TOKEN: "{{ op_item_create_op_service_account_token }}"
+  loop: "{{ op_item_create_items }}"
+  loop_control:
+    loop_var: op_item_create_item
+    label: "{{ op_item_create_vault_name }}/{{ op_item_create_item.name }}"
+  register: op_item_create_get_results
+  changed_when: false
+  failed_when: false
+
+- name: Build list of items that already exist
+  ansible.builtin.set_fact:
+    op_item_create_existing_items: >-
+      {{ op_item_create_existing_items
+         + [ {
+               'vault_name': op_item_create_vault_name,
+               'item_title': op_item_create_pair.0.name,
+               'item_spec': op_item_create_pair.0,
+               'item_json': (op_item_create_pair.1.stdout | from_json)
+             } ] }}
+  loop: "{{ op_item_create_items | zip(op_item_create_get_results.results) | list }}"
+  loop_control:
+    loop_var: op_item_create_pair
+    label: "{{ op_item_create_vault_name }}/{{ op_item_create_pair.0.name }}"
+  when: op_item_create_pair.1.rc == 0
+
+- name: Build list of items that need to be created
+  ansible.builtin.set_fact:
+    op_item_create_missing_items: >-
+      {{ op_item_create_missing_items
+         + [ {
+               'vault_name': op_item_create_vault_name,
+               'item_spec': op_item_create_pair.0
+             } ] }}
+  loop: "{{ op_item_create_items | zip(op_item_create_get_results.results) | list }}"
+  loop_control:
+    loop_var: op_item_create_pair
+    label: "{{ op_item_create_vault_name }}/{{ op_item_create_pair.0.name }}"
+  when: op_item_create_pair.1.rc == 1
+
+- name: Create 1Password items when missing
+  ansible.builtin.shell: |
+    set -euo pipefail
+
+    cmd=( "{{ op_item_create_op_executable }}" item create
+          --vault "{{ op_item_create_vault_name }}"
+          --category="{{ op_item_create_item_spec.category }}"
+          --title="{{ op_item_create_item_spec.name }}" )
+
+    {% if op_item_create_item_spec.url is defined %}
+    cmd+=( --url "{{ op_item_create_item_spec.url }}" )
+    {% endif %}
+
+    {% if op_item_create_item_spec.tags is defined and op_item_create_item_spec.tags | length > 0 %}
+    cmd+=( --tags "{{ op_item_create_item_spec.tags | unique | join(',') }}" )
+    {% endif %}
+
+    {% if op_item_create_item_spec.generate_password | default(false) %}
+    {% set recipe = op_item_create_item_spec.password_recipe | default('20,letters,digits') %}
+    cmd+=( --generate-password='{{ recipe }}' )
+    {% endif %}
+
+    {% if op_item_create_item_spec.ssh_generate_key is defined %}
+    cmd+=( --ssh-generate-key="{{ op_item_create_item_spec.ssh_generate_key }}" )
+    {% endif %}
+
+    {% if op_item_create_item_spec.fields is defined %}
+    {% for field_name, field_value in op_item_create_item_spec.fields.items() %}
+    cmd+=( '{{ field_name }}={{ field_value }}' )
+    {% endfor %}
+    {% endif %}
+
+    cmd+=( --format json )
+
+    "${cmd[@]}" < /dev/null
+  args:
+    executable: /bin/bash
+  environment:
+    OP_SERVICE_ACCOUNT_TOKEN: "{{ op_item_create_op_service_account_token }}"
+  loop: "{{ op_item_create_missing_items | default([]) }}"
+  loop_control:
+    loop_var: op_item_create_missing
+    label: "{{ op_item_create_vault_name }}/{{ op_item_create_missing.item_spec.name }}"
+  register: op_item_create_create_results
+  when: (op_item_create_missing_items | default([])) | length > 0
+  vars:
+    op_item_create_item_spec: "{{ op_item_create_missing.item_spec }}"
+
+- name: Pass role artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    role_artifacts_path: "{{ op_item_create_artifacts_path }}"
+    calling_role_name: op_item_create
+    calling_role_artifacts_inputs:
+      created_items: >-
+        {{ op_item_create_create_results.results
+           | map(attribute='stdout')
+           | map('from_json')
+           | list if op_item_create_create_results is defined else [] }}
+      existing_items: "{{ op_item_create_existing_items }}"

@@ -1,0 +1,146 @@
+- name: Validate op_item_edit_items input
+  ansible.builtin.assert:
+    that:
+      - op_item_edit_items is iterable
+      - op_item_edit_items | length > 0
+    fail_msg: |
+      op_item_edit_items must be a non-empty list of item specifications.
+
+      Example:
+
+        op_item_edit_items:
+          - name: my-login
+            url: https://example.com/new
+            tags: [nexgen, ansible_managed, rotated]
+            generate_password: true
+            password_recipe: letters,digits,symbols,32
+            fields:
+              password[password]: ""
+          - name: my-api-key
+            tags: [nexgen, ansible_managed]
+            fields:
+              apikey[text]: "new_api_key_value"
+
+- name: Initialize op_item_edit result lists
+  ansible.builtin.set_fact:
+    op_item_edit_existing_items: []
+    op_item_edit_missing_items: []
+
+- name: Check if 1Password item already exists
+  ansible.builtin.command:
+    cmd: >-
+      {{ op_item_edit_op_executable }}
+      item get
+      {{ op_item_edit_item.name }}
+      --vault {{ op_item_edit_vault_name }}
+      --format json
+  environment:
+    OP_SERVICE_ACCOUNT_TOKEN: "{{ op_item_edit_op_service_account_token }}"
+  loop: "{{ op_item_edit_items }}"
+  loop_control:
+    loop_var: op_item_edit_item
+    label: "{{ op_item_edit_vault_name }}/{{ op_item_edit_item.name }}"
+  register: op_item_edit_get_results
+  changed_when: false
+  failed_when: false
+
+- name: Build list of items that already exist
+  ansible.builtin.set_fact:
+    op_item_edit_existing_items: >-
+      {{ op_item_edit_existing_items
+         + [ {
+               'vault_name': op_item_edit_vault_name,
+               'item_title': op_item_edit_pair.0.name,
+               'item_spec': op_item_edit_pair.0,
+               'item_json': (op_item_edit_pair.1.stdout | from_json)
+             } ] }}
+  loop: "{{ op_item_edit_items | zip(op_item_edit_get_results.results) | list }}"
+  loop_control:
+    loop_var: op_item_edit_pair
+    label: "{{ op_item_edit_vault_name }}/{{ op_item_edit_pair.0.name }}"
+  when: op_item_edit_pair.1.rc == 0
+
+- name: Build list of items that are missing
+  ansible.builtin.set_fact:
+    op_item_edit_missing_items: >-
+      {{ op_item_edit_missing_items
+         + [ {
+               'vault_name': op_item_edit_vault_name,
+               'item_spec': op_item_edit_pair.0
+             } ] }}
+  loop: "{{ op_item_edit_items | zip(op_item_edit_get_results.results) | list }}"
+  loop_control:
+    loop_var: op_item_edit_pair
+    label: "{{ op_item_edit_vault_name }}/{{ op_item_edit_pair.0.name }}"
+  when: op_item_edit_pair.1.rc == 1
+
+- name: Edit 1Password items when they exist
+  ansible.builtin.shell: |
+    set -euo pipefail
+
+    cmd=( "{{ op_item_edit_op_executable }}" item edit "{{ op_item_edit_item_spec.name }}" )
+
+    cmd+=( --vault "{{ op_item_edit_vault_name }}" )
+
+    {% if op_item_edit_item_spec.title is defined %}
+    cmd+=( --title "{{ op_item_edit_item_spec.title }}" )
+    {% endif %}
+
+    {% if op_item_edit_item_spec.url is defined %}
+    cmd+=( --url "{{ op_item_edit_item_spec.url }}" )
+    {% endif %}
+
+    {% if op_item_edit_item_spec.tags is defined %}
+    {% set normalized_tags = op_item_edit_item_spec.tags | unique %}
+    {% if normalized_tags | length > 0 %}
+    cmd+=( --tags "{{ normalized_tags | join(',') }}" )
+    {% else %}
+    cmd+=( --tags "" )
+    {% endif %}
+    {% endif %}
+
+
+    {% if op_item_edit_item_spec.favorite is defined %}
+    cmd+=( --favorite "{{ 'true' if op_item_edit_item_spec.favorite else 'false' }}" )
+    {% endif %}
+
+    {% if op_item_edit_item_spec.generate_password | default(false) %}
+    {% set recipe = op_item_edit_item_spec.password_recipe | default('20,letters,digits') %}
+    cmd+=( --generate-password='{{ recipe }}' )
+    {% endif %}
+
+    {% if op_item_edit_item_spec.fields is defined %}
+    {% for field_name, field_value in op_item_edit_item_spec.fields.items() %}
+    cmd+=( '{{ field_name }}={{ field_value }}' )
+    {% endfor %}
+    {% endif %}
+
+    cmd+=( --format json )
+
+    "${cmd[@]}" < /dev/null
+  args:
+    executable: /bin/bash
+  environment:
+    OP_SERVICE_ACCOUNT_TOKEN: "{{ op_item_edit_op_service_account_token }}"
+  loop: "{{ op_item_edit_existing_items | default([]) }}"
+  loop_control:
+    loop_var: op_item_edit_existing
+    label: "{{ op_item_edit_vault_name }}/{{ op_item_edit_existing.item_spec.name }}"
+  register: op_item_edit_edit_results
+  when: (op_item_edit_existing_items | default([])) | length > 0
+  vars:
+    op_item_edit_item_spec: "{{ op_item_edit_existing.item_spec }}"
+
+- name: Pass role artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    role_artifacts_path: "{{ op_item_edit_artifacts_path }}"
+    calling_role_name: op_item_edit
+    calling_role_artifacts_inputs:
+      edited_items: >-
+        {{ op_item_edit_edit_results.results
+           | map(attribute='stdout')
+           | map('from_json')
+           | list if op_item_edit_edit_results is defined else [] }}
+      existing_items: "{{ op_item_edit_existing_items }}"

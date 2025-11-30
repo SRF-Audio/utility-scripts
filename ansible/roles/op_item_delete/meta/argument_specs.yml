@@ -1,0 +1,35 @@
+argument_specs:
+  main:
+    options:
+      op_item_delete_artifacts_path:
+        type: str
+        required: true
+        description: Global base path for artifacts output, not including the role name.
+      op_item_delete_op_executable:
+        type: str
+        required: false
+        default: op
+        description:
+          - Path or name of the op CLI executable to use for deleting items.
+      op_item_delete_vault_name:
+        type: str
+        required: true
+        description:
+          - 1Password vault name where items will be deleted.
+      op_item_delete_items:
+        type: list
+        elements: dict
+        required: true
+        description:
+          - List of item specs to delete in 1Password. For field help, use `op item delete --help`.
+        options:
+          name:
+            type: str
+            required: true
+            description:
+              - Name or title of the 1Password item to delete.
+      op_item_delete_op_service_account_token:
+        type: str
+        required: true
+        description:
+          - 1Password service account token used for op CLI authentication.

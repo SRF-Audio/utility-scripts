@@ -1,0 +1,2 @@
+op_install_artifacts_path: "{{ artifacts_base_path }}/op_install"
+op_install_op_version: "2.32.0"

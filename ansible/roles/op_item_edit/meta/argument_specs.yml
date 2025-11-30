@@ -1,0 +1,83 @@
+argument_specs:
+  main:
+    options:
+      op_item_edit_artifacts_path:
+        type: str
+        required: true
+        description: Global base path for artifacts output, not including the role name.
+      op_item_edit_op_executable:
+        type: str
+        required: false
+        default: op
+        description:
+          - Path or name of the op CLI executable to use for editing items.
+      op_item_edit_vault_name:
+        type: str
+        required: true
+        description:
+          - 1Password vault name where items will be edited.
+      op_item_edit_items:
+        type: list
+        elements: dict
+        required: true
+        description:
+          - List of item specs to edit in 1Password. For field help, use `op item edit --help`.
+        options:
+          name:
+            type: str
+            required: true
+            description:
+              - Name or title of the 1Password item to edit.
+          title:
+            type: str
+            required: false
+            description:
+              - Optional new title for the 1Password item.
+          category:
+            type: str
+            required: false
+            description:
+              - Optional category; not required for edit operations.
+          url:
+            type: str
+            required: false
+            description:
+              - Optional URL to set on the item.
+          tags:
+            type: list
+            elements: str
+            required: false
+            description: |
+              Optional list of tags to set on the item.
+              If provided as an empty list, all existing tags will be removed.
+          favorite:
+            type: bool
+            required: false
+            description:
+              - Whether this item should be marked as a favorite.
+          generate_password:
+            type: bool
+            required: false
+            description:
+              - Whether to call --generate-password for this item.
+          password_recipe:
+            type: str
+            required: false
+            description:
+              - Optional password recipe string for --generate-password, for example 20,letters,digits.
+          fields:
+            type: dict
+            required: false
+            description: |
+              Map of field assignment expressions to values.
+              Each key is the field assignment expression as expected by the `op item edit` command,
+              and the value is the value to assign to that field.
+              For example:
+              fields:
+                username[username]: myuser
+                password[password]: mypassword
+      op_item_edit_op_service_account_token:
+        type: str
+        required: true
+        description:
+          - 1Password service account token used for op CLI authentication.

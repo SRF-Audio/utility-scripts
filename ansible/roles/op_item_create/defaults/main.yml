@@ -1,0 +1,3 @@
+op_item_create_op_executable: op
+op_item_create_vault_name: ""
+op_item_create_artifacts_path: "{{ artifacts_base_path }}/op_item_create"

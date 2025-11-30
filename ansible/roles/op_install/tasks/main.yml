@@ -1,0 +1,80 @@
+- name: Test if 1Password CLI is already installed
+  ansible.builtin.include_role:
+    name: cli_tester
+  vars:
+    cli_tester_cli_name: op
+    cli_tester_artifacts_path: "{{ op_install_artifacts_path }}"
+
+- name: Install 1Password CLI for respective OS families when not installed
+  when: not cli_tester_is_cli_installed | default(false)
+  block:
+    - name: Gather minimal facts (OS only)
+      ansible.builtin.setup:
+        gather_subset:
+          - os_family
+
+    - name: Ensure GPG dependency is present on RedHat family
+      become: true
+      ansible.builtin.package:
+        name: gnupg
+        state: present
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: Ensure GPG dependency is present on Debian family
+      become: true
+      ansible.builtin.package:
+        name: gpg
+        state: present
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Ensure GPG dependency is present on Alpine
+      become: true
+      ansible.builtin.package:
+        name: gnupg
+        state: present
+      when: ansible_facts['os_family'] == "Alpine"
+
+    - name: Install for RHEL/Fedora based systems
+      when: ansible_facts['os_family'] == "RedHat"
+      ansible.builtin.import_tasks: rhel_family_install.yml
+
+    - name: Install for Debian/Ubuntu based systems
+      when: ansible_facts['os_family'] == "Debian"
+      ansible.builtin.import_tasks: debian_family_install.yml
+
+    - name: Install for Alpine systems
+      when: ansible_facts['os_family'] == "Alpine"
+      ansible.builtin.import_tasks: alpine_install.yml
+
+    - name: Install for other Linux systems
+      when:
+        - ansible_facts['system'] == "Linux"
+        - ansible_facts['os_family'] not in ["RedHat", "Debian", "Alpine"]
+      ansible.builtin.import_tasks: other_linux_install.yml
+
+    - name: Re-run cli_tester to confirm 1Password CLI installation
+      ansible.builtin.include_role:
+        name: cli_tester
+      vars:
+        cli_tester_cli_name: op
+        cli_tester_artifacts_path: "{{ op_install_artifacts_path }}"
+
+- name: Determine op binary path
+  ansible.builtin.command:
+    cmd: which op
+  register: op_install_op_binary_check
+  changed_when: false
+  failed_when: op_install_op_binary_check.rc != 0
+
+- name: Set op binary path fact
+  ansible.builtin.set_fact:
+    op_install_op_binary_path: "{{ op_install_op_binary_check.stdout }}"
+
+- name: Pass Role artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    role_artifacts_path: "{{ op_install_artifacts_path }}"
+    calling_role_name: op_install
+    calling_role_artifacts_inputs:
+      op_binary_path: "{{ op_install_op_binary_path }}"

@@ -22,6 +22,12 @@ spec:
           defaultDataLocality: "best-effort"
           replicaAutoBalance: "least-effort"
           storageOverProvisioningPercentage: "200"
+        service:
+          ui:
+            annotations:
+              tailscale.com/expose: "true"
+              tailscale.com/hostname: "homepage"
+              tailscale.com/tags: "tag:k8s,tag:infra-monitoring"
   destination:
     server: https://kubernetes.default.svc
     namespace: infra-longhorn

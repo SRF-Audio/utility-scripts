@@ -1,0 +1,117 @@
+- name: Validate op_item_delete_items input
+  ansible.builtin.assert:
+    that:
+      - op_item_delete_items is iterable
+      - op_item_delete_items | length > 0
+    fail_msg: |
+      op_item_delete_items must be a non-empty list of item specifications.
+
+      Example:
+
+        op_item_delete_items:
+          - name: my-login
+          - name: defunct-api-key
+
+- name: Initialize op_item_delete result lists
+  ansible.builtin.set_fact:
+    op_item_delete_existing_items: []
+    op_item_delete_missing_items: []
+    op_item_delete_deleted_items: []
+
+- name: Check if 1Password item already exists
+  ansible.builtin.command:
+    cmd: >-
+      {{ op_item_delete_op_executable }}
+      item get
+      {{ op_item_delete_item.name }}
+      --vault {{ op_item_delete_vault_name }}
+      --format json
+  environment:
+    OP_SERVICE_ACCOUNT_TOKEN: "{{ op_item_delete_op_service_account_token }}"
+  loop: "{{ op_item_delete_items }}"
+  loop_control:
+    loop_var: op_item_delete_item
+    label: "{{ op_item_delete_vault_name }}/{{ op_item_delete_item.name }}"
+  register: op_item_delete_get_results
+  changed_when: false
+  failed_when: false
+
+- name: Build list of items that already exist
+  ansible.builtin.set_fact:
+    op_item_delete_existing_items: >-
+      {{ op_item_delete_existing_items
+         + [ {
+               'vault_name': op_item_delete_vault_name,
+               'item_title': op_item_delete_pair.0.name,
+               'item_spec': op_item_delete_pair.0,
+               'item_json': (op_item_delete_pair.1.stdout | from_json)
+             } ] }}
+  loop: "{{ op_item_delete_items | zip(op_item_delete_get_results.results) | list }}"
+  loop_control:
+    loop_var: op_item_delete_pair
+    label: "{{ op_item_delete_vault_name }}/{{ op_item_delete_pair.0.name }}"
+  when: op_item_delete_pair.1.rc == 0
+
+- name: Build list of items that are missing
+  ansible.builtin.set_fact:
+    op_item_delete_missing_items: >-
+      {{ op_item_delete_missing_items
+         + [ {
+               'vault_name': op_item_delete_vault_name,
+               'item_spec': op_item_delete_pair.0
+             } ] }}
+  loop: "{{ op_item_delete_items | zip(op_item_delete_get_results.results) | list }}"
+  loop_control:
+    loop_var: op_item_delete_pair
+    label: "{{ op_item_delete_vault_name }}/{{ op_item_delete_pair.0.name }}"
+  when: op_item_delete_pair.1.rc == 1
+
+- name: Delete 1Password items when they exist
+  ansible.builtin.command:
+    cmd: >-
+      {{ op_item_delete_op_executable }}
+      item delete
+      "{{ op_item_delete_item_spec.name }}"
+      --vault {{ op_item_delete_vault_name }}
+  environment:
+    OP_SERVICE_ACCOUNT_TOKEN: "{{ op_item_delete_op_service_account_token }}"
+  loop: "{{ op_item_delete_existing_items | default([]) }}"
+  loop_control:
+    loop_var: op_item_delete_existing
+    label: "{{ op_item_delete_vault_name }}/{{ op_item_delete_existing.item_spec.name }}"
+  register: op_item_delete_delete_results
+  when: (op_item_delete_existing_items | default([])) | length > 0
+  vars:
+    op_item_delete_item_spec: "{{ op_item_delete_existing.item_spec }}"
+
+- name: Build list of deleted items
+  ansible.builtin.set_fact:
+    op_item_delete_deleted_items: >-
+      {{ op_item_delete_deleted_items
+         + [ {
+               'vault_name': op_item_delete_pair.0.vault_name,
+               'item_spec': op_item_delete_pair.0.item_spec,
+               'delete_result': op_item_delete_pair.1
+             } ] }}
+  loop: >-
+    {{
+      (op_item_delete_existing_items | default([]))
+      | zip(op_item_delete_delete_results.results | default([]))
+      | list
+    }}
+  loop_control:
+    loop_var: op_item_delete_pair
+    label: "{{ op_item_delete_vault_name }}/{{ op_item_delete_pair.0.item_spec.name }}"
+  when:
+    - (op_item_delete_existing_items | default([])) | length > 0
+    - op_item_delete_delete_results is defined
+
+- name: Pass role artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    role_artifacts_path: "{{ op_item_delete_artifacts_path }}"
+    calling_role_name: op_item_delete
+    calling_role_artifacts_inputs:
+      deleted_items: "{{ op_item_delete_deleted_items }}"
+      missing_items: "{{ op_item_delete_missing_items }}"
