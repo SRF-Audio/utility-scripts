@@ -1,0 +1,56 @@
+name: "Copilot Setup Steps"
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  # Job name MUST be exactly this for Copilot to pick it up
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+
+    # Run all steps inside a Fedora 43 container
+    container:
+      image: fedora:43
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Install Ansible toolchain via dnf
+        run: |
+          dnf -y update
+          dnf -y install \
+            ansible \
+            ansible-lint \
+            yamllint \
+            python3-pip \
+            git \
+            sshpass \
+            jq
+
+      - name: Upgrade pip and install Python test tooling
+        run: |
+          python3 -m pip install --upgrade pip
+          # Add whatever you actually use for tests; these are safe defaults
+          python3 -m pip install \
+            pytest \
+            pytest-ansible
+
+      - name: Install Ansible Galaxy collections
+        run: |
+          ansible-galaxy collection install -r ansible/requirements.yml
+
+      - name: Verify Ansible setup
+        run: |
+          ansible --version
+          ansible-lint --version
+          yamllint --version
