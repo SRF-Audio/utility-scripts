@@ -1,0 +1,54 @@
+- name: Assert OS is Debian-family on {{ inventory_hostname }}
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.os_family == "Debian"
+    fail_msg: "proxmox_maintenance requires a Debian-family OS. Detected: {{ ansible_facts.os_family | default('unknown') }}"
+
+- name: Update apt cache and upgrade packages on {{ inventory_hostname }}
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: dist
+  register: proxmox_maintenance_upgrade_result
+
+- name: Autoremove unused packages on {{ inventory_hostname }}
+  ansible.builtin.apt:
+    autoremove: true
+  register: proxmox_maintenance_autoremove_result
+
+- name: Autoclean apt cache on {{ inventory_hostname }}
+  ansible.builtin.apt:
+    autoclean: true
+
+- name: Check if reboot is required on {{ inventory_hostname }}
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+  register: proxmox_maintenance_reboot_required_file
+
+- name: Reboot if required on {{ inventory_hostname }}
+  ansible.builtin.reboot:
+    reboot_timeout: "{{ proxmox_maintenance_reboot_timeout }}"
+  when:
+    - proxmox_maintenance_enable_reboot
+    - proxmox_maintenance_reboot_required_file.stat.exists
+  register: proxmox_maintenance_reboot_result
+
+- name: Set proxmox_maintenance_rebooted fact on {{ inventory_hostname }}
+  ansible.builtin.set_fact:
+    proxmox_maintenance_rebooted: "{{ proxmox_maintenance_reboot_result.rebooted | default(false) }}"
+
+- name: Build proxmox_maintenance_artifacts on {{ inventory_hostname }}
+  ansible.builtin.set_fact:
+    proxmox_maintenance_artifacts:
+      host: "{{ inventory_hostname }}"
+      timestamp: "{{ ansible_date_time.iso8601 }}"
+      packages_upgraded: "{{ proxmox_maintenance_upgrade_result.stdout_lines | default([]) }}"
+      rebooted: "{{ proxmox_maintenance_rebooted }}"
+
+- name: Record proxmox_maintenance artifacts on {{ inventory_hostname }}
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    # noqa: var-naming[no-role-prefix]
+    role_artifacts_path: "{{ proxmox_maintenance_artifacts_path }}"
+    calling_role_name: proxmox_maintenance
+    calling_role_artifacts_inputs: "{{ proxmox_maintenance_artifacts }}"
