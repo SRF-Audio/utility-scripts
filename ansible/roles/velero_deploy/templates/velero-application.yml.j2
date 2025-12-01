@@ -1,0 +1,62 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ velero_deploy_application_name }}
+  namespace: {{ velero_deploy_argo_namespace }}
+spec:
+  project: {{ velero_deploy_argo_project }}
+  source:
+    repoURL: {{ velero_deploy_helm_repo_url }}
+    chart: {{ velero_deploy_helm_chart_name }}
+    targetRevision: {{ velero_deploy_helm_chart_version }}
+    helm:
+      valuesObject:
+        initContainers:
+          - name: velero-plugin-for-csi
+            image: velero/velero-plugin-for-csi:v0.7.1
+            imagePullPolicy: IfNotPresent
+            volumeMounts:
+              - mountPath: /target
+                name: plugins
+        configuration:
+          features: EnableCSI
+{% if velero_deploy_backup_storage_config %}
+          backupStorageLocation:
+            - name: {{ velero_deploy_backup_storage_location }}
+              provider: {{ velero_deploy_backup_storage_config.provider | default('') }}
+{% if velero_deploy_backup_storage_config.bucket is defined %}
+              bucket: {{ velero_deploy_backup_storage_config.bucket }}
+{% endif %}
+{% if velero_deploy_backup_storage_config.config is defined %}
+              config:
+{% for cfg_key, cfg_value in velero_deploy_backup_storage_config.config.items() %}
+                {{ cfg_key }}: "{{ cfg_value }}"
+{% endfor %}
+{% endif %}
+{% endif %}
+{% if velero_deploy_snapshot_location_config %}
+          volumeSnapshotLocation:
+            - name: {{ velero_deploy_snapshot_location_config.name | default('default') }}
+{% if velero_deploy_snapshot_location_config.provider is defined %}
+              provider: {{ velero_deploy_snapshot_location_config.provider }}
+{% endif %}
+{% if velero_deploy_snapshot_location_config.config is defined %}
+              config:
+{% for cfg_key, cfg_value in velero_deploy_snapshot_location_config.config.items() %}
+                {{ cfg_key }}: "{{ cfg_value }}"
+{% endfor %}
+{% endif %}
+{% endif %}
+        snapshotsEnabled: true
+        deployNodeAgent: false
+        upgradeCRDs: true
+        cleanUpCRDs: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ velero_deploy_namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
