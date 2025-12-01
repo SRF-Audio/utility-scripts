@@ -1,0 +1,7 @@
+kubeconfig_manager_target_kubeconfig_path: "{{ lookup('env', 'HOME') + '/.kube/config' }}"
+kubeconfig_manager_context_cluster: "{{ kubeconfig_manager_cluster_name }}"
+kubeconfig_manager_user_name: "{{ kubeconfig_manager_context_user }}"
+kubeconfig_manager_set_current_context: true
+kubeconfig_manager_remove_stale_entries: true
+kubeconfig_manager_backup_existing: true
+kubeconfig_manager_artifacts_path: "{{ artifacts_path }}"
