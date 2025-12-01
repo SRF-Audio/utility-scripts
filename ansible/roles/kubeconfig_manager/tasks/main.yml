@@ -184,12 +184,12 @@
       context_name: "{{ kubeconfig_manager_context_name }}"
       user_name: "{{ kubeconfig_manager_user_name }}"
       backup_created: "{{ kubeconfig_manager_backup_existing | bool and kubeconfig_manager_target_stat.stat.exists }}"
-      is_non_default_path: "{{ not kubeconfig_manager_target_kubeconfig_path.startswith(lookup('env', 'HOME')) }}"
+      is_non_default_path: "{{ kubeconfig_manager_target_kubeconfig_path != (lookup('env', 'HOME') + '/.kube/config') }}"
 
 - name: Persist kubeconfig_manager artifacts
   ansible.builtin.include_role:
     name: role_artifacts
-  # noqa: var-naming
+  # noqa: var-naming[no-role-prefix] - role_artifacts expects calling_role_name and calling_role_artifacts_inputs
   vars:
     role_artifacts_path: "{{ kubeconfig_manager_artifacts_path }}"
     calling_role_name: kubeconfig_manager
