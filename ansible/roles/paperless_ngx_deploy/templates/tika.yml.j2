@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paperless-ngx-tika
+  namespace: {{ paperless_ngx_deploy_namespace }}
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: tika
+    app.kubernetes.io/managed-by: ansible
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: paperless-ngx
+      app.kubernetes.io/component: tika
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: paperless-ngx
+        app.kubernetes.io/component: tika
+    spec:
+      containers:
+        - name: tika
+          image: {{ paperless_ngx_deploy_tika_image }}:{{ paperless_ngx_deploy_tika_tag }}
+          ports:
+            - containerPort: 9998
+              name: tika
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+          livenessProbe:
+            httpGet:
+              path: /tika
+              port: 9998
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /tika
+              port: 9998
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paperless-ngx-tika
+  namespace: {{ paperless_ngx_deploy_namespace }}
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: tika
+    app.kubernetes.io/managed-by: ansible
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9998
+      targetPort: 9998
+      name: tika
+  selector:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: tika

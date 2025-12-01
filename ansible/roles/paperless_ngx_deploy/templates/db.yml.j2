@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paperless-ngx-db
+  namespace: {{ paperless_ngx_deploy_namespace }}
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: db
+    app.kubernetes.io/managed-by: ansible
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: paperless-ngx
+      app.kubernetes.io/component: db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: paperless-ngx
+        app.kubernetes.io/component: db
+    spec:
+      containers:
+        - name: postgres
+          image: {{ paperless_ngx_deploy_db_image }}:{{ paperless_ngx_deploy_db_tag }}
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-ngx-secrets
+                  key: PAPERLESS_DBNAME
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-ngx-secrets
+                  key: PAPERLESS_DBUSER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-ngx-secrets
+                  key: PAPERLESS_DBPASS
+          volumeMounts:
+            - name: dbdata
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+      volumes:
+        - name: dbdata
+          persistentVolumeClaim:
+            claimName: paperless-ngx-dbdata
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paperless-ngx-db
+  namespace: {{ paperless_ngx_deploy_namespace }}
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: db
+    app.kubernetes.io/managed-by: ansible
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: 5432
+      name: postgres
+  selector:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: db

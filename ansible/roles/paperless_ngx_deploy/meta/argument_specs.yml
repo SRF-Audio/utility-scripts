@@ -1,0 +1,131 @@
+argument_specs:
+  main:
+    description: |
+      Deploy Paperless-NGX to a Kubernetes cluster using first-class Kubernetes manifests.
+      Mirrors the official Docker Compose layout with webserver, Postgres, Redis, and optional
+      Tika/Gotenberg services. Uses k8s_object_manager for all Kubernetes object management.
+    options:
+      paperless_ngx_deploy_kubeconfig:
+        type: raw
+        required: true
+        description: Path to kubeconfig file or configuration dict.
+      paperless_ngx_deploy_context:
+        type: str
+        required: true
+        description: Kubernetes context name to use for deployment.
+      paperless_ngx_deploy_cluster_name:
+        type: str
+        required: false
+        description: Logical cluster name used for artifact recording.
+      paperless_ngx_deploy_namespace:
+        type: str
+        required: false
+        description: Namespace where Paperless-NGX will be deployed.
+      paperless_ngx_deploy_storage_class_longhorn:
+        type: str
+        required: false
+        description: Storage class for Longhorn-backed PVCs (data, dbdata, redisdata).
+      paperless_ngx_deploy_storage_class_synology:
+        type: str
+        required: false
+        description: Storage class for Synology-backed PVCs (media, export, consume).
+      paperless_ngx_deploy_hostname:
+        type: str
+        required: false
+        description: Hostname for the Paperless UI (used in Tailscale ingress).
+      paperless_ngx_deploy_tailscale_annotations:
+        type: dict
+        required: false
+        description: Additional Tailscale annotations for the ingress.
+      paperless_ngx_deploy_homepage_annotations:
+        type: dict
+        required: false
+        description: Homepage annotations for service discovery.
+      paperless_ngx_deploy_enable_tika:
+        type: bool
+        required: false
+        description: Enable Apache Tika for document parsing.
+      paperless_ngx_deploy_enable_gotenberg:
+        type: bool
+        required: false
+        description: Enable Gotenberg for document conversion.
+      paperless_ngx_deploy_web_image:
+        type: str
+        required: false
+        description: Paperless-NGX webserver container image.
+      paperless_ngx_deploy_web_tag:
+        type: str
+        required: false
+        description: Paperless-NGX webserver container image tag.
+      paperless_ngx_deploy_db_image:
+        type: str
+        required: false
+        description: PostgreSQL database container image.
+      paperless_ngx_deploy_db_tag:
+        type: str
+        required: false
+        description: PostgreSQL database container image tag.
+      paperless_ngx_deploy_redis_image:
+        type: str
+        required: false
+        description: Redis container image.
+      paperless_ngx_deploy_redis_tag:
+        type: str
+        required: false
+        description: Redis container image tag.
+      paperless_ngx_deploy_tika_image:
+        type: str
+        required: false
+        description: Apache Tika container image.
+      paperless_ngx_deploy_tika_tag:
+        type: str
+        required: false
+        description: Apache Tika container image tag.
+      paperless_ngx_deploy_gotenberg_image:
+        type: str
+        required: false
+        description: Gotenberg container image.
+      paperless_ngx_deploy_gotenberg_tag:
+        type: str
+        required: false
+        description: Gotenberg container image tag.
+      paperless_ngx_deploy_env_config:
+        type: dict
+        required: false
+        description: Non-secret environment variables for ConfigMap.
+      paperless_ngx_deploy_env_secrets:
+        type: dict
+        required: false
+        description: Secret environment variables for Kubernetes Secret.
+      paperless_ngx_deploy_apply_objects:
+        type: bool
+        required: false
+        description: Whether to apply Kubernetes objects or just render manifests.
+      paperless_ngx_deploy_pvc_data_size:
+        type: str
+        required: false
+        description: Size of the data PVC (Longhorn).
+      paperless_ngx_deploy_pvc_dbdata_size:
+        type: str
+        required: false
+        description: Size of the PostgreSQL data PVC (Longhorn).
+      paperless_ngx_deploy_pvc_redisdata_size:
+        type: str
+        required: false
+        description: Size of the Redis data PVC (Longhorn).
+      paperless_ngx_deploy_pvc_media_size:
+        type: str
+        required: false
+        description: Size of the media PVC (Synology).
+      paperless_ngx_deploy_pvc_export_size:
+        type: str
+        required: false
+        description: Size of the export PVC (Synology).
+      paperless_ngx_deploy_pvc_consume_size:
+        type: str
+        required: false
+        description: Size of the consume PVC (Synology).
+      paperless_ngx_deploy_artifacts_path:
+        type: str
+        required: false
+        description: Base path for rendered manifests and artifacts.
