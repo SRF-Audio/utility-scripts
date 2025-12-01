@@ -23,7 +23,7 @@
     k3s_kubeconfig_retriever_target_host: >-
       {{
         k3s_kubeconfig_retriever_control_plane_host
-        | default(groups[k3s_kubeconfig_retriever_control_plane_group][0])
+        | default(groups[k3s_kubeconfig_retriever_control_plane_group] | first)
       }}
 
 - name: Read kubeconfig from {{ k3s_kubeconfig_retriever_target_host }}
