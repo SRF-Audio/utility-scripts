@@ -36,7 +36,6 @@
   ansible.builtin.import_role:
     name: role_artifacts
   vars:
-    role_artifacts_path: "{{ omada_deploy_artifacts_path }}"
     # noqa: var-naming
     calling_role_name: omada_deploy
     calling_role_artifacts_inputs:

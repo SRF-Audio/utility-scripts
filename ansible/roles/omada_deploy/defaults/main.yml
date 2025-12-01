@@ -24,7 +24,7 @@ omada_deploy_apply_application: true
 
 omada_deploy_ingress_templates_root: "{{ role_path }}/templates/ingresses"
 
-omada_deploy_artifacts_path: "{{ artifacts_path | default('', true) }}"
+omada_deploy_artifacts_path: "{{ artifacts_path }}"
 
 omada_deploy_kubeconfig: "{{ k3s_kubeconfig_path | default('', true) }}"
 omada_deploy_context: "{{ k3s_context_name | default('', true) }}"
