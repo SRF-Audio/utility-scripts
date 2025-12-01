@@ -93,3 +93,13 @@ proxmox_api_user: "root@pam"
 
 # Storage ID as known to Proxmox (the *name* in Datacenter -> Storage)
 proxmox_cluster_storage_id: "proxmox-cluster-storage"
+
+# Tailscale setup configuration for Proxmox nodes
+# Note: proxmox_tailscale_setup_auth_key must be set at runtime (e.g. from site.yml via 1Password lookup)
+proxmox_tailscale_setup_hostname_suffix: "-proxmox"
+proxmox_tailscale_setup_advertise_tags:
+  - tag:proxmox
+  - tag:server-utility
+proxmox_tailscale_setup_extra_flags: []
+proxmox_tailscale_setup_operator: "sfroeber"
+proxmox_tailscale_setup_ssh_enabled: true

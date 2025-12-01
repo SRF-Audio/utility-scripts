@@ -97,3 +97,15 @@
     ansible_ssh_private_key_file: ~/.ssh/coachlight-homelab.pem
   roles:
     - proxmox
+
+- name: Set up Tailscale on Proxmox nodes
+  hosts: proxmox
+  gather_facts: true
+  become: true
+  vars:
+    ansible_user: root
+    ansible_ssh_private_key_file: ~/.ssh/coachlight-homelab.pem
+    proxmox_tailscale_setup_auth_key: >-
+      {{ lookup('community.general.onepassword', 'Tailscale', field='proxmox nodes', vault='HomeLab') }}
+  roles:
+    - proxmox_tailscale_setup
