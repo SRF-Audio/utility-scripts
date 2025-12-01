@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frigate-homepage
+  namespace: {{ frigate_deploy_namespace }}
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: "Frigate"
+    gethomepage.dev/description: "NVR with realtime object detection"
+    gethomepage.dev/group: "Cameras"
+    gethomepage.dev/icon: "frigate.png"
+{% for key, value in frigate_deploy_tailscale_annotations.items() %}
+    {{ key }}: "{{ value }}"
+{% endfor %}
+    tailscale.com/hostname: "{{ frigate_deploy_hostname }}"
+spec:
+  ingressClassName: tailscale
+  rules:
+    - host: {{ frigate_deploy_hostname }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frigate
+                port:
+                  number: 5000

@@ -1,0 +1,27 @@
+frigate_deploy_namespace: frigate
+frigate_deploy_argo_namespace: argocd
+frigate_deploy_argo_project: coachlight-k3s-infra
+
+frigate_deploy_helm_repo_url: https://blakeblackshear.github.io/blakeshome-charts/
+frigate_deploy_helm_chart_name: frigate
+frigate_deploy_helm_chart_version: "7.8.0"
+
+frigate_deploy_values_overrides: {}
+
+frigate_deploy_hostname: frigate
+frigate_deploy_tailscale_annotations:
+  tailscale.com/expose: "true"
+  tailscale.com/tags: "tag:k8s,tag:apps"
+
+frigate_deploy_storage_class_longhorn: longhorn
+frigate_deploy_storage_class_synology: ""
+
+frigate_deploy_service_type: ClusterIP
+
+frigate_deploy_apply_application: true
+
+frigate_deploy_kubeconfig: "{{ k3s_kubeconfig_path | default('', true) }}"
+frigate_deploy_context: "{{ k3s_context_name | default('', true) }}"
+frigate_deploy_cluster_name: "{{ k3s_cluster_name | default('', true) }}"
+
+frigate_deploy_artifacts_path: "{{ artifacts_path | default('', true) }}"
