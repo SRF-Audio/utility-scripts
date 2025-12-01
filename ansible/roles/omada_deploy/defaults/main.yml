@@ -1,0 +1,30 @@
+omada_deploy_namespace: omada-controller
+omada_deploy_argo_namespace: argocd
+omada_deploy_argo_project: coachlight-k3s-infra
+
+omada_deploy_helm_repo_url: https://mbentley.github.io/helm-charts
+omada_deploy_helm_chart_name: omada-controller
+omada_deploy_helm_chart_version: 5.14.31
+
+omada_deploy_application_name: omada-controller
+
+omada_deploy_hostname: omada
+omada_deploy_tailscale_annotations:
+  tailscale.com/expose: "true"
+  tailscale.com/tags: "tag:k8s,tag:infra-network"
+
+omada_deploy_storage_class_longhorn: longhorn
+omada_deploy_storage_class_synology: ""
+
+omada_deploy_service_type: LoadBalancer
+
+omada_deploy_values_overrides: {}
+
+omada_deploy_apply_application: true
+
+omada_deploy_ingress_templates_root: "{{ role_path }}/templates/ingresses"
+
+omada_deploy_artifacts_path: "{{ artifacts_path | default('', true) }}"
+
+omada_deploy_kubeconfig: "{{ k3s_kubeconfig_path | default('', true) }}"
+omada_deploy_context: "{{ k3s_context_name | default('', true) }}"
