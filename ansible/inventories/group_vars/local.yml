@@ -39,4 +39,6 @@ file_publish_artifact_path: "{{ playbook_dir }}/.artifacts/file_publish_artifact
 k3s_kubeconfig_path: "{{ lookup('env', 'HOME') ~ '/.kube/config' }}"
 k3s_cluster_name: coachlight-k3s-cluster
 k3s_context_name: coachlight-k3s-cluster
+k3s_user_name: coachlight-k3s-user
 k3s_cluster_domain: rohu-shark.ts.net
+k3s_api_server_url: "https://k3s-cp-1.{{ k3s_cluster_domain }}:6443"
