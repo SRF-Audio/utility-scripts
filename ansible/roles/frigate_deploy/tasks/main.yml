@@ -1,3 +1,13 @@
+- name: Assert required frigate_deploy inputs are defined when applying
+  ansible.builtin.assert:
+    that:
+      - frigate_deploy_kubeconfig is defined
+      - frigate_deploy_context is defined
+      - frigate_deploy_kubeconfig | string | length > 0
+      - frigate_deploy_context | length > 0
+    fail_msg: "frigate_deploy_kubeconfig and frigate_deploy_context must be defined when frigate_deploy_apply_application is true."
+  when: frigate_deploy_apply_application | bool
+
 - name: Set frigate_deploy tmp directory path
   ansible.builtin.set_fact:
     frigate_deploy_tmp_dir: "{{ frigate_deploy_artifacts_path }}/frigate_deploy"
