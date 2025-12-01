@@ -35,7 +35,7 @@
       tags:
         - coachlight-homelab
         - cluster-service
-        - "{{ 'cluster-control' if item.role is defined else 'cluster-worker' }}"
+        - "{{ 'cluster-control' if item.role == 'control-plane' else 'cluster-worker' }}"
   loop: "{{ proxmox_k3s_vm_scaffolder_all_vms }}"
   loop_control:
     label: "{{ item.name }}"
@@ -49,33 +49,12 @@
     proxmox_vm_disk_manager_api_password: "{{ proxmox_api_password | default(omit) }}"
     proxmox_vm_disk_manager_api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
     proxmox_vm_disk_manager_api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
-    proxmox_vm_disk_manager_node: "{{ item.proxmox_node }}"
     proxmox_vm_disk_manager_vmid: "{{ item.vmid }}"
     proxmox_vm_disk_manager_disk: scsi0
     proxmox_vm_disk_manager_state: resized
     proxmox_vm_disk_manager_validate_certs: "{{ proxmox_validate_certs }}"
     proxmox_vm_disk_manager_module_params:
       size: "{{ item.disk }}G"
-  loop: "{{ proxmox_k3s_vm_scaffolder_all_vms }}"
-  loop_control:
-    label: "{{ item.name }}"
-
-- name: Resize primary disk for each k3s node
-  ansible.builtin.include_role:
-    name: proxmox_vm_disk_manager
-  vars:
-    proxmox_vm_disk_manager_api_host: "{{ proxmox_api_host }}"
-    proxmox_vm_disk_manager_api_user: "{{ proxmox_api_user }}"
-    proxmox_vm_disk_manager_api_password: "{{ proxmox_api_password | default(omit) }}"
-    proxmox_vm_disk_manager_api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
-    proxmox_vm_disk_manager_api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
-    proxmox_vm_disk_manager_node: "{{ item.proxmox_node }}"
-    proxmox_vm_disk_manager_vmid: "{{ item.vmid }}"
-    proxmox_vm_disk_manager_disk: scsi0
-    proxmox_vm_disk_manager_state: resized
-    proxmox_vm_disk_manager_validate_certs: "{{ proxmox_validate_certs }}"
-    proxmox_vm_disk_manager_module_params:
-      size: "{{ item.disk }}G" # absolute size => idempotent
   loop: "{{ proxmox_k3s_vm_scaffolder_all_vms }}"
   loop_control:
     label: "{{ item.name }}"

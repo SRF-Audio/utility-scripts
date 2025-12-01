@@ -21,10 +21,6 @@ argument_specs:
         type: str
         required: false
         description: Proxmox API token secret for token-based authentication.
-      proxmox_vm_disk_manager_node:
-        type: str
-        required: true
-        description: Proxmox node name hosting the VM.
       proxmox_vm_disk_manager_vmid:
         type: int
         required: true

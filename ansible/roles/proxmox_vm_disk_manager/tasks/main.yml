@@ -5,8 +5,6 @@
       - proxmox_vm_disk_manager_api_host | length > 0
       - proxmox_vm_disk_manager_api_user is defined
       - proxmox_vm_disk_manager_api_user | length > 0
-      - proxmox_vm_disk_manager_node is defined
-      - proxmox_vm_disk_manager_node | length > 0
       - proxmox_vm_disk_manager_vmid is defined
       - proxmox_vm_disk_manager_disk is defined
       - proxmox_vm_disk_manager_disk | length > 0
@@ -26,7 +24,6 @@
         | combine({
             'api_host': proxmox_vm_disk_manager_api_host,
             'api_user': proxmox_vm_disk_manager_api_user,
-            'node': proxmox_vm_disk_manager_node,
             'vmid': proxmox_vm_disk_manager_vmid,
             'disk': proxmox_vm_disk_manager_disk,
             'state': proxmox_vm_disk_manager_state,
@@ -57,7 +54,6 @@
   ansible.builtin.include_role:
     name: role_artifacts
   vars:
-    # noqa: var-naming
     calling_role_name: proxmox_vm_disk_manager_{{ proxmox_vm_disk_manager_vmid }}_{{ proxmox_vm_disk_manager_disk | replace('.', '_') }}
     calling_role_artifacts_inputs:
       proxmox_vm_disk_manager_effective_params: "{{ proxmox_vm_disk_manager_effective_params }}"
