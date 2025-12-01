@@ -1,0 +1,68 @@
+- name: Skip k3s_kubeconfig_retriever when disabled
+  ansible.builtin.meta: end_play
+  when: not k3s_kubeconfig_retriever_enabled
+
+- name: Assert control-plane host or group is defined
+  ansible.builtin.assert:
+    that:
+      - >-
+        k3s_kubeconfig_retriever_control_plane_host is defined
+        or (groups[k3s_kubeconfig_retriever_control_plane_group] | default([]) | length > 0)
+    fail_msg: >-
+      Either k3s_kubeconfig_retriever_control_plane_host must be defined,
+      or the inventory group '{{ k3s_kubeconfig_retriever_control_plane_group }}' must contain at least one host.
+
+- name: Assert remote kubeconfig path is non-empty
+  ansible.builtin.assert:
+    that:
+      - k3s_kubeconfig_retriever_remote_kubeconfig_path | length > 0
+    fail_msg: k3s_kubeconfig_retriever_remote_kubeconfig_path must be non-empty.
+
+- name: Set k3s_kubeconfig_retriever_target_host
+  ansible.builtin.set_fact:
+    k3s_kubeconfig_retriever_target_host: >-
+      {{
+        k3s_kubeconfig_retriever_control_plane_host
+        | default(groups[k3s_kubeconfig_retriever_control_plane_group] | first)
+      }}
+
+- name: Read kubeconfig from {{ k3s_kubeconfig_retriever_target_host }}
+  ansible.builtin.slurp:
+    src: "{{ k3s_kubeconfig_retriever_remote_kubeconfig_path }}"
+  become: true
+  delegate_to: "{{ k3s_kubeconfig_retriever_target_host }}"
+  register: k3s_kubeconfig_retriever_slurp_result
+
+- name: Decode kubeconfig content
+  ansible.builtin.set_fact:
+    k3s_kubeconfig_retriever_content: "{{ k3s_kubeconfig_retriever_slurp_result.content | b64decode }}"
+
+- name: Ensure local output directory exists for kubeconfig
+  ansible.builtin.file:
+    path: "{{ k3s_kubeconfig_retriever_local_output_dir }}"
+    state: directory
+    mode: "0755"
+  delegate_to: localhost
+
+- name: Write kubeconfig to local file
+  ansible.builtin.copy:
+    dest: "{{ k3s_kubeconfig_retriever_local_output_dir }}/{{ k3s_kubeconfig_retriever_local_output_filename }}"
+    content: "{{ k3s_kubeconfig_retriever_content }}"
+    mode: "0600"
+  delegate_to: localhost
+
+- name: Build k3s_kubeconfig_retriever_artifacts
+  ansible.builtin.set_fact:
+    k3s_kubeconfig_retriever_artifacts:
+      target_host: "{{ k3s_kubeconfig_retriever_target_host }}"
+      remote_kubeconfig_path: "{{ k3s_kubeconfig_retriever_remote_kubeconfig_path }}"
+      local_output_path: "{{ k3s_kubeconfig_retriever_local_output_dir }}/{{ k3s_kubeconfig_retriever_local_output_filename }}"
+
+- name: Record k3s_kubeconfig_retriever artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    # noqa: var-naming
+    role_artifacts_path: "{{ k3s_kubeconfig_retriever_artifacts_path }}"
+    calling_role_name: k3s_kubeconfig_retriever
+    calling_role_artifacts_inputs: "{{ k3s_kubeconfig_retriever_artifacts }}"
