@@ -13,37 +13,37 @@ spec:
       valuesObject:
         initContainers:
           - name: velero-plugin-for-csi
-            image: velero/velero-plugin-for-csi:v0.7.1
+            image: velero/velero-plugin-for-csi:{{ velero_deploy_csi_plugin_version }}
             imagePullPolicy: IfNotPresent
             volumeMounts:
               - mountPath: /target
                 name: plugins
         configuration:
           features: EnableCSI
-{% if velero_deploy_backup_storage_config %}
+{% if velero_deploy_backup_storage_config and velero_deploy_backup_storage_config.provider is defined %}
           backupStorageLocation:
             - name: {{ velero_deploy_backup_storage_location }}
-              provider: {{ velero_deploy_backup_storage_config.provider | default('') }}
+              provider: {{ velero_deploy_backup_storage_config.provider }}
 {% if velero_deploy_backup_storage_config.bucket is defined %}
               bucket: {{ velero_deploy_backup_storage_config.bucket }}
 {% endif %}
 {% if velero_deploy_backup_storage_config.config is defined %}
               config:
 {% for cfg_key, cfg_value in velero_deploy_backup_storage_config.config.items() %}
-                {{ cfg_key }}: "{{ cfg_value }}"
+                {{ cfg_key }}: {{ cfg_value | string }}
 {% endfor %}
 {% endif %}
 {% endif %}
-{% if velero_deploy_snapshot_location_config %}
+{% if velero_deploy_snapshot_location_config and velero_deploy_snapshot_location_config.name is defined %}
           volumeSnapshotLocation:
-            - name: {{ velero_deploy_snapshot_location_config.name | default('default') }}
+            - name: {{ velero_deploy_snapshot_location_config.name }}
 {% if velero_deploy_snapshot_location_config.provider is defined %}
               provider: {{ velero_deploy_snapshot_location_config.provider }}
 {% endif %}
 {% if velero_deploy_snapshot_location_config.config is defined %}
               config:
 {% for cfg_key, cfg_value in velero_deploy_snapshot_location_config.config.items() %}
-                {{ cfg_key }}: "{{ cfg_value }}"
+                {{ cfg_key }}: {{ cfg_value | string }}
 {% endfor %}
 {% endif %}
 {% endif %}

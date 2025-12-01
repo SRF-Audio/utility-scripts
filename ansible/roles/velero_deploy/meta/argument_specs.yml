@@ -44,6 +44,10 @@ argument_specs:
         type: str
         required: false
         description: Version of the Velero Helm chart.
+      velero_deploy_csi_plugin_version:
+        type: str
+        required: false
+        description: Version of the Velero CSI plugin image.
       velero_deploy_backup_storage_location:
         type: str
         required: false
