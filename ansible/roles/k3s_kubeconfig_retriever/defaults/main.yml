@@ -1,0 +1,6 @@
+k3s_kubeconfig_retriever_enabled: true
+k3s_kubeconfig_retriever_control_plane_group: k3s_control_plane
+k3s_kubeconfig_retriever_remote_kubeconfig_path: /etc/rancher/k3s/k3s.yaml
+k3s_kubeconfig_retriever_local_output_dir: "{{ artifacts_path }}/k3s_kubeconfig_retriever"
+k3s_kubeconfig_retriever_local_output_filename: k3s-default-kubeconfig.yaml
+k3s_kubeconfig_retriever_artifacts_path: "{{ artifacts_path }}"
