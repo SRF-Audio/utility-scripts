@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: netbox-homepage
+  namespace: {{ netbox_deploy_namespace }}
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: "NetBox"
+    gethomepage.dev/description: "Network Source of Truth"
+    gethomepage.dev/group: "Infrastructure"
+    gethomepage.dev/icon: "netbox.png"
+spec:
+  ingressClassName: tailscale
+  rules:
+    - host: {{ netbox_deploy_hostname }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: netbox
+                port:
+                  number: 80

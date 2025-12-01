@@ -1,0 +1,29 @@
+netbox_deploy_kubeconfig: "{{ k3s_kubeconfig_path | default('', true) }}"
+netbox_deploy_cluster_name: "{{ k3s_cluster_name | default('', true) }}"
+netbox_deploy_context: "{{ k3s_context_name | default('', true) }}"
+
+netbox_deploy_namespace: netbox
+netbox_deploy_argo_namespace: argocd
+netbox_deploy_argo_project: coachlight-k3s-infra
+
+netbox_deploy_helm_repo_url: https://netbox-community.github.io/netbox-chart
+netbox_deploy_helm_chart_name: netbox
+netbox_deploy_helm_chart_version: 5.0.0-beta.145
+
+netbox_deploy_values_overrides: {}
+
+netbox_deploy_hostname: netbox
+netbox_deploy_ingress_enabled: true
+netbox_deploy_tailscale_annotations:
+  tailscale.com/expose: "true"
+  tailscale.com/hostname: "netbox"
+  tailscale.com/tags: "tag:k8s,tag:infra-monitoring"
+
+netbox_deploy_storage_class_longhorn: longhorn
+netbox_deploy_storage_class_synology: ""
+
+netbox_deploy_media_storage_config: {}
+
+netbox_deploy_apply_application: true
+
+netbox_deploy_superuser_email: admin@example.com
