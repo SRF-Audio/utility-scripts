@@ -22,6 +22,9 @@ spec:
           defaultDataLocality: "best-effort"
           replicaAutoBalance: "least-effort"
           storageOverProvisioningPercentage: "200"
+          replicaSoftAntiAffinity: false
+          replicaZoneSoftAntiAffinity: false
+          replicaNodeSoftAntiAffinity: false
         service:
           ui:
             annotations:

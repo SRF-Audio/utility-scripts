@@ -22,6 +22,20 @@
             effect: "NoSchedule"
       loop: "{{ groups['k3s_control_plane'] | default([]) }}"
 
+    - name: Label k3s nodes with Longhorn zone topology
+      kubernetes.core.k8s_json_patch:
+        kubeconfig: "{{ k3s_kubeconfig_path }}"
+        context: "{{ k3s_context_name }}"
+        kind: Node
+        name: "{{ item.name }}"
+        patch:
+          - op: add
+            path: /metadata/labels/topology.kubernetes.io~1zone
+            value: "{{ item.proxmox_node }}"
+      loop: "{{ proxmox_cluster_layout.control_planes + proxmox_cluster_layout.workers }}"
+      loop_control:
+        label: "{{ item.name }}"
+
   roles:
     - role: argocd_deploy
       vars:
