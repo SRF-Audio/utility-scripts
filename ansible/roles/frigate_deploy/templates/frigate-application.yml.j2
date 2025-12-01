@@ -34,19 +34,19 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: frigate
-  namespace: {{ frigate_deploy_argo_namespace }}
+  namespace: "{{ frigate_deploy_argo_namespace }}"
 spec:
-  project: {{ frigate_deploy_argo_project }}
+  project: "{{ frigate_deploy_argo_project }}"
   source:
-    repoURL: {{ frigate_deploy_helm_repo_url }}
-    chart: {{ frigate_deploy_helm_chart_name }}
-    targetRevision: {{ frigate_deploy_helm_chart_version }}
+    repoURL: "{{ frigate_deploy_helm_repo_url }}"
+    chart: "{{ frigate_deploy_helm_chart_name }}"
+    targetRevision: "{{ frigate_deploy_helm_chart_version }}"
     helm:
       valuesObject:
 {{ merged_values | to_nice_yaml | indent(8, first=true) }}
   destination:
     server: https://kubernetes.default.svc
-    namespace: {{ frigate_deploy_namespace }}
+    namespace: "{{ frigate_deploy_namespace }}"
   syncPolicy:
     automated:
       prune: true

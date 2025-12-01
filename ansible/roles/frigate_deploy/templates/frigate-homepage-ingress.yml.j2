@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: frigate-homepage
-  namespace: {{ frigate_deploy_namespace }}
+  namespace: "{{ frigate_deploy_namespace }}"
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/name: "Frigate"
@@ -16,7 +16,7 @@ metadata:
 spec:
   ingressClassName: tailscale
   rules:
-    - host: {{ frigate_deploy_hostname }}
+    - host: "{{ frigate_deploy_hostname }}"
       http:
         paths:
           - path: /
