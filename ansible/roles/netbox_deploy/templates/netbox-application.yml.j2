@@ -77,7 +77,7 @@ spec:
               - name: netbox-media
                 mountPath: /opt/netbox/netbox/media
 {% endif %}
-{% if netbox_deploy_values_overrides %}
+{% if netbox_deploy_values_overrides and netbox_deploy_values_overrides | length > 0 %}
 
 {{ netbox_deploy_values_overrides | to_nice_yaml | indent(8, first=true) }}{% endif %}
   destination:
