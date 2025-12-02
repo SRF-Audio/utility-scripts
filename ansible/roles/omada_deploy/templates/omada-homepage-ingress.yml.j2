@@ -10,15 +10,14 @@ metadata:
     gethomepage.dev/group: "Network"
     gethomepage.dev/icon: "omada.png"
 spec:
-  ingressClassName: tailscale
   rules:
-    - host: {{ omada_deploy_hostname }}
+    - host: omada
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: {{ omada_deploy_application_name }}
+                name: omada-controller
                 port:
                   number: 8043

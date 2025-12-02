@@ -1,10 +1,10 @@
-omada_deploy_namespace: omada-controller
+omada_deploy_namespace: infra-omada-controller
 omada_deploy_argo_namespace: argocd
 omada_deploy_argo_project: coachlight-k3s-infra
 
-omada_deploy_helm_repo_url: https://mbentley.github.io/helm-charts
+omada_deploy_helm_repo_url: oci://registry-1.docker.io/mbentley/omada-controller-helm
 omada_deploy_helm_chart_name: omada-controller
-omada_deploy_helm_chart_version: 5.14.31
+omada_deploy_helm_chart_version: 1.0.0
 
 omada_deploy_application_name: omada-controller
 
@@ -13,8 +13,7 @@ omada_deploy_tailscale_annotations:
   tailscale.com/expose: "true"
   tailscale.com/tags: "tag:k8s,tag:infra-network"
 
-omada_deploy_storage_class_longhorn: longhorn
-omada_deploy_storage_class_synology: ""
+omada_deploy_storage_class_synology: "synology-nfs"
 
 omada_deploy_service_type: LoadBalancer
 

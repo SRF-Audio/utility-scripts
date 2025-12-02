@@ -42,10 +42,6 @@ argument_specs:
         type: dict
         required: false
         description: Additional Tailscale annotations to apply to ingress resources.
-      omada_deploy_storage_class_longhorn:
-        type: str
-        required: false
-        description: Longhorn storage class name for persistent data.
       omada_deploy_storage_class_synology:
         type: str
         required: false
