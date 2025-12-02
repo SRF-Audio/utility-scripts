@@ -1,0 +1,91 @@
+- name: Assert required crafty_controller_deploy inputs are defined
+  ansible.builtin.assert:
+    that:
+      - crafty_controller_deploy_namespace is defined
+      - crafty_controller_deploy_namespace | length > 0
+      - crafty_controller_deploy_artifacts_path is defined
+      - crafty_controller_deploy_artifacts_path | length > 0
+      - crafty_controller_deploy_ingress_host is defined
+      - crafty_controller_deploy_ingress_host | length > 0
+    fail_msg: >
+      crafty_controller_deploy_namespace, crafty_controller_deploy_artifacts_path,
+      and crafty_controller_deploy_ingress_host must be defined and non-empty.
+
+- name: Ensure Crafty Controller render directory exists
+  ansible.builtin.file:
+    path: "{{ crafty_controller_deploy_render_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Render Crafty Controller PVC manifests
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ crafty_controller_deploy_render_dir }}/{{ item.dest }}"
+    mode: "0644"
+  loop:
+    - src: pvc-backups.yml.j2
+      dest: pvc-backups.yml
+    - src: pvc-logs.yml.j2
+      dest: pvc-logs.yml
+    - src: pvc-servers.yml.j2
+      dest: pvc-servers.yml
+    - src: pvc-config.yml.j2
+      dest: pvc-config.yml
+    - src: pvc-import.yml.j2
+      dest: pvc-import.yml
+  loop_control:
+    label: "{{ item.dest }}"
+
+- name: Render Crafty Controller Deployment manifest
+  ansible.builtin.template:
+    src: deployment.yml.j2
+    dest: "{{ crafty_controller_deploy_render_dir }}/deployment.yml"
+    mode: "0644"
+
+- name: Render Crafty Controller Service manifest
+  ansible.builtin.template:
+    src: service.yml.j2
+    dest: "{{ crafty_controller_deploy_render_dir }}/service.yml"
+    mode: "0644"
+
+- name: Render Crafty Controller Ingress manifest
+  ansible.builtin.template:
+    src: ingress.yml.j2
+    dest: "{{ crafty_controller_deploy_render_dir }}/ingress-homepage.yml"
+    mode: "0644"
+
+- name: Discover rendered Crafty Controller manifests
+  ansible.builtin.find:
+    paths: "{{ crafty_controller_deploy_render_dir }}"
+    patterns:
+      - "*.yml"
+      - "*.yaml"
+    file_type: file
+  register: crafty_controller_deploy_manifest_files
+
+- name: Apply Crafty Controller manifests via k8s_object_manager
+  ansible.builtin.include_role:
+    name: k8s_object_manager
+  vars:
+    k8s_object_manager_src: "{{ item.path }}"
+    k8s_object_manager_state: present
+  loop: "{{ crafty_controller_deploy_manifest_files.files }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+
+- name: Set crafty_controller_deploy_artifacts fact
+  ansible.builtin.set_fact:
+    crafty_controller_deploy_artifacts:
+      namespace: "{{ crafty_controller_deploy_namespace }}"
+      ingress_host: "{{ crafty_controller_deploy_ingress_host }}"
+      tailscale_enabled: "{{ crafty_controller_deploy_tailscale_enabled }}"
+      render_dir: "{{ crafty_controller_deploy_render_dir }}"
+      manifests: "{{ crafty_controller_deploy_manifest_files.files | map(attribute='path') | list }}"
+
+- name: Persist crafty_controller_deploy artifacts via role_artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    # noqa: var-naming
+    calling_role_name: crafty_controller_deploy
+    calling_role_artifacts_inputs: "{{ crafty_controller_deploy_artifacts }}"

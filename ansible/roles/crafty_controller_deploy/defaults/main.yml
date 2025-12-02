@@ -1,0 +1,4 @@
+crafty_controller_deploy_ingress_host: crafty.homelab.local
+crafty_controller_deploy_tailscale_enabled: true
+crafty_controller_deploy_artifacts_path: "{{ artifacts_path }}"
+crafty_controller_deploy_render_dir: "{{ crafty_controller_deploy_artifacts_path }}/rendered-manifests"

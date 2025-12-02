@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: crafty-controller-config
+  namespace: {{ crafty_controller_deploy_namespace }}
+  labels:
+    app: crafty-controller
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi

@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crafty-controller
+  namespace: {{ crafty_controller_deploy_namespace }}
+  labels:
+    app: crafty-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crafty-controller
+  template:
+    metadata:
+      labels:
+        app: crafty-controller
+    spec:
+      containers:
+        - name: crafty-controller
+          image: arcadiatechnology/crafty-4:latest
+          env:
+            - name: TZ
+              value: "Etc/UTC"
+          ports:
+            - containerPort: 8443
+              name: https-panel
+            - containerPort: 8123
+              name: http-dynmap
+          volumeMounts:
+            - name: crafty-controller-backups
+              mountPath: /crafty/backups
+            - name: crafty-controller-logs
+              mountPath: /crafty/logs
+            - name: crafty-controller-servers
+              mountPath: /crafty/servers
+            - name: crafty-controller-config
+              mountPath: /crafty/app/config
+            - name: crafty-controller-import
+              mountPath: /crafty/import
+      volumes:
+        - name: crafty-controller-backups
+          persistentVolumeClaim:
+            claimName: crafty-controller-backups
+        - name: crafty-controller-logs
+          persistentVolumeClaim:
+            claimName: crafty-controller-logs
+        - name: crafty-controller-servers
+          persistentVolumeClaim:
+            claimName: crafty-controller-servers
+        - name: crafty-controller-config
+          persistentVolumeClaim:
+            claimName: crafty-controller-config
+        - name: crafty-controller-import
+          persistentVolumeClaim:
+            claimName: crafty-controller-import
