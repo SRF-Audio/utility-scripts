@@ -10,7 +10,6 @@ metadata:
     gethomepage.dev/description: "Minecraft server manager"
     gethomepage.dev/icon: "crafty"
 spec:
-  ingressClassName: nginx
   rules:
     - host: {{ crafty_controller_deploy_ingress_host }}
       http:
