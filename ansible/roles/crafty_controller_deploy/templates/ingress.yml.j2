@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: crafty-controller-homepage
+  namespace: {{ crafty_controller_deploy_namespace }}
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: "Crafty Controller"
+    gethomepage.dev/group: "Games"
+    gethomepage.dev/description: "Minecraft server manager"
+    gethomepage.dev/icon: "crafty"
+spec:
+  rules:
+    - host: {{ crafty_controller_deploy_ingress_host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: crafty-controller
+                port:
+                  number: 443
