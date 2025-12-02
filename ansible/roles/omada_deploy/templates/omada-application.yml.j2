@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ omada_deploy_application_name }}
+  namespace: {{ omada_deploy_argo_namespace }}
+spec:
+  project: {{ omada_deploy_argo_project }}
+  source:
+    repoURL: {{ omada_deploy_helm_repo_url }}
+    chart: {{ omada_deploy_helm_chart_name }}
+    targetRevision: {{ omada_deploy_helm_chart_version }}
+    helm:
+      valuesObject:
+        persistence:
+          data:
+            enabled: true
+            storageClass: {{ omada_deploy_storage_class_longhorn }}
+{% if omada_deploy_storage_class_synology | length > 0 %}
+          logs:
+            enabled: true
+            storageClass: {{ omada_deploy_storage_class_synology }}
+{% endif %}
+
+        service:
+          type: {{ omada_deploy_service_type }}
+          annotations:
+{% for key, value in omada_deploy_tailscale_annotations.items() %}
+            {{ key }}: "{{ value }}"
+{% endfor %}
+            tailscale.com/hostname: "{{ omada_deploy_hostname }}"
+
+        ingress:
+          enabled: true
+          ingressClassName: tailscale
+          annotations:
+{% for key, value in omada_deploy_tailscale_annotations.items() %}
+            {{ key }}: "{{ value }}"
+{% endfor %}
+          hosts:
+            - host: {{ omada_deploy_hostname }}
+              paths:
+                - path: /
+                  pathType: Prefix
+{% if omada_deploy_values_overrides | length > 0 %}
+{{ omada_deploy_values_overrides | to_nice_yaml | indent(8, first=true) }}
+{% endif %}
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ omada_deploy_namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

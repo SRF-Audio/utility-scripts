@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: omada-homepage
+  namespace: {{ omada_deploy_namespace }}
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: "Omada SDN"
+    gethomepage.dev/description: "TP-Link Omada Controller"
+    gethomepage.dev/group: "Network"
+    gethomepage.dev/icon: "omada.png"
+spec:
+  ingressClassName: tailscale
+  rules:
+    - host: {{ omada_deploy_hostname }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ omada_deploy_application_name }}
+                port:
+                  number: 8043
