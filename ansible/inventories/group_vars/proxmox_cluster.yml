@@ -37,7 +37,7 @@ proxmox_cluster_layout:
       proxmox_node: coachlight-homelab-1
       role: bootstrap
       cpu: 2
-      memory: 4096
+      memory: 5120
       disk: 60
     - name: k3s-cp-2
       vmid: 101
@@ -46,7 +46,7 @@ proxmox_cluster_layout:
       proxmox_node: coachlight-homelab-2
       role: join
       cpu: 2
-      memory: 4096
+      memory: 5120
       disk: 60
     - name: k3s-cp-3
       vmid: 102
@@ -55,7 +55,7 @@ proxmox_cluster_layout:
       proxmox_node: coachlight-homelab-3
       role: join
       cpu: 2
-      memory: 4096
+      memory: 5120
       disk: 60
 
   workers:
@@ -66,26 +66,53 @@ proxmox_cluster_layout:
       proxmox_node: coachlight-homelab-1
       role: worker
       cpu: 4
-      memory: 6144
-      disk: 150
+      memory: 10240
+      disk: 200
     - name: k3s-wkr-2
       vmid: 201
       ip: 192.168.226.97
       mac: "52:54:00:12:34:05"
-      proxmox_node: coachlight-homelab-2
+      proxmox_node: coachlight-homelab-1
       role: worker
       cpu: 4
-      memory: 6144
-      disk: 150
+      memory: 8192
+      disk: 170
     - name: k3s-wkr-3
       vmid: 202
       ip: 192.168.226.98
       mac: "52:54:00:12:34:06"
+      proxmox_node: coachlight-homelab-2
+      role: worker
+      cpu: 4
+      memory: 10240
+      disk: 200
+    - name: k3s-wkr-4
+      vmid: 203
+      ip: 192.168.226.99
+      mac: "52:54:00:12:34:07"
+      proxmox_node: coachlight-homelab-2
+      role: worker
+      cpu: 4
+      memory: 8192
+      disk: 170
+    - name: k3s-wkr-5
+      vmid: 204
+      ip: 192.168.226.100
+      mac: "52:54:00:12:34:08"
       proxmox_node: coachlight-homelab-3
       role: worker
       cpu: 4
-      memory: 6144
-      disk: 240
+      memory: 10240
+      disk: 200
+    - name: k3s-wkr-6
+      vmid: 205
+      ip: 192.168.226.101
+      mac: "52:54:00:12:34:09"
+      proxmox_node: coachlight-homelab-3
+      role: worker
+      cpu: 4
+      memory: 8192
+      disk: 170
 
 # Proxmox API connection (used from the control host / localhost)
 proxmox_api_host: "{{ hostvars[groups['proxmox'][0]].ansible_host }}"
