@@ -29,7 +29,7 @@ spec:
           ui:
             annotations:
               tailscale.com/expose: "true"
-              tailscale.com/hostname: "homepage"
+              tailscale.com/hostname: "longhorn"
               tailscale.com/tags: "tag:k8s,tag:infra-monitoring"
   destination:
     server: https://kubernetes.default.svc

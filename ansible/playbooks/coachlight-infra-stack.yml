@@ -57,11 +57,6 @@
         argocd_deploy_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
         argocd_deploy_context: "{{ kubeconfig_manager_artifacts.context_name }}"
         argocd_deploy_cluster_name: "{{ kubeconfig_manager_artifacts.cluster_name }}"
-    - role: longhorn_deploy
-      vars:
-        longhorn_deploy_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
-        longhorn_deploy_context: "{{ kubeconfig_manager_artifacts.context_name }}"
-        longhorn_deploy_cluster_name: "{{ kubeconfig_manager_artifacts.cluster_name }}"
     - role: tailscale_operator_deploy
       vars:
         tailscale_operator_deploy_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"

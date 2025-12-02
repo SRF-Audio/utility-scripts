@@ -26,6 +26,13 @@
         | default(groups[k3s_kubeconfig_retriever_control_plane_group] | first)
       }}
 
+- name: Remove stale known_hosts entries for {{ k3s_kubeconfig_retriever_target_host }}
+  ansible.builtin.lineinfile:
+    path: "{{ lookup('env', 'HOME') }}/.ssh/known_hosts"
+    state: absent
+    regexp: "^{{ k3s_kubeconfig_retriever_target_host | regex_escape }}[ ,]"
+  delegate_to: localhost
+
 - name: Read kubeconfig from {{ k3s_kubeconfig_retriever_target_host }}
   ansible.builtin.slurp:
     src: "{{ k3s_kubeconfig_retriever_remote_kubeconfig_path }}"
