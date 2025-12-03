@@ -18,7 +18,7 @@ proxmox_k3s_data_device: /dev/vdb
 proxmox_k3s_data_label: K3S_DATA
 proxmox_k3s_data_mount: /var/lib/rancher/k3s
 proxmox_k3s_tailscale_version: "1.90.9"
-proxmox_k3s_cluster_storage_nfs_path: "/volume2/k3s-cluster-storage"
+proxmox_k3s_cluster_storage_nfs_path: "/volume2"
 
 proxmox_cluster_layout:
   proxmox_nodes:

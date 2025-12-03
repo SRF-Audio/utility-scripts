@@ -17,6 +17,19 @@
     state: directory
     mode: "0755"
 
+- name: Render Crafty Controller Namespace manifest
+  ansible.builtin.template:
+    src: namespace.yml.j2
+    dest: "{{ crafty_controller_deploy_render_dir }}/namespace.yml"
+    mode: "0644"
+
+- name: Apply Crafty Controller Namespace via k8s_object_manager
+  ansible.builtin.include_role:
+    name: k8s_object_manager
+  vars:
+    k8s_object_manager_src: "{{ crafty_controller_deploy_render_dir }}/namespace.yml"
+    k8s_object_manager_state: present
+
 - name: Render Crafty Controller PVC manifests
   ansible.builtin.template:
     src: "{{ item.src }}"
@@ -72,6 +85,7 @@
   loop: "{{ crafty_controller_deploy_manifest_files.files }}"
   loop_control:
     label: "{{ item.path | basename }}"
+  when: item.path | basename != "namespace.yml"
 
 - name: Set crafty_controller_deploy_artifacts fact
   ansible.builtin.set_fact:

@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: coachlight-k3s-apps
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: >
+    Application workloads for the Coachlight k3s homelab cluster. Owns
+    user-facing applications and services deployed on the cluster.
+
+  sourceRepos:
+    - "*"
+
+  # e.g. db-influxdb, db-mongo, db-redis, etc.
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: apps-*
+
+  orphanedResources:
+    warn: true
+
+  # DB operators often need CRDs, ClusterRoles, etc.
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"

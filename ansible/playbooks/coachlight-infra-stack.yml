@@ -37,20 +37,6 @@
             effect: "NoSchedule"
       loop: "{{ groups['k3s_control_plane'] | default([]) }}"
 
-    - name: Label k3s nodes with Longhorn zone topology
-      kubernetes.core.k8s_json_patch:
-        kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
-        context: "{{ kubeconfig_manager_artifacts.context_name }}"
-        kind: Node
-        name: "{{ item.name }}"
-        patch:
-          - op: add
-            path: /metadata/labels/topology.kubernetes.io~1zone
-            value: "{{ item.proxmox_node }}"
-      loop: "{{ proxmox_cluster_layout.control_planes + proxmox_cluster_layout.workers }}"
-      loop_control:
-        label: "{{ item.name }}"
-
   roles:
     - role: argocd_deploy
       vars:
@@ -69,7 +55,10 @@
         k8s_validator_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
         k8s_validator_context: "{{ kubeconfig_manager_artifacts.context_name }}"
     - role: homepage_deploy
-    - role: argocd_api_auth
+    # - role: argocd_api_auth
+    #   vars:
+    #     argocd_api_auth_username: "{{ argocd_admin_username }}"
+    #     argocd_api_auth_password: "{{ argocd_admin_password }}"
+    - role: crafty_controller_deploy
       vars:
-        argocd_api_auth_username: "{{ argocd_admin_username }}"
-        argocd_api_auth_password: "{{ argocd_admin_password }}"
+        crafty_controller_deploy_namespace: apps-crafty-controller

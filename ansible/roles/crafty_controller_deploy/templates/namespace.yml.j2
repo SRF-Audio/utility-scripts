@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ crafty_controller_deploy_namespace }}
+  labels:
+    app: crafty-controller
+    kubernetes.io/metadata.name: {{ crafty_controller_deploy_namespace }}

@@ -14,10 +14,10 @@ spec:
         clientInfoSecret:
           clients:
             - host: "{{ synology_csi_deploy_nas_lan_ip }}"
-              https: false
+              https: true
               username: "{{ k3s_synology_csi_nas_username }}"
               password: "{{ k3s_synology_csi_nas_password }}"
-              port: 5000
+              port: 5001
           create: true
           name: ""
         installCSIDriver: true
@@ -43,12 +43,11 @@ spec:
             reclaimPolicy: Delete
             test: false
             mountOptions:
-              - vers=4.1
+              - vers=4
             parameters:
               protocol: "nfs"
               dsm: "{{ synology_csi_deploy_nas_lan_ip }}"
               location: "{{ synology_csi_deploy_nfs_storage_path }}"
-              mountPermissions: "0775"
 
           # Optionally keep this around but disabled for safety
           nfs-retain:
