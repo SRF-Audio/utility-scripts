@@ -79,6 +79,7 @@
           {{ lookup('community.general.onepassword',
                     'Crafty Controller',
                     field='password',
+                    vault='HomeLab') }}
         proxmox_tailscale_setup_auth_key: >-
           {{ lookup('community.general.onepassword',
                     'Tailscale',
