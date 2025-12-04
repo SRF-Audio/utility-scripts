@@ -45,7 +45,7 @@ jobs:
     needs: build-ansible-base-image
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/${{ github.repository }}/fedora-ansible-43-ansible:latest
+      image: ghcr.io/${{ github.repository }}/fedora-ansible-43-ansible:${{ github.sha }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
