@@ -30,10 +30,6 @@ argument_specs:
         type: str
         required: false
         description: Directory where rendered manifests are written.
-      crafty_controller_deploy_default_json_filename:
-        type: str
-        required: false
-        description: Filename for the default.json credentials file.
       crafty_controller_deploy_default_json_render_path:
         type: str
         required: false

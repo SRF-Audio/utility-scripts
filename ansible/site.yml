@@ -75,6 +75,11 @@
                     'NextDNS',
                     field='homepage_api_token',
                     vault='HomeLab') }}
+        crafty_controller_deploy_sfroeber_password: >-
+          {{ lookup('community.general.onepassword',
+                    'Crafty Controller',
+                    field='password',
+                    vault='HomeLab') }}
       run_once: true
 
     - name: Set become vars for this play

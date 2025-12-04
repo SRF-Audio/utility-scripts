@@ -3,7 +3,6 @@ crafty_controller_deploy_tailscale_enabled: true
 crafty_controller_deploy_artifacts_path: "{{ artifacts_path }}"
 crafty_controller_deploy_render_dir: "{{ crafty_controller_deploy_artifacts_path }}/rendered-manifests"
 
-crafty_controller_deploy_default_json_filename: "default.json"
 crafty_controller_deploy_default_json_render_path: >-
-  {{ crafty_controller_deploy_render_dir }}/{{ crafty_controller_deploy_default_json_filename }}
+  {{ crafty_controller_deploy_render_dir }}/default.json
 crafty_controller_deploy_default_json_secret_name: "crafty-controller-default-json"
