@@ -30,6 +30,7 @@
     src: default.json.j2
     dest: "{{ crafty_controller_deploy_default_json_render_path }}"
     mode: "0600"
+  no_log: true
 
 - name: Render Crafty Controller default.json Secret manifest
   ansible.builtin.template:
