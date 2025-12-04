@@ -79,6 +79,10 @@
           {{ lookup('community.general.onepassword',
                     'Crafty Controller',
                     field='password',
+        proxmox_tailscale_setup_auth_key: >-
+          {{ lookup('community.general.onepassword',
+                    'Tailscale',
+                    field='proxmox nodes',
                     vault='HomeLab') }}
       run_once: true
 
@@ -90,6 +94,18 @@
 #   import_playbook: playbooks/workstations.yml
 # - name: Playbook to prepare newly installed Proxmox nodes for clustering
 #   import_playbook: playbooks/proxmox.yml
+- name: Set up Tailscale on Proxmox nodes
+  hosts: proxmox
+  gather_facts: true
+  become: true
+  tags:
+    - proxmox_tailscale_setup
+  vars:
+    ansible_user: root
+    ansible_ssh_private_key_file: ~/.ssh/coachlight-homelab.pem
+    proxmox_tailscale_setup_auth_key: "{{ hostvars['localhost']['proxmox_tailscale_setup_auth_key'] }}"
+  roles:
+    - proxmox_tailscale_setup
 - name: Playbook to prepare newly installed Proxmox nodes for clustering
   import_playbook: playbooks/k3s-cluster-setup.yml
   when: "'k3s_cluster_setup' in ansible_run_tags or 'k3s_cluster_destroy' in ansible_run_tags"

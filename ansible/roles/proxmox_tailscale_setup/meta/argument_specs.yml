@@ -1,0 +1,33 @@
+argument_specs:
+  main:
+    options:
+      proxmox_tailscale_setup_auth_key:
+        type: str
+        required: true
+        description: Tailscale auth key to bring node online. Must be no_log in tasks.
+      proxmox_tailscale_setup_hostname_suffix:
+        type: str
+        required: false
+        description: Suffix appended to inventory_hostname when calling tailscale up.
+      proxmox_tailscale_setup_advertise_tags:
+        type: list
+        elements: str
+        required: false
+        description: Tailscale tag list to advertise (e.g. tag:proxmox).
+      proxmox_tailscale_setup_extra_flags:
+        type: list
+        elements: str
+        required: false
+        description: Extra raw flags to append to tailscale up command.
+      proxmox_tailscale_setup_artifacts_path:
+        type: str
+        required: false
+        description: Base path for artifacts output, used by role_artifacts.
+      proxmox_tailscale_setup_operator:
+        type: str
+        required: false
+        description: Operator user for tailscale up command.
+      proxmox_tailscale_setup_ssh_enabled:
+        type: bool
+        required: false
+        description: Whether to enable SSH via Tailscale.
