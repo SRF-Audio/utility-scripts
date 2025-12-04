@@ -1,0 +1,6 @@
+proxmox_tailscale_setup_artifacts_path: "{{ artifacts_path }}"
+proxmox_tailscale_setup_hostname_suffix: ""
+proxmox_tailscale_setup_advertise_tags: []
+proxmox_tailscale_setup_extra_flags: []
+proxmox_tailscale_setup_operator: "sfroeber"
+proxmox_tailscale_setup_ssh_enabled: true
