@@ -44,6 +44,9 @@ jobs:
   ansible-site-test:
     needs: build-ansible-base-image
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     container:
       image: ghcr.io/${{ github.repository }}/fedora-ansible-43-ansible:${{ github.sha }}
       credentials:
