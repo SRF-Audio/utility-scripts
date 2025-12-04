@@ -11,11 +11,31 @@
       crafty_controller_deploy_namespace, crafty_controller_deploy_artifacts_path,
       and crafty_controller_deploy_ingress_host must be defined and non-empty.
 
+- name: Assert Crafty default user password is defined
+  ansible.builtin.assert:
+    that:
+      - crafty_controller_deploy_sfroeber_password is defined
+      - crafty_controller_deploy_sfroeber_password | length > 0
+    fail_msg: >
+      crafty_controller_deploy_sfroeber_password must be defined and non-empty.
+
 - name: Ensure Crafty Controller render directory exists
   ansible.builtin.file:
     path: "{{ crafty_controller_deploy_render_dir }}"
     state: directory
     mode: "0755"
+
+- name: Render Crafty Controller default.json
+  ansible.builtin.template:
+    src: default.json.j2
+    dest: "{{ crafty_controller_deploy_default_json_render_path }}"
+    mode: "0600"
+
+- name: Render Crafty Controller default.json Secret manifest
+  ansible.builtin.template:
+    src: secret-default-json.yml.j2
+    dest: "{{ crafty_controller_deploy_render_dir }}/secret-default-json.yml"
+    mode: "0644"
 
 - name: Render Crafty Controller Namespace manifest
   ansible.builtin.template:

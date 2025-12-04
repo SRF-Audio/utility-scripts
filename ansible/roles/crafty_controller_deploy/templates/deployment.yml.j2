@@ -37,6 +37,10 @@ spec:
               mountPath: /crafty/app/config
             - name: crafty-controller-import
               mountPath: /crafty/import
+            - name: crafty-default-json
+              mountPath: /crafty/app/config/default.json
+              subPath: default.json
+              readOnly: true
       volumes:
         - name: crafty-controller-backups
           persistentVolumeClaim:
@@ -53,3 +57,9 @@ spec:
         - name: crafty-controller-import
           persistentVolumeClaim:
             claimName: crafty-controller-import
+        - name: crafty-default-json
+          secret:
+            secretName: {{ crafty_controller_deploy_default_json_secret_name }}
+            items:
+              - key: "{{ crafty_controller_deploy_default_json_filename }}"
+                path: "default.json"
