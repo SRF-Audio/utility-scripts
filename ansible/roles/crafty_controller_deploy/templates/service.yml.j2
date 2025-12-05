@@ -21,6 +21,12 @@ spec:
     - name: http-dynmap
       port: 8123
       targetPort: 8123
-    - name: minecraft-1
-      port: 25565
-      targetPort: 25565
+    - name: bedrock
+      port: 19132
+      targetPort: 19132
+      protocol: UDP
+{% for port in range(25500, 25601) %}
+    - name: java-{{ port }}
+      port: {{ port }}
+      targetPort: {{ port }}
+{% endfor %}
