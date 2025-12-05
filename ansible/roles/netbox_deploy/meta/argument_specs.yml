@@ -1,82 +1,10 @@
 argument_specs:
   main:
-    description: |
-      Deploy NetBox Argo CD Application into a Kubernetes cluster using the official
-      NetBox Helm chart, integrating with Tailscale for ingress, Longhorn/Synology for
-      storage, and exposing the application to Homepage for discovery.
+    short_description: Deploy NetBox Argo CD Application into the k3s cluster
+    description: >
+      Renders and applies an Argo CD Application manifest for the NetBox Helm
+      chart, using environment-scoped paths and inventory-driven configuration.
     options:
-      netbox_deploy_kubeconfig:
-        type: raw
-        required: true
-        description: Path to kubeconfig file or configuration dict.
-      netbox_deploy_context:
-        type: str
-        required: true
-        description: Kubernetes context name to use for deployment.
-      netbox_deploy_cluster_name:
-        type: str
-        required: false
-        description: Logical cluster name used for artifact recording.
-      netbox_deploy_namespace:
-        type: str
-        required: false
-        description: Namespace where NetBox will be deployed.
-      netbox_deploy_argo_namespace:
-        type: str
-        required: false
-        description: Namespace where Argo CD is deployed.
-      netbox_deploy_argo_project:
-        type: str
-        required: false
-        description: Argo CD project to associate the NetBox application with.
-      netbox_deploy_helm_repo_url:
-        type: str
-        required: false
-        description: URL of the NetBox Helm chart repository.
-      netbox_deploy_helm_chart_name:
-        type: str
-        required: false
-        description: Name of the NetBox Helm chart.
-      netbox_deploy_helm_chart_version:
-        type: str
-        required: false
-        description: Version of the NetBox Helm chart to deploy.
-      netbox_deploy_values_overrides:
-        type: dict
-        required: false
-        description: Dictionary of Helm values to override in the NetBox chart.
-      netbox_deploy_hostname:
-        type: str
-        required: false
-        description: Hostname for NetBox UI access via Tailscale.
-      netbox_deploy_ingress_enabled:
-        type: bool
-        required: false
-        description: Whether to enable ingress for NetBox UI.
-      netbox_deploy_tailscale_annotations:
-        type: dict
-        required: false
-        description: Annotations applied to NetBox service for Tailscale integration.
-      netbox_deploy_storage_class_longhorn:
-        type: str
-        required: false
-        description: Longhorn storage class name for database and Redis PVCs.
-      netbox_deploy_storage_class_synology:
-        type: str
-        required: false
-        description: Synology NFS storage class name for media storage.
-      netbox_deploy_media_storage_config:
-        type: dict
-        required: false
-        description: Configuration for NetBox media storage using Synology.
-      netbox_deploy_apply_application:
-        type: bool
-        required: false
-        description: Whether to apply the rendered Application manifest to the cluster.
-      netbox_deploy_superuser_email:
-        type: str
-        required: false
-        description: Email address for the NetBox superuser account.
       netbox_deploy_superuser_password:
         type: str
         required: true
@@ -85,3 +13,11 @@ argument_specs:
         type: str
         required: true
         description: Django secret key for NetBox.
+      k8s_validator_kubeconfig:
+        type: raw
+        required: true
+        description: Kubeconfig path or dict used to connect to the target cluster.
+      k8s_validator_context:
+        type: str
+        required: true
+        description: Kubernetes context name to use with the provided kubeconfig.

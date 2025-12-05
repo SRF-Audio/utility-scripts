@@ -2,87 +2,61 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: netbox
-  namespace: {{ netbox_deploy_argo_namespace }}
+  namespace: argocd
 spec:
-  project: {{ netbox_deploy_argo_project }}
+  project: coachlight-k3s-infra
   source:
-    repoURL: {{ netbox_deploy_helm_repo_url }}
-    chart: {{ netbox_deploy_helm_chart_name }}
-    targetRevision: "{{ netbox_deploy_helm_chart_version }}"
+    repoURL: https://netbox-community.github.io/netbox-chart
+    chart: netbox
+    targetRevision: "5.0.0-beta.145"
     helm:
       valuesObject:
         superuser:
-          email: "{{ netbox_deploy_superuser_email }}"
+          email: "admin@netbox.local"
           password: "{{ netbox_deploy_superuser_password }}"
 
         secretKey: "{{ netbox_deploy_secret_key }}"
 
         persistence:
           enabled: true
-          storageClass: "{{ netbox_deploy_storage_class_longhorn }}"
+          storageClass: "local-path"
 
         postgresql:
           enabled: true
           primary:
             persistence:
               enabled: true
-              storageClass: "{{ netbox_deploy_storage_class_longhorn }}"
+              storageClass: "local-path"
 
         redis:
           enabled: true
           master:
             persistence:
               enabled: true
-              storageClass: "{{ netbox_deploy_storage_class_longhorn }}"
+              storageClass: "local-path"
           replica:
             persistence:
               enabled: true
-              storageClass: "{{ netbox_deploy_storage_class_longhorn }}"
+              storageClass: "local-path"
 
         service:
           annotations:
-{% for key, value in netbox_deploy_tailscale_annotations.items() %}
-            {{ key }}: "{{ value }}"
-{% endfor %}
-{% if netbox_deploy_ingress_enabled %}
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "netbox"
+            tailscale.com/tags: "tag:k8s,tag:infra-monitoring"
 
         ingress:
           enabled: true
           className: tailscale
           hosts:
-            - host: {{ netbox_deploy_hostname }}
+            - host: netbox
               paths:
                 - path: /
                   pathType: Prefix
-{% endif %}
-{% if netbox_deploy_media_storage_config and netbox_deploy_storage_class_synology %}
 
-        extraVolumes:
-          - name: netbox-media
-            persistentVolumeClaim:
-              claimName: netbox-media
-
-        extraVolumeMounts:
-          - name: netbox-media
-            mountPath: /opt/netbox/netbox/media
-
-        extraInitContainers:
-          - name: init-media-permissions
-            image: busybox:1.36
-            command:
-              - sh
-              - "-c"
-              - "chown -R 1000:1000 /opt/netbox/netbox/media"
-            volumeMounts:
-              - name: netbox-media
-                mountPath: /opt/netbox/netbox/media
-{% endif %}
-{% if netbox_deploy_values_overrides and netbox_deploy_values_overrides | length > 0 %}
-
-{{ netbox_deploy_values_overrides | to_nice_yaml | indent(8, first=true) }}{% endif %}
   destination:
     server: https://kubernetes.default.svc
-    namespace: {{ netbox_deploy_namespace }}
+    namespace: netbox
   syncPolicy:
     automated:
       prune: true

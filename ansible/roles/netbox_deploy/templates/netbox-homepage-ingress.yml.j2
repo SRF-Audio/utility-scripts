@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: netbox-homepage
-  namespace: {{ netbox_deploy_namespace }}
+  namespace: netbox
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/name: "NetBox"
@@ -12,7 +12,7 @@ metadata:
 spec:
   ingressClassName: tailscale
   rules:
-    - host: {{ netbox_deploy_hostname }}
+    - host: netbox
       http:
         paths:
           - path: /

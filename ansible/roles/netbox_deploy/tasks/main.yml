@@ -2,26 +2,20 @@
 - name: Assert required NetBox deployment inputs are defined
   ansible.builtin.assert:
     that:
-      - netbox_deploy_kubeconfig is defined
-      - netbox_deploy_context is defined
+      - k8s_validator_kubeconfig is defined
+      - k8s_validator_context is defined
       - netbox_deploy_superuser_password is defined
       - netbox_deploy_secret_key is defined
-      - netbox_deploy_kubeconfig | string | length > 0
-      - netbox_deploy_context | length > 0
+      - k8s_validator_kubeconfig | string | length > 0
+      - k8s_validator_context | length > 0
       - netbox_deploy_superuser_password | length > 0
       - netbox_deploy_secret_key | length > 0
     fail_msg: |
-      netbox_deploy_kubeconfig
-      netbox_deploy_context
+      k8s_validator_kubeconfig
+      k8s_validator_context
       netbox_deploy_superuser_password
       netbox_deploy_secret_key
       ...must be defined for netbox_deploy.
-
-- name: Set NetBox deployment paths
-  ansible.builtin.set_fact:
-    netbox_deploy_tmp_dir: "/tmp/netbox_deploy"
-    netbox_deploy_application_template: "{{ role_path }}/templates/netbox-application.yml.j2"
-    netbox_deploy_homepage_ingress_template: "{{ role_path }}/templates/netbox-homepage-ingress.yml.j2"
 
 - name: Ensure NetBox deployment tmp directory exists
   ansible.builtin.file:
@@ -31,51 +25,34 @@
 
 - name: Render NetBox Argo CD Application manifest
   ansible.builtin.template:
-    src: "{{ netbox_deploy_application_template }}"
+    src: netbox-application.yml.j2
     dest: "{{ netbox_deploy_tmp_dir }}/netbox-application.yml"
     mode: "0644"
   register: netbox_deploy_application_file
 
 - name: Render NetBox Homepage ingress manifest
   ansible.builtin.template:
-    src: "{{ netbox_deploy_homepage_ingress_template }}"
+    src: netbox-homepage-ingress.yml.j2
     dest: "{{ netbox_deploy_tmp_dir }}/netbox-homepage-ingress.yml"
     mode: "0644"
   register: netbox_deploy_homepage_ingress_file
 
 - name: Apply NetBox Argo CD Application manifest
-  ansible.builtin.include_role:
+  ansible.builtin.import_role:
     name: k8s_object_manager
   vars:
-    k8s_object_manager_kubeconfig: "{{ netbox_deploy_kubeconfig }}"
-    k8s_object_manager_context: "{{ netbox_deploy_context }}"
-    k8s_object_manager_state: present
     k8s_object_manager_src: "{{ netbox_deploy_application_file.dest }}"
+    k8s_object_manager_state: present
     k8s_object_manager_apply: true
-  when: netbox_deploy_apply_application | default(true) | bool
-  register: netbox_deploy_application_result
-
-- name: Capture NetBox Argo CD Application apply result
-  ansible.builtin.set_fact:
-    netbox_deploy_application_apply_result: "{{ k8s_object_manager_result }}"
-  when: netbox_deploy_application_result is succeeded
+    k8s_object_manager_wait: true
 
 - name: Apply NetBox Homepage ingress manifest
-  ansible.builtin.include_role:
+  ansible.builtin.import_role:
     name: k8s_object_manager
   vars:
-    k8s_object_manager_kubeconfig: "{{ netbox_deploy_kubeconfig }}"
-    k8s_object_manager_context: "{{ netbox_deploy_context }}"
-    k8s_object_manager_state: present
     k8s_object_manager_src: "{{ netbox_deploy_homepage_ingress_file.dest }}"
+    k8s_object_manager_state: present
     k8s_object_manager_apply: true
-  when: netbox_deploy_apply_application | default(true) | bool
-  register: netbox_deploy_homepage_ingress_result
-
-- name: Capture NetBox Homepage ingress apply result
-  ansible.builtin.set_fact:
-    netbox_deploy_homepage_ingress_apply_result: "{{ k8s_object_manager_result }}"
-  when: netbox_deploy_homepage_ingress_result is succeeded
 
 - name: Clean up NetBox deployment tmp directory
   ansible.builtin.file:
@@ -83,16 +60,12 @@
     state: absent
 
 - name: Persist netbox_deploy artifacts
-  ansible.builtin.include_role:
+  ansible.builtin.import_role:
     name: role_artifacts
   vars:
     # noqa: var-naming
     calling_role_name: "netbox_deploy"
     calling_role_artifacts_inputs:
-      k3s_cluster_name: "{{ netbox_deploy_cluster_name | default(k3s_cluster_name | default('', true), true) }}"
-      application_name: "netbox"
-      argocd_namespace: "{{ netbox_deploy_argo_namespace }}"
-      namespace: "{{ netbox_deploy_namespace }}"
-      helm_chart_version: "{{ netbox_deploy_helm_chart_version }}"
-      application_result: "{{ netbox_deploy_application_apply_result | default({}, true) }}"
-      homepage_ingress_result: "{{ netbox_deploy_homepage_ingress_apply_result | default({}, true) }}"
+      kubeconfig: "{{ k8s_validator_kubeconfig }}"
+      context: "{{ k8s_validator_context }}"
+      application_file: "{{ netbox_deploy_application_file.dest }}"
