@@ -1,0 +1,66 @@
+argument_specs:
+  main:
+    description: |
+      Deploy Velero Argo CD Application into a Kubernetes cluster.
+      Uses the k8s_object_manager role to apply the rendered Application manifest.
+    options:
+      velero_deploy_kubeconfig:
+        type: raw
+        required: true
+        description: Path to kubeconfig file or configuration dict.
+      velero_deploy_context:
+        type: str
+        required: true
+        description: Kubernetes context name to use for deployment.
+      velero_deploy_cluster_name:
+        type: str
+        required: false
+        description: Logical cluster name used for artifact recording.
+      velero_deploy_namespace:
+        type: str
+        required: false
+        description: Namespace where Velero will be deployed.
+      velero_deploy_argo_namespace:
+        type: str
+        required: false
+        description: Namespace where Argo CD is deployed.
+      velero_deploy_argo_project:
+        type: str
+        required: false
+        description: Argo CD project for the Velero application.
+      velero_deploy_application_name:
+        type: str
+        required: false
+        description: Name of the Argo CD Application resource.
+      velero_deploy_helm_repo_url:
+        type: str
+        required: false
+        description: URL of the Velero Helm chart repository.
+      velero_deploy_helm_chart_name:
+        type: str
+        required: false
+        description: Name of the Velero Helm chart.
+      velero_deploy_helm_chart_version:
+        type: str
+        required: false
+        description: Version of the Velero Helm chart.
+      velero_deploy_csi_plugin_version:
+        type: str
+        required: false
+        description: Version of the Velero CSI plugin image.
+      velero_deploy_backup_storage_location:
+        type: str
+        required: false
+        description: Logical name for the backup storage location.
+      velero_deploy_backup_storage_config:
+        type: dict
+        required: false
+        description: Provider-specific configuration for backup storage location.
+      velero_deploy_snapshot_location_config:
+        type: dict
+        required: false
+        description: Configuration for volume snapshot location using Longhorn.
+      velero_deploy_tmp_dir:
+        type: path
+        required: false
+        description: Temporary directory for rendering the Application manifest.
