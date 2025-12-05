@@ -66,7 +66,7 @@ jobs:
       contents: read
       packages: read
     container:
-      image: ghcr.io/${{ needs.build-ansible-base-image.outputs.image_name_lower }}/fedora-ansible-43-ansible:sha-${{ github.sha }}
+      image: ghcr.io/${{ needs.build-ansible-base-image.outputs.image_name_lower }}/fedora-ansible-43-ansible:latest
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
