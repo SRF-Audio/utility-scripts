@@ -4,14 +4,14 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'ansible/**'
-      - 'site.yml'
-      - '.github/workflows/ansible-site-test.yml'
+      - "ansible/**"
+      - "site.yml"
+      - ".github/workflows/ansible-site-test.yml"
   pull_request:
     paths:
-      - 'ansible/**'
-      - 'site.yml'
-      - '.github/workflows/ansible-site-test.yml'
+      - "ansible/**"
+      - "site.yml"
+      - ".github/workflows/ansible-site-test.yml"
 
 env:
   REGISTRY: ghcr.io
@@ -82,3 +82,10 @@ jobs:
       - name: Run Ansible playbook
         working-directory: ansible
         run: ansible-playbook site.yml --syntax-check
+
+      - name: Set OP_SERVICE_ACCOUNT_TOKEN for follow on steps
+        run: echo "OP_SERVICE_ACCOUNT_TOKEN=${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}" >> $GITHUB_ENV
+
+      - name: Setup op credentials
+        run: op user get --me
+        shell: bash
