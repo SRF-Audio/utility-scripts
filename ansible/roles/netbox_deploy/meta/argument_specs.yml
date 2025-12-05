@@ -1,0 +1,23 @@
+argument_specs:
+  main:
+    short_description: Deploy NetBox Argo CD Application into the k3s cluster
+    description: >
+      Renders and applies an Argo CD Application manifest for the NetBox Helm
+      chart, using environment-scoped paths and inventory-driven configuration.
+    options:
+      netbox_deploy_superuser_password:
+        type: str
+        required: true
+        description: Password for the NetBox superuser account.
+      netbox_deploy_secret_key:
+        type: str
+        required: true
+        description: Django secret key for NetBox.
+      k8s_validator_kubeconfig:
+        type: raw
+        required: true
+        description: Kubeconfig path or dict used to connect to the target cluster.
+      k8s_validator_context:
+        type: str
+        required: true
+        description: Kubernetes context name to use with the provided kubeconfig.

@@ -1,0 +1,65 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: netbox
+  namespace: argocd
+spec:
+  project: coachlight-k3s-infra
+  source:
+    repoURL: https://netbox-community.github.io/netbox-chart
+    chart: netbox
+    targetRevision: "5.0.0-beta.145"
+    helm:
+      valuesObject:
+        superuser:
+          email: "admin@netbox.local"
+          password: "{{ netbox_deploy_superuser_password }}"
+
+        secretKey: "{{ netbox_deploy_secret_key }}"
+
+        persistence:
+          enabled: true
+          storageClass: "local-path"
+
+        postgresql:
+          enabled: true
+          primary:
+            persistence:
+              enabled: true
+              storageClass: "local-path"
+
+        redis:
+          enabled: true
+          master:
+            persistence:
+              enabled: true
+              storageClass: "local-path"
+          replica:
+            persistence:
+              enabled: true
+              storageClass: "local-path"
+
+        service:
+          annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "netbox"
+            tailscale.com/tags: "tag:k8s,tag:infra-monitoring"
+
+        ingress:
+          enabled: true
+          className: tailscale
+          hosts:
+            - host: netbox
+              paths:
+                - path: /
+                  pathType: Prefix
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: netbox
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

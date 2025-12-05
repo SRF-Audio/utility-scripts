@@ -1,0 +1,1 @@
+netbox_deploy_tmp_dir: "{{ artifacts_path }}/netbox_deploy"

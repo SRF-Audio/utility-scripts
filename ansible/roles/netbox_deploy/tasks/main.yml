@@ -1,0 +1,71 @@
+---
+- name: Assert required NetBox deployment inputs are defined
+  ansible.builtin.assert:
+    that:
+      - k8s_validator_kubeconfig is defined
+      - k8s_validator_context is defined
+      - netbox_deploy_superuser_password is defined
+      - netbox_deploy_secret_key is defined
+      - k8s_validator_kubeconfig | string | length > 0
+      - k8s_validator_context | length > 0
+      - netbox_deploy_superuser_password | length > 0
+      - netbox_deploy_secret_key | length > 0
+    fail_msg: |
+      k8s_validator_kubeconfig
+      k8s_validator_context
+      netbox_deploy_superuser_password
+      netbox_deploy_secret_key
+      ...must be defined for netbox_deploy.
+
+- name: Ensure NetBox deployment tmp directory exists
+  ansible.builtin.file:
+    path: "{{ netbox_deploy_tmp_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Render NetBox Argo CD Application manifest
+  ansible.builtin.template:
+    src: netbox-application.yml.j2
+    dest: "{{ netbox_deploy_tmp_dir }}/netbox-application.yml"
+    mode: "0644"
+  register: netbox_deploy_application_file
+
+- name: Render NetBox Homepage ingress manifest
+  ansible.builtin.template:
+    src: netbox-homepage-ingress.yml.j2
+    dest: "{{ netbox_deploy_tmp_dir }}/netbox-homepage-ingress.yml"
+    mode: "0644"
+  register: netbox_deploy_homepage_ingress_file
+
+- name: Apply NetBox Argo CD Application manifest
+  ansible.builtin.import_role:
+    name: k8s_object_manager
+  vars:
+    k8s_object_manager_src: "{{ netbox_deploy_application_file.dest }}"
+    k8s_object_manager_state: present
+    k8s_object_manager_apply: true
+    k8s_object_manager_wait: true
+
+- name: Apply NetBox Homepage ingress manifest
+  ansible.builtin.import_role:
+    name: k8s_object_manager
+  vars:
+    k8s_object_manager_src: "{{ netbox_deploy_homepage_ingress_file.dest }}"
+    k8s_object_manager_state: present
+    k8s_object_manager_apply: true
+
+- name: Clean up NetBox deployment tmp directory
+  ansible.builtin.file:
+    path: "{{ netbox_deploy_tmp_dir }}"
+    state: absent
+
+- name: Persist netbox_deploy artifacts
+  ansible.builtin.import_role:
+    name: role_artifacts
+  vars:
+    # noqa: var-naming
+    calling_role_name: "netbox_deploy"
+    calling_role_artifacts_inputs:
+      kubeconfig: "{{ k8s_validator_kubeconfig }}"
+      context: "{{ k8s_validator_context }}"
+      application_file: "{{ netbox_deploy_application_file.dest }}"
