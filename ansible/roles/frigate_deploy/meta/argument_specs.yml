@@ -1,0 +1,80 @@
+argument_specs:
+  main:
+    short_description: Deploy Frigate NVR Argo CD Application into k3s cluster
+    description: >
+      Renders and applies an Argo CD Application manifest for the Frigate NVR Helm
+      chart from blakeshome-charts, integrating with Longhorn storage, Synology CSI,
+      and Tailscale ingress for secure UI exposure.
+    options:
+      frigate_deploy_namespace:
+        type: str
+        required: false
+        description: Kubernetes namespace for Frigate deployment.
+      frigate_deploy_argo_namespace:
+        type: str
+        required: false
+        description: Namespace where Argo CD is deployed.
+      frigate_deploy_argo_project:
+        type: str
+        required: false
+        description: Argo CD project name for the Frigate application.
+      frigate_deploy_helm_repo_url:
+        type: str
+        required: false
+        description: URL of the Helm chart repository for Frigate.
+      frigate_deploy_helm_chart_name:
+        type: str
+        required: false
+        description: Name of the Frigate Helm chart.
+      frigate_deploy_helm_chart_version:
+        type: str
+        required: false
+        description: Version of the Frigate Helm chart to deploy.
+      frigate_deploy_values_overrides:
+        type: dict
+        required: false
+        description: >
+          Dict of Helm value overrides to merge into spec.source.helm.valuesObject.
+          This is the single source of truth for all Frigate chart customizations.
+      frigate_deploy_hostname:
+        type: str
+        required: false
+        description: Tailscale hostname for the Frigate UI.
+      frigate_deploy_tailscale_annotations:
+        type: dict
+        required: false
+        description: >
+          Dict of Tailscale annotations to apply to the ingress for secure exposure.
+      frigate_deploy_storage_class_longhorn:
+        type: str
+        required: false
+        description: Storage class name for Longhorn-backed PVCs (config and database).
+      frigate_deploy_storage_class_synology:
+        type: str
+        required: false
+        description: >
+          Optional storage class name for Synology-backed PVCs (recordings and clips).
+      frigate_deploy_service_type:
+        type: str
+        required: false
+        description: Kubernetes service type for the Frigate service (ClusterIP, NodePort, LoadBalancer).
+      frigate_deploy_apply_application:
+        type: bool
+        required: false
+        description: Whether to apply the Argo CD Application to the cluster.
+      frigate_deploy_kubeconfig:
+        type: raw
+        required: false
+        description: Path to kubeconfig file or configuration dict.
+      frigate_deploy_context:
+        type: str
+        required: false
+        description: Kubernetes context name to use for deployment.
+      frigate_deploy_cluster_name:
+        type: str
+        required: false
+        description: Logical cluster name used for artifact recording.
+      frigate_deploy_artifacts_path:
+        type: str
+        required: false
+        description: Base path for artifacts output.

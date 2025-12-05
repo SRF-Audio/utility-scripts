@@ -1,0 +1,55 @@
+{% set base_values = {
+  'service': {
+    'type': frigate_deploy_service_type,
+    'annotations': frigate_deploy_tailscale_annotations | combine({'tailscale.com/hostname': frigate_deploy_hostname})
+  },
+  'persistence': {
+    'config': {
+      'enabled': true,
+      'storageClass': frigate_deploy_storage_class_longhorn
+    }
+  },
+  'ingress': {
+    'enabled': true,
+    'ingressClassName': 'tailscale',
+    'annotations': frigate_deploy_tailscale_annotations | combine({'tailscale.com/hostname': frigate_deploy_hostname}),
+    'hosts': [
+      {
+        'host': frigate_deploy_hostname,
+        'paths': [
+          {
+            'path': '/',
+            'pathType': 'Prefix'
+          }
+        ]
+      }
+    ]
+  }
+} %}
+{% if frigate_deploy_storage_class_synology | length > 0 %}
+{% set _ = base_values.persistence.update({'media': {'enabled': true, 'storageClass': frigate_deploy_storage_class_synology}}) %}
+{% endif %}
+{% set merged_values = base_values | combine(frigate_deploy_values_overrides, recursive=true) %}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: frigate
+  namespace: "{{ frigate_deploy_argo_namespace }}"
+spec:
+  project: "{{ frigate_deploy_argo_project }}"
+  source:
+    repoURL: "{{ frigate_deploy_helm_repo_url }}"
+    chart: "{{ frigate_deploy_helm_chart_name }}"
+    targetRevision: "{{ frigate_deploy_helm_chart_version }}"
+    helm:
+      valuesObject:
+{{ merged_values | to_nice_yaml | indent(8, first=true) }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: "{{ frigate_deploy_namespace }}"
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
