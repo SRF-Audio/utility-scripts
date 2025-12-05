@@ -1,0 +1,49 @@
+---
+- name: Assert required Velero deployment inputs are defined
+  ansible.builtin.assert:
+    that:
+      - velero_deploy_kubeconfig is defined
+      - velero_deploy_context is defined
+      - velero_deploy_kubeconfig | string | length > 0
+      - velero_deploy_context | length > 0
+    fail_msg: "velero_deploy_kubeconfig and velero_deploy_context must be defined for velero_deploy."
+
+- name: Ensure Velero tmp directory exists
+  ansible.builtin.file:
+    path: "{{ velero_deploy_tmp_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Render Velero Argo CD Application manifest
+  ansible.builtin.template:
+    src: velero-application.yml.j2
+    dest: "{{ velero_deploy_tmp_dir }}/velero-application.yml"
+    mode: "0644"
+  register: velero_deploy_application_file
+
+- name: Apply Velero Argo CD Application manifest
+  ansible.builtin.include_role:
+    name: k8s_object_manager
+  vars:
+    k8s_object_manager_kubeconfig: "{{ velero_deploy_kubeconfig }}"
+    k8s_object_manager_context: "{{ velero_deploy_context }}"
+    k8s_object_manager_state: present
+    k8s_object_manager_src: "{{ velero_deploy_application_file.dest }}"
+    k8s_object_manager_apply: true
+
+- name: Clean up Velero tmp directory
+  ansible.builtin.file:
+    path: "{{ velero_deploy_tmp_dir }}"
+    state: absent
+
+- name: Persist velero_deploy artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    # noqa: var-naming
+    calling_role_name: "velero_deploy"
+    calling_role_artifacts_inputs:
+      k3s_cluster_name: "{{ velero_deploy_cluster_name | default(k3s_cluster_name | default('', true), true) }}"
+      application_name: "{{ velero_deploy_application_name }}"
+      argocd_namespace: "{{ velero_deploy_argo_namespace }}"
+      application_result: "{{ k8s_object_manager_result }}"
