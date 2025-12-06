@@ -15,38 +15,38 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   ansible-site-test:
     runs-on: ubuntu-latest
     environment: HomeLab Actions
+
     permissions:
       contents: read
       packages: read
 
-    container:
-      image: ghcr.io/${{ env.IMAGE_NAME }}/fedora-ansible-43-ansible:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
     steps:
+      - name: Normalize repo name to lowercase
+        id: normalize
+        run: |
+          echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Ansible Galaxy collections
-        working-directory: ansible
-        run: ansible-galaxy collection install -r requirements.yml
+      - name: Set container image path
+        id: image
+        run: |
+          echo "IMAGE=ghcr.io/${{ steps.normalize.outputs.REPO_LOWER }}/fedora-ansible-43-ansible:latest" >> $GITHUB_OUTPUT
 
-      - name: Run Ansible playbook
-        working-directory: ansible
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: ansible-playbook playbooks/op_tester.yml -vv
-
-      - name: Setup op credentials
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: op user get --me
-        shell: bash
+      - name: Run playbook inside container
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ${{ steps.image.outputs.IMAGE }}
+          options: |
+            --pull=always
+            -e OP_SERVICE_ACCOUNT_TOKEN=${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          run: |
+            cd ansible
+            ansible-galaxy collection install -r requirements.yml
+            ansible-playbook playbooks/op_tester.yml -vv
