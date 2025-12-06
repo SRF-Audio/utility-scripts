@@ -1,0 +1,16 @@
+omada_netbox_sync_omada_api_base_url: ""
+omada_netbox_sync_omada_api_username: ""
+omada_netbox_sync_omada_api_password: ""
+omada_netbox_sync_omada_api_validate_certs: false
+omada_netbox_sync_omada_site: "Default"
+omada_netbox_sync_netbox_url: ""
+omada_netbox_sync_netbox_token: ""
+omada_netbox_sync_netbox_validate_certs: true
+omada_netbox_sync_netbox_site: ""
+omada_netbox_sync_default_device_role: "unknown"
+omada_netbox_sync_device_role_mappings: {}
+omada_netbox_sync_device_type_slug: "generic-network-client"
+omada_netbox_sync_manufacturer_slug: "unknown"
+omada_netbox_sync_artifacts_path: "{{ artifacts_path | default('.artifacts') }}"
+omada_netbox_sync_dry_run: false
+omada_netbox_sync_page_size: 1000

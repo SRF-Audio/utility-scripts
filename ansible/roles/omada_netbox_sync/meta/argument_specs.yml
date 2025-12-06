@@ -1,0 +1,85 @@
+argument_specs:
+  main:
+    short_description: Sync Omada SDN Controller device inventory to NetBox
+    description: >
+      Queries the Omada SDN Controller API for connected and known clients,
+      normalizes the device data, and pushes it into NetBox using its REST API.
+      Supports idempotent updates to keep NetBox aligned with the real network state.
+    options:
+      omada_netbox_sync_omada_api_base_url:
+        type: str
+        required: true
+        description: Base URL for Omada controller including scheme and port.
+      omada_netbox_sync_omada_api_username:
+        type: str
+        required: true
+        description: Username for Omada API authentication.
+      omada_netbox_sync_omada_api_password:
+        type: str
+        required: true
+        description: Password for Omada API authentication.
+      omada_netbox_sync_omada_api_validate_certs:
+        type: bool
+        required: false
+        default: false
+        description: Whether to validate TLS certificates for Omada API.
+      omada_netbox_sync_omada_site:
+        type: str
+        required: false
+        default: "Default"
+        description: Omada site name to query clients from.
+      omada_netbox_sync_netbox_url:
+        type: str
+        required: true
+        description: Base URL for NetBox API including scheme and port.
+      omada_netbox_sync_netbox_token:
+        type: str
+        required: true
+        description: API token for NetBox authentication.
+      omada_netbox_sync_netbox_validate_certs:
+        type: bool
+        required: false
+        default: true
+        description: Whether to validate TLS certificates for NetBox API.
+      omada_netbox_sync_netbox_site:
+        type: str
+        required: false
+        default: ""
+        description: NetBox site slug to assign devices to.
+      omada_netbox_sync_default_device_role:
+        type: str
+        required: false
+        default: "unknown"
+        description: Default device role slug for devices without explicit mapping.
+      omada_netbox_sync_device_role_mappings:
+        type: dict
+        required: false
+        default: {}
+        description: >
+          Mapping of device name patterns to device role slugs.
+          Keys are regex patterns, values are NetBox device role slugs.
+      omada_netbox_sync_device_type_slug:
+        type: str
+        required: false
+        default: "generic-network-client"
+        description: Default device type slug in NetBox for synced devices.
+      omada_netbox_sync_manufacturer_slug:
+        type: str
+        required: false
+        default: "unknown"
+        description: Default manufacturer slug in NetBox for synced devices.
+      omada_netbox_sync_artifacts_path:
+        type: str
+        required: false
+        default: "{{ artifacts_path | default('.artifacts') }}"
+        description: Path to store role artifacts for debugging.
+      omada_netbox_sync_dry_run:
+        type: bool
+        required: false
+        default: false
+        description: When true, does not push changes to NetBox, only outputs what would be synced.
+      omada_netbox_sync_page_size:
+        type: int
+        required: false
+        default: 1000
+        description: Number of clients to fetch per page from Omada API.
