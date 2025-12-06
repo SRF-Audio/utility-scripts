@@ -4,7 +4,7 @@ paperless_ngx_deploy_cluster_name: "{{ k3s_cluster_name | default('', true) }}"
 
 paperless_ngx_deploy_namespace: paperless-ngx
 
-paperless_ngx_deploy_storage_class_longhorn: longhorn
+paperless_ngx_deploy_storage_class_local: local-path
 paperless_ngx_deploy_storage_class_synology: nfs-delete
 
 paperless_ngx_deploy_hostname: paperless

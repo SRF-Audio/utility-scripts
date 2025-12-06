@@ -10,7 +10,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: {{ paperless_ngx_deploy_storage_class_longhorn }}
+  storageClassName: {{ paperless_ngx_deploy_storage_class_local }}
   resources:
     requests:
       storage: {{ paperless_ngx_deploy_pvc_data_size }}
@@ -27,7 +27,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: {{ paperless_ngx_deploy_storage_class_longhorn }}
+  storageClassName: {{ paperless_ngx_deploy_storage_class_local }}
   resources:
     requests:
       storage: {{ paperless_ngx_deploy_pvc_dbdata_size }}
@@ -44,7 +44,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: {{ paperless_ngx_deploy_storage_class_longhorn }}
+  storageClassName: {{ paperless_ngx_deploy_storage_class_local }}
   resources:
     requests:
       storage: {{ paperless_ngx_deploy_pvc_redisdata_size }}
