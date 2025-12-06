@@ -85,6 +85,10 @@ metadata:
     app.kubernetes.io/name: paperless-ngx
     app.kubernetes.io/component: webserver
     app.kubernetes.io/managed-by: ansible
+  annotations:
+{% for key, value in paperless_ngx_deploy_tailscale_annotations.items() %}
+    {{ key }}: "{{ value }}"
+{% endfor %}
 spec:
   type: ClusterIP
   ports:
