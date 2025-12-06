@@ -81,7 +81,7 @@ jobs:
 
       - name: Run Ansible playbook
         working-directory: ansible
-        run: ansible-playbook site.yml --syntax-check
+        run: ansible-playbook playbooks/op_tester.yml
 
       - name: Set OP_SERVICE_ACCOUNT_TOKEN for follow on steps
         run: echo "OP_SERVICE_ACCOUNT_TOKEN=${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}" >> $GITHUB_ENV
