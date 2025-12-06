@@ -1,0 +1,210 @@
+- name: Assert required inputs are defined
+  ansible.builtin.assert:
+    that:
+      - omada_netbox_sync_omada_api_base_url is defined
+      - omada_netbox_sync_omada_api_base_url | length > 0
+      - omada_netbox_sync_omada_api_username is defined
+      - omada_netbox_sync_omada_api_username | length > 0
+      - omada_netbox_sync_omada_api_password is defined
+      - omada_netbox_sync_omada_api_password | length > 0
+      - omada_netbox_sync_netbox_url is defined
+      - omada_netbox_sync_netbox_url | length > 0
+      - omada_netbox_sync_netbox_token is defined
+      - omada_netbox_sync_netbox_token | length > 0
+    fail_msg: >
+      Required inputs must be defined: omada_netbox_sync_omada_api_base_url,
+      omada_netbox_sync_omada_api_username, omada_netbox_sync_omada_api_password,
+      omada_netbox_sync_netbox_url, omada_netbox_sync_netbox_token.
+
+- name: Authenticate to Omada API
+  ansible.builtin.include_role:
+    name: omada_api_auth
+  # noqa: var-naming[no-role-prefix]
+  vars:
+    omada_api_base_url: "{{ omada_netbox_sync_omada_api_base_url }}"
+    omada_api_username: "{{ omada_netbox_sync_omada_api_username }}"
+    omada_api_password: "{{ omada_netbox_sync_omada_api_password }}"
+    omada_api_validate_certs: "{{ omada_netbox_sync_omada_api_validate_certs }}"
+
+- name: Build Omada clients URL
+  ansible.builtin.set_fact:
+    omada_netbox_sync_clients_url: >-
+      {{ omada_api_base_path }}/sites/{{ omada_netbox_sync_omada_site }}/clients
+      ?token={{ omada_api_token }}&currentPage=1&currentPageSize={{ omada_netbox_sync_page_size }}
+
+- name: Fetch Omada clients from site {{ omada_netbox_sync_omada_site }}
+  ansible.builtin.uri:
+    url: "{{ omada_netbox_sync_clients_url | replace('\n', '') | replace(' ', '') }}"
+    method: GET
+    validate_certs: "{{ omada_netbox_sync_omada_api_validate_certs }}"
+    return_content: true
+    status_code: 200
+    headers:
+      Csrf-Token: "{{ omada_api_token }}"
+      Cookie: "{{ omada_api_cookies }}"
+  register: omada_netbox_sync_clients_response
+
+- name: Assert Omada clients request succeeded
+  ansible.builtin.assert:
+    that:
+      - omada_netbox_sync_clients_response.json.errorCode is defined
+      - omada_netbox_sync_clients_response.json.errorCode == 0
+    fail_msg: "Failed to fetch Omada clients. Error: {{ omada_netbox_sync_clients_response.json | default('unknown') }}"
+
+- name: Set raw Omada clients data
+  ansible.builtin.set_fact:
+    omada_netbox_sync_raw_clients: "{{ omada_netbox_sync_clients_response.json.result.data | default([]) }}"
+
+- name: Build normalized device list
+  ansible.builtin.set_fact:
+    omada_netbox_sync_devices: []
+
+- name: Normalize each Omada client
+  ansible.builtin.set_fact:
+    omada_netbox_sync_devices: >-
+      {{
+        omada_netbox_sync_devices + [{
+          'name': (item.name | default(item.mac | default('unknown')))
+            | regex_replace('[^a-zA-Z0-9_-]', '_') | truncate(64, True, ''),
+          'mac_address': item.mac | default(''),
+          'ip_address': item.ip | default(''),
+          'hostname': item.name | default(''),
+          'vendor': item.vendor | default('Unknown'),
+          'ssid': item.ssid | default(''),
+          'network_name': item.networkName | default(''),
+          'is_wireless': item.wireless | default(false),
+          'device_type': (item.wireless | default(false)) | ternary('wireless', 'wired'),
+          'first_seen': item.firstSeen | default(0),
+          'last_seen': item.lastSeen | default(0),
+          'device_role': omada_netbox_sync_default_device_role,
+          'raw': item
+        }]
+      }}
+  loop: "{{ omada_netbox_sync_raw_clients }}"
+  loop_control:
+    label: "{{ item.mac | default('unknown') }}"
+
+- name: Build NetBox API headers
+  ansible.builtin.set_fact:
+    omada_netbox_sync_netbox_headers:
+      Authorization: "Token {{ omada_netbox_sync_netbox_token }}"
+      Content-Type: "application/json"
+      Accept: "application/json"
+
+- name: Fetch existing devices from NetBox
+  ansible.builtin.uri:
+    url: "{{ omada_netbox_sync_netbox_url }}/api/dcim/devices/?limit=1000"
+    method: GET
+    validate_certs: "{{ omada_netbox_sync_netbox_validate_certs }}"
+    headers: "{{ omada_netbox_sync_netbox_headers }}"
+    return_content: true
+    status_code: [200]
+  register: omada_netbox_sync_netbox_devices_response
+  when: not omada_netbox_sync_dry_run
+
+- name: Set existing NetBox devices fact
+  ansible.builtin.set_fact:
+    omada_netbox_sync_existing_devices: "{{ omada_netbox_sync_netbox_devices_response.json.results | default([]) }}"
+  when: not omada_netbox_sync_dry_run
+
+- name: Build existing device MAC to ID mapping
+  ansible.builtin.set_fact:
+    omada_netbox_sync_existing_macs: >-
+      {{
+        omada_netbox_sync_existing_macs | default({}) | combine({
+          item.name | lower: item.id
+        })
+      }}
+  loop: "{{ omada_netbox_sync_existing_devices | default([]) }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: not omada_netbox_sync_dry_run
+
+- name: Initialize sync results
+  ansible.builtin.set_fact:
+    omada_netbox_sync_created: []
+    omada_netbox_sync_updated: []
+    omada_netbox_sync_skipped: []
+    omada_netbox_sync_failed: []
+
+- name: Ensure device role exists in NetBox for {{ omada_netbox_sync_default_device_role }}
+  ansible.builtin.uri:
+    url: "{{ omada_netbox_sync_netbox_url }}/api/dcim/device-roles/"
+    method: POST
+    validate_certs: "{{ omada_netbox_sync_netbox_validate_certs }}"
+    headers: "{{ omada_netbox_sync_netbox_headers }}"
+    body_format: json
+    body:
+      name: "{{ omada_netbox_sync_default_device_role | capitalize }}"
+      slug: "{{ omada_netbox_sync_default_device_role }}"
+      color: "9e9e9e"
+    status_code: [200, 201, 400]
+  register: omada_netbox_sync_role_result
+  when: not omada_netbox_sync_dry_run
+  changed_when: omada_netbox_sync_role_result.status in [200, 201]
+
+- name: Ensure manufacturer exists in NetBox for {{ omada_netbox_sync_manufacturer_slug }}
+  ansible.builtin.uri:
+    url: "{{ omada_netbox_sync_netbox_url }}/api/dcim/manufacturers/"
+    method: POST
+    validate_certs: "{{ omada_netbox_sync_netbox_validate_certs }}"
+    headers: "{{ omada_netbox_sync_netbox_headers }}"
+    body_format: json
+    body:
+      name: "{{ omada_netbox_sync_manufacturer_slug | capitalize }}"
+      slug: "{{ omada_netbox_sync_manufacturer_slug }}"
+    status_code: [200, 201, 400]
+  register: omada_netbox_sync_manufacturer_result
+  when: not omada_netbox_sync_dry_run
+  changed_when: omada_netbox_sync_manufacturer_result.status in [200, 201]
+
+- name: Ensure device type exists in NetBox for {{ omada_netbox_sync_device_type_slug }}
+  ansible.builtin.uri:
+    url: "{{ omada_netbox_sync_netbox_url }}/api/dcim/device-types/"
+    method: POST
+    validate_certs: "{{ omada_netbox_sync_netbox_validate_certs }}"
+    headers: "{{ omada_netbox_sync_netbox_headers }}"
+    body_format: json
+    body:
+      manufacturer:
+        slug: "{{ omada_netbox_sync_manufacturer_slug }}"
+      model: "{{ omada_netbox_sync_device_type_slug | replace('-', ' ') | capitalize }}"
+      slug: "{{ omada_netbox_sync_device_type_slug }}"
+    status_code: [200, 201, 400]
+  register: omada_netbox_sync_device_type_result
+  when: not omada_netbox_sync_dry_run
+  changed_when: omada_netbox_sync_device_type_result.status in [200, 201]
+
+- name: Sync devices to NetBox
+  ansible.builtin.include_tasks: sync_device.yml
+  loop: "{{ omada_netbox_sync_devices }}"
+  loop_control:
+    label: "{{ item.name }} ({{ item.mac_address }})"
+    loop_var: omada_netbox_sync_device
+  when: not omada_netbox_sync_dry_run
+
+- name: Set omada_netbox_sync_artifacts
+  ansible.builtin.set_fact:
+    omada_netbox_sync_artifacts:
+      omada_site: "{{ omada_netbox_sync_omada_site }}"
+      netbox_site: "{{ omada_netbox_sync_netbox_site }}"
+      dry_run: "{{ omada_netbox_sync_dry_run }}"
+      total_clients_fetched: "{{ omada_netbox_sync_raw_clients | length }}"
+      devices_created: "{{ omada_netbox_sync_created | length }}"
+      devices_updated: "{{ omada_netbox_sync_updated | length }}"
+      devices_skipped: "{{ omada_netbox_sync_skipped | length }}"
+      devices_failed: "{{ omada_netbox_sync_failed | length }}"
+      raw_clients: "{{ omada_netbox_sync_raw_clients }}"
+      normalized_devices: "{{ omada_netbox_sync_devices }}"
+      created_devices: "{{ omada_netbox_sync_created }}"
+      updated_devices: "{{ omada_netbox_sync_updated }}"
+      skipped_devices: "{{ omada_netbox_sync_skipped }}"
+      failed_devices: "{{ omada_netbox_sync_failed }}"
+
+- name: Persist omada_netbox_sync artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  # noqa: var-naming
+  vars:
+    calling_role_name: "omada_netbox_sync"
+    calling_role_artifacts_inputs: "{{ omada_netbox_sync_artifacts }}"

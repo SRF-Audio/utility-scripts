@@ -1,0 +1,157 @@
+- name: Check if device exists in NetBox by name for {{ omada_netbox_sync_device.name }}
+  ansible.builtin.uri:
+    url: "{{ omada_netbox_sync_netbox_url }}/api/dcim/devices/?name={{ omada_netbox_sync_device.name | urlencode }}"
+    method: GET
+    validate_certs: "{{ omada_netbox_sync_netbox_validate_certs }}"
+    headers: "{{ omada_netbox_sync_netbox_headers }}"
+    return_content: true
+    status_code: [200]
+  register: omada_netbox_sync_device_check
+
+- name: Set device existence flag
+  ansible.builtin.set_fact:
+    omada_netbox_sync_device_exists: >-
+      {{ omada_netbox_sync_device_check.json.count | default(0) | int > 0 }}
+    omada_netbox_sync_existing_device_id: >-
+      {{
+        (omada_netbox_sync_device_check.json.results | first).id | default('')
+        if omada_netbox_sync_device_check.json.count | default(0) | int > 0
+        else ''
+      }}
+
+- name: Create device in NetBox for {{ omada_netbox_sync_device.name }}
+  ansible.builtin.uri:
+    url: "{{ omada_netbox_sync_netbox_url }}/api/dcim/devices/"
+    method: POST
+    validate_certs: "{{ omada_netbox_sync_netbox_validate_certs }}"
+    headers: "{{ omada_netbox_sync_netbox_headers }}"
+    body_format: json
+    body:
+      name: "{{ omada_netbox_sync_device.name }}"
+      device_type:
+        slug: "{{ omada_netbox_sync_device_type_slug }}"
+      role:
+        slug: "{{ omada_netbox_sync_device.device_role }}"
+      site:
+        slug: "{{ omada_netbox_sync_netbox_site }}"
+      status: "active"
+      custom_fields:
+        mac_address: "{{ omada_netbox_sync_device.mac_address }}"
+        omada_hostname: "{{ omada_netbox_sync_device.hostname }}"
+        omada_vendor: "{{ omada_netbox_sync_device.vendor }}"
+        omada_ssid: "{{ omada_netbox_sync_device.ssid }}"
+        omada_network: "{{ omada_netbox_sync_device.network_name }}"
+        omada_device_type: "{{ omada_netbox_sync_device.device_type }}"
+        omada_first_seen: "{{ omada_netbox_sync_device.first_seen }}"
+        omada_last_seen: "{{ omada_netbox_sync_device.last_seen }}"
+    status_code: [200, 201]
+  register: omada_netbox_sync_create_result
+  when:
+    - not omada_netbox_sync_device_exists
+    - omada_netbox_sync_netbox_site | length > 0
+  ignore_errors: true
+
+- name: Create device in NetBox without site for {{ omada_netbox_sync_device.name }}
+  ansible.builtin.uri:
+    url: "{{ omada_netbox_sync_netbox_url }}/api/dcim/devices/"
+    method: POST
+    validate_certs: "{{ omada_netbox_sync_netbox_validate_certs }}"
+    headers: "{{ omada_netbox_sync_netbox_headers }}"
+    body_format: json
+    body:
+      name: "{{ omada_netbox_sync_device.name }}"
+      device_type:
+        slug: "{{ omada_netbox_sync_device_type_slug }}"
+      role:
+        slug: "{{ omada_netbox_sync_device.device_role }}"
+      status: "active"
+      custom_fields:
+        mac_address: "{{ omada_netbox_sync_device.mac_address }}"
+        omada_hostname: "{{ omada_netbox_sync_device.hostname }}"
+        omada_vendor: "{{ omada_netbox_sync_device.vendor }}"
+        omada_ssid: "{{ omada_netbox_sync_device.ssid }}"
+        omada_network: "{{ omada_netbox_sync_device.network_name }}"
+        omada_device_type: "{{ omada_netbox_sync_device.device_type }}"
+        omada_first_seen: "{{ omada_netbox_sync_device.first_seen }}"
+        omada_last_seen: "{{ omada_netbox_sync_device.last_seen }}"
+    status_code: [200, 201]
+  register: omada_netbox_sync_create_result_nosite
+  when:
+    - not omada_netbox_sync_device_exists
+    - omada_netbox_sync_netbox_site | length == 0
+  ignore_errors: true
+
+- name: Merge create results
+  ansible.builtin.set_fact:
+    omada_netbox_sync_create_final: >-
+      {{
+        omada_netbox_sync_create_result
+        if omada_netbox_sync_netbox_site | length > 0
+        else omada_netbox_sync_create_result_nosite
+      }}
+  when: not omada_netbox_sync_device_exists
+
+- name: Track created device {{ omada_netbox_sync_device.name }}
+  ansible.builtin.set_fact:
+    omada_netbox_sync_created: >-
+      {{ omada_netbox_sync_created + [omada_netbox_sync_device.name] }}
+  when:
+    - not omada_netbox_sync_device_exists
+    - omada_netbox_sync_create_final is defined
+    - omada_netbox_sync_create_final.status | default(0) in [200, 201]
+
+- name: Track failed create for device {{ omada_netbox_sync_device.name }}
+  ansible.builtin.set_fact:
+    omada_netbox_sync_failed: >-
+      {{
+        omada_netbox_sync_failed + [{
+          'name': omada_netbox_sync_device.name,
+          'error': omada_netbox_sync_create_final.msg | default('unknown error')
+        }]
+      }}
+  when:
+    - not omada_netbox_sync_device_exists
+    - omada_netbox_sync_create_final is defined
+    - omada_netbox_sync_create_final.status | default(0) not in [200, 201]
+
+- name: Update device in NetBox for {{ omada_netbox_sync_device.name }}
+  ansible.builtin.uri:
+    url: "{{ omada_netbox_sync_netbox_url }}/api/dcim/devices/{{ omada_netbox_sync_existing_device_id }}/"
+    method: PATCH
+    validate_certs: "{{ omada_netbox_sync_netbox_validate_certs }}"
+    headers: "{{ omada_netbox_sync_netbox_headers }}"
+    body_format: json
+    body:
+      custom_fields:
+        mac_address: "{{ omada_netbox_sync_device.mac_address }}"
+        omada_hostname: "{{ omada_netbox_sync_device.hostname }}"
+        omada_vendor: "{{ omada_netbox_sync_device.vendor }}"
+        omada_ssid: "{{ omada_netbox_sync_device.ssid }}"
+        omada_network: "{{ omada_netbox_sync_device.network_name }}"
+        omada_device_type: "{{ omada_netbox_sync_device.device_type }}"
+        omada_first_seen: "{{ omada_netbox_sync_device.first_seen }}"
+        omada_last_seen: "{{ omada_netbox_sync_device.last_seen }}"
+    status_code: [200]
+  register: omada_netbox_sync_update_result
+  when: omada_netbox_sync_device_exists
+  ignore_errors: true
+
+- name: Track updated device {{ omada_netbox_sync_device.name }}
+  ansible.builtin.set_fact:
+    omada_netbox_sync_updated: "{{ omada_netbox_sync_updated + [omada_netbox_sync_device.name] }}"
+  when:
+    - omada_netbox_sync_device_exists
+    - omada_netbox_sync_update_result.status | default(0) == 200
+
+- name: Track failed update for device {{ omada_netbox_sync_device.name }}
+  ansible.builtin.set_fact:
+    omada_netbox_sync_failed: >-
+      {{
+        omada_netbox_sync_failed + [{
+          'name': omada_netbox_sync_device.name,
+          'error': omada_netbox_sync_update_result.msg | default('unknown error')
+        }]
+      }}
+  when:
+    - omada_netbox_sync_device_exists
+    - omada_netbox_sync_update_result.status | default(0) != 200
