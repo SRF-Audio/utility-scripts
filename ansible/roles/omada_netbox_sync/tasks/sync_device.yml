@@ -19,6 +19,18 @@
         else ''
       }}
 
+- name: Build custom fields for device
+  ansible.builtin.set_fact:
+    omada_netbox_sync_device_custom_fields:
+      mac_address: "{{ omada_netbox_sync_device.mac_address }}"
+      omada_hostname: "{{ omada_netbox_sync_device.hostname }}"
+      omada_vendor: "{{ omada_netbox_sync_device.vendor }}"
+      omada_ssid: "{{ omada_netbox_sync_device.ssid }}"
+      omada_network: "{{ omada_netbox_sync_device.network_name }}"
+      omada_device_type: "{{ omada_netbox_sync_device.device_type }}"
+      omada_first_seen: "{{ omada_netbox_sync_device.first_seen }}"
+      omada_last_seen: "{{ omada_netbox_sync_device.last_seen }}"
+
 - name: Build common device body
   ansible.builtin.set_fact:
     omada_netbox_sync_device_body_base:
@@ -28,15 +40,7 @@
       role:
         slug: "{{ omada_netbox_sync_device.device_role }}"
       status: "active"
-      custom_fields:
-        mac_address: "{{ omada_netbox_sync_device.mac_address }}"
-        omada_hostname: "{{ omada_netbox_sync_device.hostname }}"
-        omada_vendor: "{{ omada_netbox_sync_device.vendor }}"
-        omada_ssid: "{{ omada_netbox_sync_device.ssid }}"
-        omada_network: "{{ omada_netbox_sync_device.network_name }}"
-        omada_device_type: "{{ omada_netbox_sync_device.device_type }}"
-        omada_first_seen: "{{ omada_netbox_sync_device.first_seen }}"
-        omada_last_seen: "{{ omada_netbox_sync_device.last_seen }}"
+      custom_fields: "{{ omada_netbox_sync_device_custom_fields }}"
 
 - name: Build device body with site
   ansible.builtin.set_fact:
@@ -90,15 +94,7 @@
     headers: "{{ omada_netbox_sync_netbox_headers }}"
     body_format: json
     body:
-      custom_fields:
-        mac_address: "{{ omada_netbox_sync_device.mac_address }}"
-        omada_hostname: "{{ omada_netbox_sync_device.hostname }}"
-        omada_vendor: "{{ omada_netbox_sync_device.vendor }}"
-        omada_ssid: "{{ omada_netbox_sync_device.ssid }}"
-        omada_network: "{{ omada_netbox_sync_device.network_name }}"
-        omada_device_type: "{{ omada_netbox_sync_device.device_type }}"
-        omada_first_seen: "{{ omada_netbox_sync_device.first_seen }}"
-        omada_last_seen: "{{ omada_netbox_sync_device.last_seen }}"
+      custom_fields: "{{ omada_netbox_sync_device_custom_fields }}"
     status_code: [200]
   register: omada_netbox_sync_update_result
   when: omada_netbox_sync_device_exists
