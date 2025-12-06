@@ -1,21 +1,17 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: paperless-ngx
+  name: paperless-ngx-homepage
   namespace: {{ paperless_ngx_deploy_namespace }}
   labels:
     app.kubernetes.io/name: paperless-ngx
     app.kubernetes.io/component: webserver
     app.kubernetes.io/managed-by: ansible
   annotations:
-{% for key, value in paperless_ngx_deploy_tailscale_annotations.items() %}
-    {{ key }}: "{{ value }}"
-{% endfor %}
 {% for key, value in paperless_ngx_deploy_homepage_annotations.items() %}
     {{ key }}: "{{ value }}"
 {% endfor %}
 spec:
-  ingressClassName: tailscale
   rules:
     - host: {{ paperless_ngx_deploy_hostname }}
       http:
