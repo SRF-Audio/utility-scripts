@@ -1,0 +1,56 @@
+- name: Validate 1Password CLI with service account token
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tags:
+    - op_tester
+  vars:
+    artifacts_base_path: "{{ playbook_dir }}/.artifacts"
+    op_tester_service_account_token: "{{ lookup('env', 'OP_SERVICE_ACCOUNT_TOKEN') }}"
+
+  tasks:
+    - name: Assert OP_SERVICE_ACCOUNT_TOKEN is present and non-empty
+      ansible.builtin.assert:
+        that:
+          - op_tester_service_account_token is defined
+          - op_tester_service_account_token | length > 0
+        fail_msg: >-
+          OP_SERVICE_ACCOUNT_TOKEN must be set in the environment.
+
+    - name: Install 1Password CLI
+      ansible.builtin.include_role:
+        name: op_install
+      vars:
+        op_install_artifacts_path: "{{ artifacts_base_path }}/op_install"
+
+    - name: Validate 1Password CLI version
+      ansible.builtin.command:
+        cmd: op --version
+      environment:
+        OP_SERVICE_ACCOUNT_TOKEN: "{{ op_tester_service_account_token }}"
+      register: op_tester_version_result
+      changed_when: false
+      failed_when: op_tester_version_result.rc != 0
+
+    - name: Show 1Password CLI version
+      ansible.builtin.debug:
+        var: op_tester_version_result.stdout
+
+    - name: Validate 1Password CLI authentication with op user get --me
+      ansible.builtin.command:
+        argv:
+          - op
+          - user
+          - get
+          - --me
+          - --format
+          - json
+      environment:
+        OP_SERVICE_ACCOUNT_TOKEN: "{{ op_tester_service_account_token }}"
+      register: op_tester_user_get
+      changed_when: false
+      failed_when: op_tester_user_get.rc != 0 or (op_tester_user_get.stdout | default('') | length) == 0
+
+    - name: Confirm successful 1Password CLI authentication
+      ansible.builtin.debug:
+        msg: "1Password CLI authentication successful."
