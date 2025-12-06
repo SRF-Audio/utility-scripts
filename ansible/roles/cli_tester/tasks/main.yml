@@ -16,11 +16,20 @@
 - name: Set which ready fact on {{ inventory_hostname }}
   ansible.builtin.set_fact:
     cli_tester_which_ready: true
-  when: cli_tester_which_check is succeeded
+  when: cli_tester_which_check.rc == 0
 
 - name: Ensure 'which' is installed on {{ inventory_hostname }}
   when: not (cli_tester_which_ready | default(false))
   block:
+    - name: Gather OS facts for package installation
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
+          - '!min'
+          - distribution
+          - pkg_mgr
+      when: ansible_facts.os_family is not defined
+
     - name: Install which on RedHat-family with dnf/yum
       ansible.builtin.dnf:
         name: which
