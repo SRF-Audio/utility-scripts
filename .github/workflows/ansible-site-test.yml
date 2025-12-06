@@ -79,13 +79,14 @@ jobs:
         working-directory: ansible
         run: ansible-galaxy collection install -r requirements.yml
 
-      - name: Set OP_SERVICE_ACCOUNT_TOKEN for follow on steps
-        run: echo "OP_SERVICE_ACCOUNT_TOKEN=${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}" >> $GITHUB_ENV
-
       - name: Run Ansible playbook
         working-directory: ansible
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: ansible-playbook playbooks/op_tester.yml
 
       - name: Setup op credentials
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: op user get --me
         shell: bash
