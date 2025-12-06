@@ -21,14 +21,14 @@ argument_specs:
         type: str
         required: false
         description: Namespace where Paperless-NGX will be deployed.
-      paperless_ngx_deploy_storage_class_longhorn:
+      paperless_ngx_deploy_storage_class_local:
         type: str
         required: false
-        description: Storage class for Longhorn-backed PVCs (data, dbdata, redisdata).
+        description: Storage class for local provisioner PVCs (data, dbdata, redisdata) - I/O sensitive.
       paperless_ngx_deploy_storage_class_synology:
         type: str
         required: false
-        description: Storage class for Synology-backed PVCs (media, export, consume).
+        description: Storage class for Synology CSI/NFS PVCs (media, export, consume).
       paperless_ngx_deploy_hostname:
         type: str
         required: false
@@ -104,15 +104,15 @@ argument_specs:
       paperless_ngx_deploy_pvc_data_size:
         type: str
         required: false
-        description: Size of the data PVC (Longhorn).
+        description: Size of the data PVC (local provisioner).
       paperless_ngx_deploy_pvc_dbdata_size:
         type: str
         required: false
-        description: Size of the PostgreSQL data PVC (Longhorn).
+        description: Size of the PostgreSQL data PVC (local provisioner).
       paperless_ngx_deploy_pvc_redisdata_size:
         type: str
         required: false
-        description: Size of the Redis data PVC (Longhorn).
+        description: Size of the Redis data PVC (local provisioner).
       paperless_ngx_deploy_pvc_media_size:
         type: str
         required: false
