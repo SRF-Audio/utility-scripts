@@ -84,22 +84,33 @@
   loop_control:
     label: "{{ item.mac | default('unknown') }}"
 
+- name: Initialize devices with role mappings applied
+  ansible.builtin.set_fact:
+    omada_netbox_sync_devices_with_roles: []
+  when: omada_netbox_sync_device_role_mappings | length > 0
+
 - name: Apply device role mappings based on name patterns
   ansible.builtin.set_fact:
-    omada_netbox_sync_devices: >-
+    omada_netbox_sync_devices_with_roles: >-
       {{
-        omada_netbox_sync_devices | map('combine', {
-          'device_role': omada_netbox_sync_device_role_mappings.items()
-            | selectattr('0', 'search', item.name)
-            | map(attribute='1')
-            | first
-            | default(item.device_role)
-        }) | list
+        omada_netbox_sync_devices_with_roles + [
+          item | combine({
+            'device_role': omada_netbox_sync_device_role_mappings.items()
+              | selectattr('0', 'search', item.name | default(''))
+              | map(attribute='1')
+              | first
+              | default(item.device_role)
+          })
+        ]
       }}
   loop: "{{ omada_netbox_sync_devices }}"
   loop_control:
     label: "{{ item.name | default('unknown') }}"
-    index_var: omada_netbox_sync_loop_idx
+  when: omada_netbox_sync_device_role_mappings | length > 0
+
+- name: Replace devices list with role mappings applied
+  ansible.builtin.set_fact:
+    omada_netbox_sync_devices: "{{ omada_netbox_sync_devices_with_roles }}"
   when: omada_netbox_sync_device_role_mappings | length > 0
 
 - name: Build NetBox API headers
