@@ -15,7 +15,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME_LOWER: ${{ toLower(github.repository) }}
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   ansible-site-test:
@@ -26,7 +26,7 @@ jobs:
       packages: read
 
     container:
-      image: ghcr.io/${{ env.IMAGE_NAME_LOWER }}/fedora-ansible-43-ansible:latest
+      image: ghcr.io/${{ env.IMAGE_NAME }}/fedora-ansible-43-ansible:latest
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
