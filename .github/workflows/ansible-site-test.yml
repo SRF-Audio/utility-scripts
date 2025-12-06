@@ -84,7 +84,7 @@ jobs:
         working-directory: ansible
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: ansible-playbook playbooks/op_tester.yml
+        run: ansible-playbook playbooks/op_tester.yml -vv
 
       - name: Setup op credentials
         env:
