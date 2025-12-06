@@ -1,0 +1,52 @@
+name: Build Ansible Base Image
+
+on:
+  # Run manually when you actually want to rebuild the image
+  workflow_dispatch:
+
+  # Optional: rebuild automatically if the Dockerfile or this workflow changes
+  push:
+    paths:
+      - ".github/docker/fedora-ansible-43.Dockerfile"
+      - ".github/workflows/build-ansible-base-image.yml"
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME_LOWER: ${{ toLower(github.repository) }}
+
+jobs:
+  build-ansible-base-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        # This will tag as :latest and :sha-<commit>
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}/fedora-ansible-43-ansible
+          tags: |
+            type=raw,value=latest
+            type=sha,format=long
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: .github/docker/fedora-ansible-43.Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
