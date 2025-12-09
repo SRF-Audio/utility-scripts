@@ -1,0 +1,100 @@
+- name: Validate Tailscale installation and connectivity
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tags:
+    - tailscale_tester
+  vars:
+    artifacts_base_path: "{{ playbook_dir }}/.artifacts"
+    tailscale_tester_service_account_token: "{{ lookup('env', 'OP_SERVICE_ACCOUNT_TOKEN') }}"
+    tailscale_ping_target: "{{ lookup('env', 'TAILSCALE_PING_TARGET') | default('coachlight-homelab', true) }}"
+
+  tasks:
+    - name: Assert OP_SERVICE_ACCOUNT_TOKEN is present and non-empty
+      ansible.builtin.assert:
+        that:
+          - tailscale_tester_service_account_token is defined
+          - tailscale_tester_service_account_token | length > 0
+        fail_msg: >-
+          OP_SERVICE_ACCOUNT_TOKEN must be set in the environment.
+
+    - name: Install 1Password CLI
+      ansible.builtin.include_role:
+        name: op_install
+      vars:
+        op_install_artifacts_path: "{{ artifacts_base_path }}/op_install"
+
+    - name: Fetch Tailscale auth key from 1Password
+      ansible.builtin.include_role:
+        name: op_read
+      vars:
+        op_read_artifacts_path: "{{ artifacts_base_path }}/op_read"
+        op_read_op_service_account_token: "{{ tailscale_tester_service_account_token }}"
+        op_read_items:
+          - vault_name: "HomeLab"
+            item_name: "Tailscale"
+            field_name: "coachlight-homelab auth key"
+            out_file: false
+
+    - name: Extract Tailscale auth key from op_read artifacts
+      ansible.builtin.set_fact:
+        tailscale_tester_auth_key: "{{ op_read_artifacts.items[0].value }}"
+      no_log: true
+
+    - name: Install Tailscale
+      ansible.builtin.include_role:
+        name: tailscale_install
+      vars:
+        artifacts_path: "{{ artifacts_base_path }}/tailscale_install"
+
+    - name: Verify tailscaled binary exists
+      ansible.builtin.command:
+        cmd: which tailscaled
+      register: tailscale_tester_tailscaled_check
+      changed_when: false
+      failed_when: tailscale_tester_tailscaled_check.rc != 0
+
+    - name: Ensure tailscaled service is enabled and started
+      become: true
+      ansible.builtin.systemd:
+        name: tailscaled
+        enabled: true
+        state: started
+      register: tailscale_tester_service_result
+
+    - name: Run tailscale up with auth key
+      ansible.builtin.command:
+        cmd: >-
+          tailscale up
+          --authkey={{ tailscale_tester_auth_key }}
+          --hostname=github-actions-runner
+          --force-reauth=false
+      register: tailscale_tester_up_result
+      changed_when: tailscale_tester_up_result.rc == 0
+      no_log: true
+
+    - name: Verify tailscale status
+      ansible.builtin.command:
+        cmd: tailscale status
+      register: tailscale_tester_status_result
+      changed_when: false
+      failed_when: tailscale_tester_status_result.rc != 0
+
+    - name: Show tailscale status
+      ansible.builtin.debug:
+        var: tailscale_tester_status_result.stdout
+
+    - name: Verify tailscale ping to {{ tailscale_ping_target }}
+      ansible.builtin.command:
+        cmd: tailscale ping {{ tailscale_ping_target }}
+      register: tailscale_tester_ping_result
+      changed_when: false
+      failed_when: tailscale_tester_ping_result.rc != 0
+
+    - name: Show tailscale ping result
+      ansible.builtin.debug:
+        var: tailscale_tester_ping_result.stdout
+
+    - name: Confirm successful Tailscale setup
+      ansible.builtin.debug:
+        msg: "Tailscale setup and connectivity test successful."
