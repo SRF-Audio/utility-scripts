@@ -13,36 +13,36 @@ on:
       - "site.yml"
       - ".github/workflows/ansible-site-test.yml"
 
-env:
-  REGISTRY: ghcr.io
-  HOMELAB_TOOLING_IMAGE: ghcr.io/${{ toLower(github.repository) }}/fedora-ansible-43-ansible:latest
-
 jobs:
   ansible-site-test:
     runs-on: ubuntu-latest
     environment: HomeLab Actions
-
     permissions:
       contents: read
       packages: read
 
     steps:
+      - name: Normalize repo name to lowercase
+        id: normalize
+        run: |
+          echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Set tooling image
+        id: image
+        run: |
+          echo "IMAGE=ghcr.io/${{ steps.normalize.outputs.REPO_LOWER }}/fedora-ansible-43-ansible:latest" >> $GITHUB_OUTPUT
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Show image to be used
-        run: echo "Using homelab tooling image: $HOMELAB_TOOLING_IMAGE"
-
-      - name: Run playbook inside homelab tooling container
+      - name: Run Ansible inside tooling container
         uses: addnab/docker-run-action@v3
         with:
-          image: ${{ env.HOMELAB_TOOLING_IMAGE }}
+          image: ${{ steps.image.outputs.IMAGE }}
           options: |
             --pull=always
             -e OP_SERVICE_ACCOUNT_TOKEN=${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           run: |
-            pwd
-            tree -aC
             cd ansible
             ansible-galaxy collection install -r requirements.yml
             ansible-playbook playbooks/op_tester.yml -vv
