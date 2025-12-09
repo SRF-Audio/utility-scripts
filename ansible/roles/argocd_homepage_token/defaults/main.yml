@@ -1,0 +1,10 @@
+---
+argocd_homepage_token_server_url: "https://argocd.rohu-shark.ts.net"
+argocd_homepage_token_username: homepage
+argocd_homepage_token_namespace: argocd
+argocd_homepage_token_1p_vault_name: coachlight-homelab
+argocd_homepage_token_1p_item_name: argocd-homepage-token
+argocd_homepage_token_cli_install_method: binary
+argocd_homepage_token_cli_version: latest
+argocd_homepage_token_artifacts_path: "{{ artifacts_path }}"
+argocd_homepage_token_op_service_account_token: "{{ op_service_account_token }}"

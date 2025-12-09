@@ -1,0 +1,139 @@
+---
+- name: Check if argocd CLI is installed
+  ansible.builtin.include_role:
+    name: cli_tester
+  vars:
+    cli_tester_cli_name: argocd
+    cli_tester_artifacts_path: "{{ argocd_homepage_token_artifacts_path }}"
+
+- name: Install argocd CLI if not present
+  when: not (cli_tester_argocd_artifacts.is_cli_installed | default(false))
+  block:
+    - name: Gather OS facts for argocd CLI installation
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
+          - '!min'
+          - distribution
+          - pkg_mgr
+      when: ansible_facts.os_family is not defined
+
+    - name: Determine argocd CLI download URL
+      ansible.builtin.set_fact:
+        argocd_homepage_token_cli_download_url: >-
+          https://github.com/argoproj/argo-cd/releases/{{ 'latest/download' if argocd_homepage_token_cli_version == 'latest' else ('download/' + argocd_homepage_token_cli_version) }}/argocd-linux-amd64
+
+    - name: Download argocd CLI binary
+      ansible.builtin.get_url:
+        url: "{{ argocd_homepage_token_cli_download_url }}"
+        dest: /tmp/argocd
+        mode: '0755'
+
+    - name: Install argocd CLI to /usr/local/bin
+      ansible.builtin.copy:
+        src: /tmp/argocd
+        dest: /usr/local/bin/argocd
+        mode: '0755'
+        remote_src: true
+      become: true
+
+    - name: Remove temporary argocd download
+      ansible.builtin.file:
+        path: /tmp/argocd
+        state: absent
+
+- name: Check if 1Password item exists for argocd homepage token
+  ansible.builtin.command:
+    cmd: >-
+      op item get
+      {{ argocd_homepage_token_1p_item_name }}
+      --vault {{ argocd_homepage_token_1p_vault_name }}
+      --format json
+  environment:
+    OP_SERVICE_ACCOUNT_TOKEN: "{{ argocd_homepage_token_op_service_account_token }}"
+  register: argocd_homepage_token_1p_check
+  changed_when: false
+  failed_when: false
+
+- name: Read existing token from 1Password when item exists
+  when: argocd_homepage_token_1p_check.rc == 0
+  block:
+    - name: Extract token from 1Password item
+      ansible.builtin.include_role:
+        name: op_read
+      vars:
+        op_read_items:
+          - vault_name: "{{ argocd_homepage_token_1p_vault_name }}"
+            item_name: "{{ argocd_homepage_token_1p_item_name }}"
+            field_name: token
+        op_read_op_service_account_token: "{{ argocd_homepage_token_op_service_account_token }}"
+        op_read_artifacts_path: "{{ argocd_homepage_token_artifacts_path }}"
+
+    - name: Set argocd_homepage_token from 1Password
+      ansible.builtin.set_fact:
+        argocd_homepage_token: "{{ op_read_artifacts.items[0].value }}"
+
+- name: Create argocd homepage token when missing
+  when: argocd_homepage_token_1p_check.rc != 0
+  block:
+    - name: Get argocd admin password from Kubernetes secret
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Secret
+        name: argocd-initial-admin-secret
+        namespace: "{{ argocd_homepage_token_namespace }}"
+      register: argocd_homepage_token_admin_secret
+
+    - name: Decode argocd admin password
+      ansible.builtin.set_fact:
+        argocd_homepage_token_admin_password: "{{ argocd_homepage_token_admin_secret.resources[0].data.password | b64decode }}"
+
+    - name: Login to Argo CD API
+      ansible.builtin.command:
+        cmd: >-
+          argocd login {{ argocd_homepage_token_server_url | regex_replace('^https?://', '') }}
+          --username admin
+          --password {{ argocd_homepage_token_admin_password }}
+          --insecure
+      register: argocd_homepage_token_login
+      changed_when: false
+
+    - name: Create homepage account token in Argo CD
+      ansible.builtin.command:
+        cmd: >-
+          argocd account generate-token
+          --account {{ argocd_homepage_token_username }}
+      register: argocd_homepage_token_create
+      changed_when: true
+
+    - name: Set argocd_homepage_token from creation
+      ansible.builtin.set_fact:
+        argocd_homepage_token: "{{ argocd_homepage_token_create.stdout | trim }}"
+
+    - name: Create 1Password item for argocd homepage token
+      ansible.builtin.include_role:
+        name: op_item_create
+      vars:
+        op_item_create_vault_name: "{{ argocd_homepage_token_1p_vault_name }}"
+        op_item_create_items:
+          - name: "{{ argocd_homepage_token_1p_item_name }}"
+            category: api_credential
+            url: "{{ argocd_homepage_token_server_url }}"
+            tags: [ansible_managed, argocd, homepage]
+            fields:
+              username[text]: "{{ argocd_homepage_token_username }}"
+              token[password]: "{{ argocd_homepage_token }}"
+        op_item_create_op_service_account_token: "{{ argocd_homepage_token_op_service_account_token }}"
+        op_item_create_artifacts_path: "{{ argocd_homepage_token_artifacts_path }}"
+
+- name: Persist argocd_homepage_token artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    role_artifacts_path: "{{ argocd_homepage_token_artifacts_path }}"
+    # noqa: var-naming
+    calling_role_name: argocd_homepage_token
+    calling_role_artifacts_inputs:
+      server_url: "{{ argocd_homepage_token_server_url }}"
+      username: "{{ argocd_homepage_token_username }}"
+      token: "{{ argocd_homepage_token }}"
