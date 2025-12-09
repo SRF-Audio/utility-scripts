@@ -111,7 +111,7 @@
         that:
           - tailscale_ping_target is defined
           - tailscale_ping_target | length > 0
-          - tailscale_ping_target is match('^[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?$')
+          - tailscale_ping_target is match('^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$') or tailscale_ping_target is match('^([0-9]{1,3}\.){3}[0-9]{1,3}$')
         fail_msg: >-
           TAILSCALE_PING_TARGET must be a valid hostname or IP address without special characters.
 
