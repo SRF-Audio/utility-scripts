@@ -40,6 +40,7 @@ jobs:
         with:
           image: ${{ steps.image.outputs.IMAGE }}
           options: |
+            -v ${{ github.workspace }}:/workspace
             --pull=always
             -e OP_SERVICE_ACCOUNT_TOKEN=${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           run: |

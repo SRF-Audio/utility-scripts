@@ -25,3 +25,5 @@ RUN dnf -y install \
 
 # Clean up dnf caches to reduce image size
 RUN dnf clean all && rm -rf /var/cache/dnf
+
+WORKDIR /workspace
