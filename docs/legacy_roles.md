@@ -2,6 +2,13 @@
 
 This document catalogs all legacy roles under `ansible/old_roles` and tracks where they are referenced from `ansible/roles` and `ansible/playbooks`. These roles are candidates for refactoring into smaller, atomic, best-practice roles.
 
+## Best Practice References
+
+This analysis compares legacy roles against:
+- Existing roles in `ansible/roles` (the "good" examples)
+- [Red Hat Communities of Practice - Ansible Automation Good Practices](https://redhat-cop.github.io/automation-good-practices/)
+- [Ansible Best Practices (official documentation)](https://docs.ansible.com/ansible/2.8/user_guide/playbooks_best_practices.html)
+
 ## Table of Contents
 
 - [audio_tools_install](#audio_tools_install)
