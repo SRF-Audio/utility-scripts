@@ -8,6 +8,7 @@
     artifacts_base_path: "{{ playbook_dir }}/.artifacts"
     tailscale_tester_service_account_token: "{{ lookup('env', 'OP_SERVICE_ACCOUNT_TOKEN') }}"
     tailscale_ping_target: "{{ lookup('env', 'TAILSCALE_PING_TARGET') | default('coachlight-homelab', true) }}"
+    tailscale_tester_hostname: "{{ lookup('env', 'TAILSCALE_HOSTNAME') | default('github-actions-runner', true) }}"
 
   tasks:
     - name: Assert OP_SERVICE_ACCOUNT_TOKEN is present and non-empty
@@ -67,7 +68,7 @@
         cmd: >-
           tailscale up
           --authkey={{ tailscale_tester_auth_key }}
-          --hostname=github-actions-runner
+          --hostname={{ tailscale_tester_hostname }}
           --force-reauth=false
       register: tailscale_tester_up_result
       changed_when: tailscale_tester_up_result.rc == 0
