@@ -45,7 +45,7 @@ jobs:
             --cap-add=NET_ADMIN
             --device=/dev/net/tun
             -e OP_SERVICE_ACCOUNT_TOKEN=${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-            -e TAILSCALE_PING_TARGET=${{ vars.TAILSCALE_PING_TARGET }}
+            -e TAILSCALE_PING_TARGET=${{ vars.TAILSCALE_PING_TARGET || 'coachlight-homelab' }}
           run: |
             pwd && ls -la && tree -C
             cd /workspace/ansible
