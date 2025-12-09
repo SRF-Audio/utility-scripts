@@ -6,6 +6,13 @@
     op_vault_validator_op_service_account_token: "{{ proxmox_homepage_token_op_service_account_token }}"
     op_vault_validator_artifacts_path: "{{ proxmox_homepage_token_artifacts_path }}/op_vault_validator"
 
+- name: Initialize proxmox_homepage_token facts
+  ansible.builtin.set_fact:
+    proxmox_homepage_token_url_value: ""
+    proxmox_homepage_token_username_value: ""
+    proxmox_homepage_token_secret_value: ""
+    proxmox_homepage_token_exists: false
+
 - name: Check if 1Password item {{ proxmox_homepage_token_1p_item_title }} exists
   ansible.builtin.command:
     cmd: >-
