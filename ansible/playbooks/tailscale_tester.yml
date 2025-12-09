@@ -85,6 +85,15 @@
       ansible.builtin.debug:
         var: tailscale_tester_status_result.stdout
 
+    - name: Validate tailscale ping target format
+      ansible.builtin.assert:
+        that:
+          - tailscale_ping_target is defined
+          - tailscale_ping_target | length > 0
+          - tailscale_ping_target is match('^[a-zA-Z0-9][a-zA-Z0-9.-]*$')
+        fail_msg: >-
+          TAILSCALE_PING_TARGET must be a valid hostname or IP address without special characters.
+
     - name: Verify tailscale ping to {{ tailscale_ping_target }}
       ansible.builtin.command:
         cmd: tailscale ping {{ tailscale_ping_target }}
