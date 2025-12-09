@@ -63,6 +63,26 @@
         state: started
       register: tailscale_tester_service_result
 
+    - name: Check tailscale status
+      ansible.builtin.command:
+        cmd: tailscale status --json
+      register: tailscale_tester_initial_status
+      changed_when: false
+      failed_when: false
+
+    - name: Parse tailscale status if available
+      ansible.builtin.set_fact:
+        tailscale_tester_status_json: "{{ tailscale_tester_initial_status.stdout | from_json }}"
+      when: tailscale_tester_initial_status.rc == 0
+
+    - name: Determine if tailscale up is needed
+      ansible.builtin.set_fact:
+        tailscale_tester_needs_up: >-
+          {{
+            tailscale_tester_initial_status.rc != 0 or
+            (tailscale_tester_status_json.BackendState | default('')) != 'Running'
+          }}
+
     - name: Run tailscale up with auth key
       ansible.builtin.command:
         cmd: >-
@@ -70,6 +90,7 @@
           --authkey={{ tailscale_tester_auth_key }}
           --hostname={{ tailscale_tester_hostname }}
           --force-reauth=false
+      when: tailscale_tester_needs_up
       register: tailscale_tester_up_result
       changed_when: tailscale_tester_up_result.rc == 0
       no_log: true
@@ -90,7 +111,7 @@
         that:
           - tailscale_ping_target is defined
           - tailscale_ping_target | length > 0
-          - tailscale_ping_target is match('^[a-zA-Z0-9][a-zA-Z0-9.-]*$')
+          - tailscale_ping_target is match('^[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?$')
         fail_msg: >-
           TAILSCALE_PING_TARGET must be a valid hostname or IP address without special characters.
 
