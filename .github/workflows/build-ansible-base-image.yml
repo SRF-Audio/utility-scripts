@@ -5,14 +5,14 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - ".github/docker/fedora-ansible-43.Dockerfile"
+      - ".github/docker/fedora-43-homelab-tooling.Dockerfile"
       - ".github/workflows/build-homelab-tooling-image.yml"
   schedule:
     - cron: "0 6 1 * *"
 
 env:
   REGISTRY: ghcr.io
-  TOOLING_IMAGE_NAME: fedora-ansible-43-ansible
+  TOOLING_IMAGE_NAME: fedora-43-homelab-tooling
 
 jobs:
   build-and-push:
@@ -50,7 +50,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: .github/docker/fedora-ansible-43.Dockerfile
+          file: .github/docker/fedora-43-homelab-tooling.Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

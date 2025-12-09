@@ -7,7 +7,21 @@ RUN dnf -y upgrade
 RUN dnf -y install \
     python3 \
     python3-pip \
-    ansible
+    ansible \
+    git \
+    tree \
+    vim \
+    curl \
+    wget \
+    jq \
+    net-tools \
+    iputils \
+    openssh-clients \
+    binutils \
+    which \
+    sudo \
+    tmux \
+    && dnf -y clean all
 
 # Clean up dnf caches to reduce image size
 RUN dnf clean all && rm -rf /var/cache/dnf

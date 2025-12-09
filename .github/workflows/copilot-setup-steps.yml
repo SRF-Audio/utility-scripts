@@ -25,7 +25,7 @@ jobs:
       - name: Set tooling image
         id: image
         run: |
-          echo "IMAGE=ghcr.io/${{ steps.normalize.outputs.REPO_LOWER }}/fedora-ansible-43-ansible:latest" >> $GITHUB_OUTPUT
+          echo "IMAGE=ghcr.io/${{ steps.normalize.outputs.REPO_LOWER }}/fedora-43-homelab-tooling:latest" >> $GITHUB_OUTPUT
 
       - name: Checkout repository
         uses: actions/checkout@v5
