@@ -31,7 +31,7 @@
         field_name: username
       - vault_name: "{{ proxmox_homepage_token_1p_vault }}"
         item_name: "{{ proxmox_homepage_token_1p_item_title }}"
-        field_name: secret
+        field_name: credential
     op_read_op_service_account_token: "{{ proxmox_homepage_token_op_service_account_token }}"
     op_read_artifacts_path: "{{ proxmox_homepage_token_artifacts_path }}/op_read"
   when: proxmox_homepage_token_1p_item_check.rc == 0
@@ -40,7 +40,7 @@
   ansible.builtin.set_fact:
     proxmox_homepage_token_url_value: "{{ op_read_artifacts.items | selectattr('field_name', 'equalto', 'url') | map(attribute='value') | first }}"
     proxmox_homepage_token_username_value: "{{ op_read_artifacts.items | selectattr('field_name', 'equalto', 'username') | map(attribute='value') | first }}"
-    proxmox_homepage_token_secret_value: "{{ op_read_artifacts.items | selectattr('field_name', 'equalto', 'secret') | map(attribute='value') | first }}"
+    proxmox_homepage_token_secret_value: "{{ op_read_artifacts.items | selectattr('field_name', 'equalto', 'credential') | map(attribute='value') | first }}"
     proxmox_homepage_token_exists: true
   when: proxmox_homepage_token_1p_item_check.rc == 0
 
@@ -138,7 +138,7 @@
           - homepage
         fields:
           username[text]: "{{ proxmox_homepage_token_user }}!{{ proxmox_homepage_token_id }}"
-          secret[password]: "{{ proxmox_homepage_token_secret_new }}"
+          credential[concealed]: "{{ proxmox_homepage_token_secret_new }}"
   when: proxmox_homepage_token_1p_item_check.rc != 0
 
 - name: Set facts from newly created token

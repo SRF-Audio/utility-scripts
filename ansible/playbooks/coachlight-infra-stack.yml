@@ -56,7 +56,7 @@
         k8s_validator_context: "{{ kubeconfig_manager_artifacts.context_name }}"
     - role: proxmox_homepage_token
       vars:
-        proxmox_homepage_token_op_service_account_token: "{{ op_service_account_token }}"
+        proxmox_homepage_token_op_service_account_token: "{{ lookup('env', 'OP_SERVICE_ACCOUNT_TOKEN') }}"
     - role: homepage_deploy
       vars:
         homepage_deploy_proxmox_url: "{{ proxmox_homepage_token_artifacts.url | default('') }}"
