@@ -1,18 +1,22 @@
-name: "Copilot Setup Steps"
+name: Homelab – Copilot Setup
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - .github/workflows/copilot-setup-steps.yml
+      - ".github/workflows/copilot-setup-steps.yml"
   pull_request:
     paths:
-      - .github/workflows/copilot-setup-steps.yml
+      - ".github/workflows/copilot-setup-steps.yml"
+
+env:
+  HOMELAB_TOOLING_IMAGE: ghcr.io/${{ toLower(github.repository) }}/fedora-ansible-43-ansible:latest
 
 jobs:
-  # Job name MUST be exactly this for Copilot to pick it up
   copilot-setup-steps:
     runs-on: ubuntu-latest
+    container:
+      image: ${{ env.HOMELAB_TOOLING_IMAGE }}
 
     permissions:
       contents: read
@@ -21,35 +25,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install system packages
+      - name: Verify tooling inside homelab image
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            python3-pip \
-            git \
-            sshpass \
-            jq \
-            tree
-
-      - name: Install Ansible toolchain via pip
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install \
-            ansible \
-            ansible-lint \
-            yamllint
-
-      - name: Install Ansible Galaxy collections
-        run: |
-          ansible-galaxy collection install -r ansible/requirements.yml
-
-      - name: Verify Ansible setup
-        run: |
+          echo "Using image: $HOMELAB_TOOLING_IMAGE"
           ansible --version
           ansible-lint --version
           yamllint --version
+          python --version
+          git --version

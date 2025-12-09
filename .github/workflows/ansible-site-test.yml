@@ -1,4 +1,4 @@
-name: Ansible Site Test
+name: Homelab – Ansible Site Test
 
 on:
   workflow_dispatch:
@@ -15,6 +15,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  HOMELAB_TOOLING_IMAGE: ghcr.io/${{ toLower(github.repository) }}/fedora-ansible-43-ansible:latest
 
 jobs:
   ansible-site-test:
@@ -26,23 +27,16 @@ jobs:
       packages: read
 
     steps:
-      - name: Normalize repo name to lowercase
-        id: normalize
-        run: |
-          echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set container image path
-        id: image
-        run: |
-          echo "IMAGE=ghcr.io/${{ steps.normalize.outputs.REPO_LOWER }}/fedora-ansible-43-ansible:latest" >> $GITHUB_OUTPUT
+      - name: Show image to be used
+        run: echo "Using homelab tooling image: $HOMELAB_TOOLING_IMAGE"
 
-      - name: Run playbook inside container
+      - name: Run playbook inside homelab tooling container
         uses: addnab/docker-run-action@v3
         with:
-          image: ${{ steps.image.outputs.IMAGE }}
+          image: ${{ env.HOMELAB_TOOLING_IMAGE }}
           options: |
             --pull=always
             -e OP_SERVICE_ACCOUNT_TOKEN=${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}

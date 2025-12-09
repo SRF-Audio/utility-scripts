@@ -1,21 +1,26 @@
-name: Build Ansible Base Image
+name: Homelab – Build Tooling Image
 
 on:
   # Run manually when you actually want to rebuild the image
   workflow_dispatch:
 
-  # Optional: rebuild automatically if the Dockerfile or this workflow changes
+  # Rebuild automatically if the Dockerfile or this workflow changes
   push:
     paths:
       - ".github/docker/fedora-ansible-43.Dockerfile"
-      - ".github/workflows/build-ansible-base-image.yml"
+      - ".github/workflows/build-homelab-tooling-image.yml"
+
+  # Optional: monthly refresh (1st of every month at 06:00 UTC)
+  schedule:
+    - cron: "0 6 1 * *"
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME_LOWER: ${{ toLower(github.repository) }}
+  TOOLING_IMAGE_NAME: fedora-ansible-43-ansible
 
 jobs:
-  build-ansible-base-image:
+  build-and-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -33,11 +38,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract Docker metadata
-        # This will tag as :latest and :sha-<commit>
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}/fedora-ansible-43-ansible
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}/${{ env.TOOLING_IMAGE_NAME }}
           tags: |
             type=raw,value=latest
             type=sha,format=long
