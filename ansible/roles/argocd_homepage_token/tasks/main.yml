@@ -84,19 +84,30 @@
         namespace: "{{ argocd_homepage_token_namespace }}"
       register: argocd_homepage_token_admin_secret
 
+    - name: Assert argocd admin secret exists
+      ansible.builtin.assert:
+        that:
+          - argocd_homepage_token_admin_secret.resources is defined
+          - argocd_homepage_token_admin_secret.resources | length > 0
+          - argocd_homepage_token_admin_secret.resources[0].data.password is defined
+        fail_msg: "argocd-initial-admin-secret not found or does not contain password field"
+
     - name: Decode argocd admin password
       ansible.builtin.set_fact:
         argocd_homepage_token_admin_password: "{{ argocd_homepage_token_admin_secret.resources[0].data.password | b64decode }}"
 
     - name: Login to Argo CD API
-      ansible.builtin.command:
+      ansible.builtin.shell:
         cmd: >-
           argocd login {{ argocd_homepage_token_server_url | regex_replace('^https?://', '') }}
           --username admin
-          --password {{ argocd_homepage_token_admin_password }}
+          --password "${ARGOCD_PASSWORD}"
           --insecure
+      environment:
+        ARGOCD_PASSWORD: "{{ argocd_homepage_token_admin_password }}"
       register: argocd_homepage_token_login
       changed_when: false
+      no_log: true
 
     - name: Create homepage account token in Argo CD
       ansible.builtin.command:
