@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homepage-proxmox-config
+  namespace: {{ homepage_deploy_namespace }}
+data:
+  proxmox.yaml: |
+    {{ homepage_deploy_proxmox_node_name }}:
+      url: {{ homepage_deploy_proxmox_url }}
+      username: {{ homepage_deploy_proxmox_username }}
+      password: {{ homepage_deploy_proxmox_secret }}

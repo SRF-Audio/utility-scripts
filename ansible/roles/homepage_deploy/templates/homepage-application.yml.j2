@@ -76,6 +76,17 @@ spec:
           main:
             enabled: false
 
+{% if homepage_deploy_proxmox_url | length > 0 and homepage_deploy_proxmox_username | length > 0 and homepage_deploy_proxmox_secret | length > 0 %}
+        persistence:
+          proxmox:
+            enabled: true
+            type: configMap
+            name: homepage-proxmox-config
+            mountPath: /app/config/proxmox.yaml
+            subPath: proxmox.yaml
+            readOnly: true
+{% endif %}
+
         env:
           - name: HOMEPAGE_ALLOWED_HOSTS
             value: "homepage.rohu-shark.ts.net"

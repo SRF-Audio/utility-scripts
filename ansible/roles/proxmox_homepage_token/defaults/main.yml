@@ -1,0 +1,9 @@
+proxmox_homepage_token_user: api@pam
+proxmox_homepage_token_group: api-ro-users
+proxmox_homepage_token_role: PVEAuditor
+proxmox_homepage_token_id: homepage
+proxmox_homepage_token_1p_vault: coachlight-homelab
+proxmox_homepage_token_1p_item_title: proxmox-homepage-token
+proxmox_homepage_token_url: "https://{{ hostvars[groups['proxmox'][0]].ansible_host }}:8006"
+proxmox_homepage_token_primary_node: "{{ groups['proxmox'][0] }}"
+proxmox_homepage_token_artifacts_path: "{{ artifacts_path }}"
