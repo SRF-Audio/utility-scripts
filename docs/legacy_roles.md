@@ -15,7 +15,7 @@ This document catalogs all legacy roles under `ansible/old_roles` and tracks whe
 
 ## audio_tools_install
 
-**Path:** `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/audio_tools_install`
+**Path:** `ansible/old_roles/audio_tools_install`
 
 ### Structure
 
@@ -23,7 +23,7 @@ This document catalogs all legacy roles under `ansible/old_roles` and tracks whe
 - `tasks/`
 
 **Task Files:**
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/audio_tools_install/tasks/main.yml`
+- `ansible/old_roles/audio_tools_install/tasks/main.yml`
 
 ### Task File Responsibilities
 
@@ -35,7 +35,7 @@ This document catalogs all legacy roles under `ansible/old_roles` and tracks whe
 ### References
 
 **Playbooks:**
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/playbooks/audio-production.yml:7` - Listed in `roles:` section
+- `ansible/playbooks/audio-production.yml:7` - Listed in `roles:` section
 
 **Roles:**
 - No references found in other roles
@@ -70,7 +70,7 @@ This document catalogs all legacy roles under `ansible/old_roles` and tracks whe
 
 ## fedora
 
-**Path:** `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/fedora`
+**Path:** `ansible/old_roles/fedora`
 
 ### Structure
 
@@ -78,7 +78,7 @@ This document catalogs all legacy roles under `ansible/old_roles` and tracks whe
 - `tasks/`
 
 **Task Files:**
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/fedora/tasks/main.yml`
+- `ansible/old_roles/fedora/tasks/main.yml`
 
 ### Task File Responsibilities
 
@@ -111,7 +111,7 @@ This document catalogs all legacy roles under `ansible/old_roles` and tracks whe
 
 ## git_repo_setup
 
-**Path:** `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/git_repo_setup`
+**Path:** `ansible/old_roles/git_repo_setup`
 
 ### Structure
 
@@ -120,12 +120,12 @@ This document catalogs all legacy roles under `ansible/old_roles` and tracks whe
 - `files/`
 
 **Task Files:**
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/git_repo_setup/tasks/main.yml`
+- `ansible/old_roles/git_repo_setup/tasks/main.yml`
 
 **Template/Files:**
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/git_repo_setup/files/gitconfig-github.tpl`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/git_repo_setup/files/gitconfig-gitlab.tpl`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/git_repo_setup/files/gitconfig.tpl`
+- `ansible/old_roles/git_repo_setup/files/gitconfig-github.tpl`
+- `ansible/old_roles/git_repo_setup/files/gitconfig-gitlab.tpl`
+- `ansible/old_roles/git_repo_setup/files/gitconfig.tpl`
 
 ### Task File Responsibilities
 
@@ -172,7 +172,7 @@ This document catalogs all legacy roles under `ansible/old_roles` and tracks whe
 
 ## proxmox
 
-**Path:** `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox`
+**Path:** `ansible/old_roles/proxmox`
 
 ### Structure
 
@@ -182,21 +182,21 @@ This document catalogs all legacy roles under `ansible/old_roles` and tracks whe
 - `files/`
 
 **Task Files:**
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox/tasks/main.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox/tasks/users.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox/tasks/storage.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox/tasks/proxmox-module-prereqs.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox/tasks/coreos-download.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox/tasks/coreos-vm-templating.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox/tasks/control-plane-1-create.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox/tasks/control-planes-2-3-create-join.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox/tasks/workers-create.yml`
+- `ansible/old_roles/proxmox/tasks/main.yml`
+- `ansible/old_roles/proxmox/tasks/users.yml`
+- `ansible/old_roles/proxmox/tasks/storage.yml`
+- `ansible/old_roles/proxmox/tasks/proxmox-module-prereqs.yml`
+- `ansible/old_roles/proxmox/tasks/coreos-download.yml`
+- `ansible/old_roles/proxmox/tasks/coreos-vm-templating.yml`
+- `ansible/old_roles/proxmox/tasks/control-plane-1-create.yml`
+- `ansible/old_roles/proxmox/tasks/control-planes-2-3-create-join.yml`
+- `ansible/old_roles/proxmox/tasks/workers-create.yml`
 
 **Template/Files:**
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox/files/coredns-config.yaml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox/files/fcos-k3s-ha-control-join.bu.j2`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox/files/fcos-k3s-ha-control.bu.j2`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox/files/fcos-k3s-worker.bu.j2`
+- `ansible/old_roles/proxmox/files/coredns-config.yaml`
+- `ansible/old_roles/proxmox/files/fcos-k3s-ha-control-join.bu.j2`
+- `ansible/old_roles/proxmox/files/fcos-k3s-ha-control.bu.j2`
+- `ansible/old_roles/proxmox/files/fcos-k3s-worker.bu.j2`
 
 ### Task File Responsibilities
 
@@ -240,7 +240,7 @@ This document catalogs all legacy roles under `ansible/old_roles` and tracks whe
 ### References
 
 **Playbooks:**
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/playbooks/proxmox.yml:99` - Listed in `roles:` section for "Coachlight Homelab Proxmox Cluster Config" play
+- `ansible/playbooks/proxmox.yml:99` - Listed in `roles:` section for "Coachlight Homelab Proxmox Cluster Config" play
 
 **Roles:**
 - No references found in other roles
@@ -302,7 +302,7 @@ This document catalogs all legacy roles under `ansible/old_roles` and tracks whe
 
 ## proxmox_cluster_prep
 
-**Path:** `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox_cluster_prep`
+**Path:** `ansible/old_roles/proxmox_cluster_prep`
 
 ### Structure
 
@@ -313,19 +313,19 @@ This document catalogs all legacy roles under `ansible/old_roles` and tracks whe
 - `handlers/`
 
 **Task Files:**
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox_cluster_prep/tasks/main.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox_cluster_prep/tasks/repo-setup.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox_cluster_prep/tasks/package-install.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox_cluster_prep/tasks/hosts-mod.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox_cluster_prep/tasks/ssh-trust.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox_cluster_prep/tasks/create-sfroeber.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox_cluster_prep/tasks/cluster-setup.yml`
+- `ansible/old_roles/proxmox_cluster_prep/tasks/main.yml`
+- `ansible/old_roles/proxmox_cluster_prep/tasks/repo-setup.yml`
+- `ansible/old_roles/proxmox_cluster_prep/tasks/package-install.yml`
+- `ansible/old_roles/proxmox_cluster_prep/tasks/hosts-mod.yml`
+- `ansible/old_roles/proxmox_cluster_prep/tasks/ssh-trust.yml`
+- `ansible/old_roles/proxmox_cluster_prep/tasks/create-sfroeber.yml`
+- `ansible/old_roles/proxmox_cluster_prep/tasks/cluster-setup.yml`
 
 **Handlers:**
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox_cluster_prep/handlers/main.yml`
+- `ansible/old_roles/proxmox_cluster_prep/handlers/main.yml`
 
 **Template/Files:**
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/proxmox_cluster_prep/files/hosts.j2`
+- `ansible/old_roles/proxmox_cluster_prep/files/hosts.j2`
 
 ### Task File Responsibilities
 
@@ -370,7 +370,7 @@ This document catalogs all legacy roles under `ansible/old_roles` and tracks whe
 ### References
 
 **Playbooks:**
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/playbooks/proxmox.yml:37` - Listed in `roles:` section for "Bootstrap the nodes that failed the probe" play
+- `ansible/playbooks/proxmox.yml:37` - Listed in `roles:` section for "Bootstrap the nodes that failed the probe" play
 
 **Roles:**
 - No references found in other roles
@@ -385,7 +385,7 @@ This document catalogs all legacy roles under `ansible/old_roles` and tracks whe
 - **No variable prefixing**: Uses unprefixed variables like `proxmox_cluster_name`
 - **Inventory coupling**: Relies on inventory group names like `proxmox`, `proxmox_primary`
 - **No artifacts**: Does not expose cluster information as artifacts
-- **Template location**: Uses role_path in template src which is fine, but file is in files/ not templates/
+- **Template location**: Jinja2 template (hosts.j2) is in files/ directory; Ansible best practice is to use templates/ directory for .j2 files
 - **Hard-coded credentials**: Password and SSH key locations are hard-coded
 - **Security concerns**: Stores private keys on multiple systems without clear lifecycle management
 
@@ -438,7 +438,7 @@ This document catalogs all legacy roles under `ansible/old_roles` and tracks whe
 
 ## workstation_prep
 
-**Path:** `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/workstation_prep`
+**Path:** `ansible/old_roles/workstation_prep`
 
 ### Structure
 
@@ -447,17 +447,17 @@ This document catalogs all legacy roles under `ansible/old_roles` and tracks whe
 - `vars/`
 
 **Task Files:**
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/workstation_prep/tasks/main.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/workstation_prep/tasks/standard-distros.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/workstation_prep/tasks/immutable-distros.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/workstation_prep/tasks/1password.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/workstation_prep/tasks/flatpak.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/workstation_prep/tasks/kde-setup.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/workstation_prep/tasks/productivity-apps.yml`
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/workstation_prep/tasks/vs-code.yml`
+- `ansible/old_roles/workstation_prep/tasks/main.yml`
+- `ansible/old_roles/workstation_prep/tasks/standard-distros.yml`
+- `ansible/old_roles/workstation_prep/tasks/immutable-distros.yml`
+- `ansible/old_roles/workstation_prep/tasks/1password.yml`
+- `ansible/old_roles/workstation_prep/tasks/flatpak.yml`
+- `ansible/old_roles/workstation_prep/tasks/kde-setup.yml`
+- `ansible/old_roles/workstation_prep/tasks/productivity-apps.yml`
+- `ansible/old_roles/workstation_prep/tasks/vs-code.yml`
 
 **Vars:**
-- `/home/runner/work/utility-scripts/utility-scripts/ansible/old_roles/workstation_prep/vars/1password.yml` (Ansible Vault encrypted)
+- `ansible/old_roles/workstation_prep/vars/1password.yml` (Ansible Vault encrypted)
 
 ### Task File Responsibilities
 
