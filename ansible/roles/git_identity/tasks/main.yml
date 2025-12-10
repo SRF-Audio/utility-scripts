@@ -1,0 +1,253 @@
+---
+- name: Assert required variables are defined
+  ansible.builtin.assert:
+    that:
+      - git_identity_user_name is defined
+      - git_identity_user_name | length > 0
+      - git_identity_user_email_github is defined
+      - git_identity_user_email_github | length > 0
+      - git_identity_user_email_gitlab is defined
+      - git_identity_user_email_gitlab | length > 0
+      - git_identity_github_signing_pubkey_item is defined
+      - git_identity_github_signing_pubkey_item | length > 0
+      - git_identity_op_service_account_token is defined
+      - git_identity_op_service_account_token | length > 0
+    fail_msg: Required git_identity variables must be defined and non-empty.
+
+- name: Parse 1Password item reference for GitHub SSH signing key
+  ansible.builtin.set_fact:
+    git_identity_op_vault_name: "{{ git_identity_github_signing_pubkey_item.split('/')[0] }}"
+    git_identity_op_item_name: "{{ git_identity_github_signing_pubkey_item.split('/')[1] }}"
+
+- name: Retrieve GitHub SSH signing public key from 1Password
+  ansible.builtin.include_role:
+    name: op_read
+  vars:
+    op_read_items:
+      - vault_name: "{{ git_identity_op_vault_name }}"
+        item_name: "{{ git_identity_op_item_name }}"
+        field_name: public key
+    op_read_op_service_account_token: "{{ git_identity_op_service_account_token }}"
+    op_read_artifacts_path: "{{ git_identity_artifacts_path }}"
+
+- name: Set GitHub SSH signing public key from 1Password
+  ansible.builtin.set_fact:
+    git_identity_github_signing_pubkey: "{{ op_read_artifacts.items[0].value }}"
+
+- name: Assert GitHub SSH signing key is present
+  ansible.builtin.assert:
+    that:
+      - git_identity_github_signing_pubkey is defined
+      - git_identity_github_signing_pubkey | length > 0
+    fail_msg: GitHub SSH signing public key must be retrieved from 1Password.
+
+- name: Create GitHub root directory
+  ansible.builtin.file:
+    path: "{{ git_identity_github_root }}"
+    state: directory
+    mode: "0755"
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_gid }}"
+
+- name: Create GitLab root directory
+  ansible.builtin.file:
+    path: "{{ git_identity_gitlab_root }}"
+    state: directory
+    mode: "0755"
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_gid }}"
+
+- name: Ensure .gitconfig exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.gitconfig"
+    state: touch
+    mode: "0644"
+    modification_time: preserve
+    access_time: preserve
+
+- name: Add includeIf blocks to .gitconfig
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.gitconfig"
+    marker: "# {mark} GIT_IDENTITY MANAGED BLOCK"
+    block: |
+      [includeIf "gitdir:~/GitHub/"]
+          path = ~/.gitconfig-github
+      [includeIf "gitdir:~/GitLab/"]
+          path = ~/.gitconfig-gitlab
+    create: false
+
+- name: Create .gitconfig-github
+  ansible.builtin.copy:
+    dest: "{{ ansible_env.HOME }}/.gitconfig-github"
+    mode: "0644"
+    content: |
+      [user]
+          name = {{ git_identity_user_name }}
+          email = {{ git_identity_user_email_github }}
+          signingkey = {{ git_identity_github_signing_pubkey }}
+      [gpg]
+          format = ssh
+      [gpg "ssh"]
+          allowedSignersFile = {{ git_identity_allowed_signers_path }}
+      [commit]
+          gpgsign = {{ 'true' if git_identity_enable_github_signing else 'false' }}
+
+- name: Create .gitconfig-gitlab
+  ansible.builtin.copy:
+    dest: "{{ ansible_env.HOME }}/.gitconfig-gitlab"
+    mode: "0644"
+    content: |
+      [user]
+          name = {{ git_identity_user_name }}
+          email = {{ git_identity_user_email_gitlab }}
+      {% if git_identity_enable_gitlab_signing %}
+      [gpg]
+          format = ssh
+      [gpg "ssh"]
+          allowedSignersFile = {{ git_identity_allowed_signers_path }}
+      {% endif %}
+      [commit]
+          gpgsign = {{ 'true' if git_identity_enable_gitlab_signing else 'false' }}
+
+- name: Ensure .config/git directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.config/git"
+    state: directory
+    mode: "0755"
+
+- name: Create allowed_signers file
+  ansible.builtin.file:
+    path: "{{ git_identity_allowed_signers_path }}"
+    state: touch
+    mode: "0600"
+    modification_time: preserve
+    access_time: preserve
+
+- name: Add GitHub signing key to allowed_signers
+  ansible.builtin.lineinfile:
+    path: "{{ git_identity_allowed_signers_path }}"
+    regexp: "^{{ git_identity_user_email_github | regex_escape }} "
+    line: "{{ git_identity_user_email_github }} {{ git_identity_github_signing_pubkey }}"
+
+- name: Verify includeIf blocks in global config
+  ansible.builtin.command:
+    cmd: git config --global --get-regexp '^includeIf\.'
+  register: git_identity_includeif_check
+  changed_when: false
+  failed_when: false
+
+- name: Assert includeIf blocks are present
+  ansible.builtin.assert:
+    that:
+      - "'includeIf' in git_identity_includeif_check.stdout"
+      - "'GitHub' in git_identity_includeif_check.stdout"
+      - "'GitLab' in git_identity_includeif_check.stdout"
+    fail_msg: includeIf blocks for GitHub and GitLab must be present in .gitconfig
+
+- name: Verify GitHub email configuration
+  ansible.builtin.command:
+    cmd: git config --file ~/.gitconfig-github --get user.email
+  register: git_identity_github_email_check
+  changed_when: false
+
+- name: Assert GitHub email matches configuration
+  ansible.builtin.assert:
+    that:
+      - git_identity_github_email_check.stdout == git_identity_user_email_github
+    fail_msg: GitHub email in .gitconfig-github must match git_identity_user_email_github
+
+- name: Verify GitHub signing key configuration
+  ansible.builtin.command:
+    cmd: git config --file ~/.gitconfig-github --get user.signingkey
+  register: git_identity_github_signingkey_check
+  changed_when: false
+
+- name: Assert GitHub signing key matches configuration
+  ansible.builtin.assert:
+    that:
+      - git_identity_github_signingkey_check.stdout == git_identity_github_signing_pubkey
+    fail_msg: GitHub signing key in .gitconfig-github must match retrieved key from 1Password
+
+- name: Verify GitLab email configuration
+  ansible.builtin.command:
+    cmd: git config --file ~/.gitconfig-gitlab --get user.email
+  register: git_identity_gitlab_email_check
+  changed_when: false
+
+- name: Assert GitLab email matches configuration
+  ansible.builtin.assert:
+    that:
+      - git_identity_gitlab_email_check.stdout == git_identity_user_email_gitlab
+    fail_msg: GitLab email in .gitconfig-gitlab must match git_identity_user_email_gitlab
+
+- name: Run validation tests for signing
+  when: git_identity_run_validation_tests and git_identity_enable_github_signing
+  block:
+    - name: Create temporary test directory under GitHub root
+      ansible.builtin.file:
+        path: "{{ git_identity_github_root }}/.git_identity_test"
+        state: directory
+        mode: "0755"
+
+    - name: Initialize test git repository
+      ansible.builtin.command:
+        cmd: git init .
+        chdir: "{{ git_identity_github_root }}/.git_identity_test"
+      args:
+        creates: "{{ git_identity_github_root }}/.git_identity_test/.git"
+
+    - name: Configure test repository user name
+      ansible.builtin.command:
+        cmd: git config user.name "{{ git_identity_user_name }}"
+        chdir: "{{ git_identity_github_root }}/.git_identity_test"
+      changed_when: false
+
+    - name: Configure test repository user email
+      ansible.builtin.command:
+        cmd: git config user.email "{{ git_identity_user_email_github }}"
+        chdir: "{{ git_identity_github_root }}/.git_identity_test"
+      changed_when: false
+
+    - name: Create empty test commit
+      ansible.builtin.command:
+        cmd: git commit --allow-empty -m "git_identity signing test"
+        chdir: "{{ git_identity_github_root }}/.git_identity_test"
+      register: git_identity_test_commit
+      changed_when: false
+      failed_when: false
+
+    - name: Verify test commit signature
+      ansible.builtin.command:
+        cmd: git log --show-signature -1
+        chdir: "{{ git_identity_github_root }}/.git_identity_test"
+      register: git_identity_test_signature
+      changed_when: false
+      failed_when: false
+
+    - name: Assert signing is working
+      ansible.builtin.assert:
+        that:
+          - git_identity_test_commit.rc == 0
+          - git_identity_test_signature.rc == 0
+          - "'signature' in git_identity_test_signature.stdout.lower() or 'signature' in git_identity_test_signature.stderr.lower()"
+        fail_msg: SSH commit signing test failed. Check that the public key is correctly configured.
+
+- name: Set git_identity artifacts
+  ansible.builtin.set_fact:
+    git_identity_artifacts:
+      github_root: "{{ git_identity_github_root }}"
+      gitlab_root: "{{ git_identity_gitlab_root }}"
+      github_email: "{{ git_identity_user_email_github }}"
+      gitlab_email: "{{ git_identity_user_email_gitlab }}"
+      signing_enabled_github: "{{ git_identity_enable_github_signing }}"
+      signing_enabled_gitlab: "{{ git_identity_enable_gitlab_signing }}"
+      allowed_signers_path: "{{ git_identity_allowed_signers_path }}"
+
+- name: Pass role artifacts for git_identity
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    role_artifacts_path: "{{ git_identity_artifacts_path }}"
+    calling_role_name: git_identity
+    # noqa: var-naming
+    calling_role_artifacts_inputs: "{{ git_identity_artifacts }}"
