@@ -45,6 +45,10 @@ argument_specs:
         type: bool
         required: false
         description: Enable SSH commit signing for GitLab repositories.
+      git_identity_gitlab_signing_pubkey_item:
+        type: str
+        required: false
+        description: 1Password item reference for GitLab SSH signing public key.
       git_identity_run_validation_tests:
         type: bool
         required: false

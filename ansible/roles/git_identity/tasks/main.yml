@@ -41,6 +41,43 @@
       - git_identity_github_signing_pubkey | length > 0
     fail_msg: GitHub SSH signing public key must be retrieved from 1Password.
 
+- name: Retrieve GitLab SSH signing key when signing is enabled
+  when: git_identity_enable_gitlab_signing
+  block:
+    - name: Assert GitLab signing key item reference is provided
+      ansible.builtin.assert:
+        that:
+          - git_identity_gitlab_signing_pubkey_item is defined
+          - git_identity_gitlab_signing_pubkey_item | length > 0
+        fail_msg: git_identity_gitlab_signing_pubkey_item must be provided when GitLab signing is enabled.
+
+    - name: Parse 1Password item reference for GitLab SSH signing key
+      ansible.builtin.set_fact:
+        git_identity_gitlab_op_vault_name: "{{ git_identity_gitlab_signing_pubkey_item.split('/')[0] }}"
+        git_identity_gitlab_op_item_name: "{{ git_identity_gitlab_signing_pubkey_item.split('/')[1] }}"
+
+    - name: Retrieve GitLab SSH signing public key from 1Password
+      ansible.builtin.include_role:
+        name: op_read
+      vars:
+        op_read_items:
+          - vault_name: "{{ git_identity_gitlab_op_vault_name }}"
+            item_name: "{{ git_identity_gitlab_op_item_name }}"
+            field_name: public key
+        op_read_op_service_account_token: "{{ git_identity_op_service_account_token }}"
+        op_read_artifacts_path: "{{ git_identity_artifacts_path }}"
+
+    - name: Set GitLab SSH signing public key from 1Password
+      ansible.builtin.set_fact:
+        git_identity_gitlab_signing_pubkey: "{{ op_read_artifacts.items[0].value }}"
+
+    - name: Assert GitLab SSH signing key is present
+      ansible.builtin.assert:
+        that:
+          - git_identity_gitlab_signing_pubkey is defined
+          - git_identity_gitlab_signing_pubkey | length > 0
+        fail_msg: GitLab SSH signing public key must be retrieved from 1Password.
+
 - name: Create GitHub root directory
   ansible.builtin.file:
     path: "{{ git_identity_github_root }}"
@@ -101,6 +138,7 @@
           name = {{ git_identity_user_name }}
           email = {{ git_identity_user_email_gitlab }}
       {% if git_identity_enable_gitlab_signing %}
+          signingkey = {{ git_identity_gitlab_signing_pubkey }}
       [gpg]
           format = ssh
       [gpg "ssh"]
@@ -128,6 +166,13 @@
     path: "{{ git_identity_allowed_signers_path }}"
     regexp: "^{{ git_identity_user_email_github | regex_escape }} "
     line: "{{ git_identity_user_email_github }} {{ git_identity_github_signing_pubkey }}"
+
+- name: Add GitLab signing key to allowed_signers
+  when: git_identity_enable_gitlab_signing
+  ansible.builtin.lineinfile:
+    path: "{{ git_identity_allowed_signers_path }}"
+    regexp: "^{{ git_identity_user_email_gitlab | regex_escape }} "
+    line: "{{ git_identity_user_email_gitlab }} {{ git_identity_gitlab_signing_pubkey }}"
 
 - name: Verify includeIf blocks in global config
   ansible.builtin.command:
