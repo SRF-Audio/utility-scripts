@@ -73,6 +73,9 @@ jobs:
             -v ${{ github.workspace }}:/workspace
             --pull=always
           run: |
+            cd ansible
+            ansible-galaxy collection install -r requirements.yml
+            cd /workspace
             pip install --quiet ansible-lint
             echo "Running ansible-lint on roles and playbooks..."
             ansible-lint ansible/playbooks/ ansible/roles/ ansible/site.yml --exclude ansible/old_roles/
@@ -119,5 +122,8 @@ jobs:
             -v ${{ github.workspace }}:/workspace
             --pull=always
           run: |
+            cd ansible
+            ansible-galaxy collection install -r requirements.yml
+            cd /workspace
             echo "Checking syntax for ${{ matrix.playbook }}..."
             ansible-playbook ${{ matrix.playbook }} --syntax-check
