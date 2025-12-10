@@ -11,3 +11,8 @@ homepage_deploy_application_name: homepage
 homepage_deploy_ingress_templates_root: "{{ role_path }}/templates/ingresses"
 
 homepage_deploy_artifacts_path: "{{ artifacts_path }}"
+
+homepage_deploy_proxmox_node_name: "{{ groups['proxmox'][0] | default('pve') }}"
+homepage_deploy_proxmox_url: ""
+homepage_deploy_proxmox_username: ""
+homepage_deploy_proxmox_secret: ""

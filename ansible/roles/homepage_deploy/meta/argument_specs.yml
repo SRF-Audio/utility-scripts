@@ -28,3 +28,19 @@ argument_specs:
       homepage_deploy_artifacts_path:
         type: str
         required: false
+      homepage_deploy_proxmox_node_name:
+        type: str
+        required: false
+        description: Proxmox node name for the widget configuration.
+      homepage_deploy_proxmox_url:
+        type: str
+        required: false
+        description: Proxmox API URL.
+      homepage_deploy_proxmox_username:
+        type: str
+        required: false
+        description: Proxmox API username (user@realm!tokenid).
+      homepage_deploy_proxmox_secret:
+        type: str
+        required: false
+        description: Proxmox API token secret.

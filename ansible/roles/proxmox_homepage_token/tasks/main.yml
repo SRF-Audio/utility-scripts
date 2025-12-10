@@ -1,0 +1,174 @@
+- name: Ensure 1Password vault exists for {{ proxmox_homepage_token_1p_vault }}
+  ansible.builtin.include_role:
+    name: op_vault_validator
+  vars:
+    op_vault_validator_vault_name: "{{ proxmox_homepage_token_1p_vault }}"
+    op_vault_validator_op_service_account_token: "{{ proxmox_homepage_token_op_service_account_token }}"
+    op_vault_validator_artifacts_path: "{{ proxmox_homepage_token_artifacts_path }}/op_vault_validator"
+
+- name: Initialize proxmox_homepage_token facts
+  ansible.builtin.set_fact:
+    proxmox_homepage_token_url_value: ""
+    proxmox_homepage_token_username_value: ""
+    proxmox_homepage_token_secret_value: ""
+    proxmox_homepage_token_exists: false
+
+- name: Check if 1Password item {{ proxmox_homepage_token_1p_item_title }} exists
+  ansible.builtin.command:
+    cmd: >-
+      op item get {{ proxmox_homepage_token_1p_item_title }}
+      --vault {{ proxmox_homepage_token_1p_vault }}
+      --format json
+  environment:
+    OP_SERVICE_ACCOUNT_TOKEN: "{{ proxmox_homepage_token_op_service_account_token }}"
+  register: proxmox_homepage_token_1p_item_check
+  changed_when: false
+  failed_when: false
+
+- name: Read existing token from 1Password when item exists
+  ansible.builtin.include_role:
+    name: op_read
+  vars:
+    op_read_items:
+      - vault_name: "{{ proxmox_homepage_token_1p_vault }}"
+        item_name: "{{ proxmox_homepage_token_1p_item_title }}"
+        field_name: url
+      - vault_name: "{{ proxmox_homepage_token_1p_vault }}"
+        item_name: "{{ proxmox_homepage_token_1p_item_title }}"
+        field_name: username
+      - vault_name: "{{ proxmox_homepage_token_1p_vault }}"
+        item_name: "{{ proxmox_homepage_token_1p_item_title }}"
+        field_name: credential
+    op_read_op_service_account_token: "{{ proxmox_homepage_token_op_service_account_token }}"
+    op_read_artifacts_path: "{{ proxmox_homepage_token_artifacts_path }}/op_read"
+  when: proxmox_homepage_token_1p_item_check.rc == 0
+
+- name: Set facts from existing 1Password item when present
+  ansible.builtin.set_fact:
+    proxmox_homepage_token_url_value: "{{ op_read_artifacts.items | selectattr('field_name', 'equalto', 'url') | map(attribute='value') | first }}"
+    proxmox_homepage_token_username_value: "{{ op_read_artifacts.items | selectattr('field_name', 'equalto', 'username') | map(attribute='value') | first }}"
+    proxmox_homepage_token_secret_value: "{{ op_read_artifacts.items | selectattr('field_name', 'equalto', 'credential') | map(attribute='value') | first }}"
+    proxmox_homepage_token_exists: true
+  when: proxmox_homepage_token_1p_item_check.rc == 0
+
+- name: Ensure Proxmox group {{ proxmox_homepage_token_group }} exists
+  ansible.builtin.command:
+    cmd: pveum group add {{ proxmox_homepage_token_group }}
+  delegate_to: "{{ proxmox_homepage_token_primary_node }}"
+  register: proxmox_homepage_token_group_add
+  changed_when: "'already exists' not in proxmox_homepage_token_group_add.stderr"
+  failed_when:
+    - proxmox_homepage_token_group_add.rc != 0
+    - "'already exists' not in proxmox_homepage_token_group_add.stderr"
+  when: proxmox_homepage_token_1p_item_check.rc != 0
+
+- name: Ensure Proxmox user {{ proxmox_homepage_token_user }} exists
+  ansible.builtin.command:
+    cmd: pveum user add {{ proxmox_homepage_token_user }}
+  delegate_to: "{{ proxmox_homepage_token_primary_node }}"
+  register: proxmox_homepage_token_user_add
+  changed_when: "'already exists' not in proxmox_homepage_token_user_add.stderr"
+  failed_when:
+    - proxmox_homepage_token_user_add.rc != 0
+    - "'already exists' not in proxmox_homepage_token_user_add.stderr"
+  when: proxmox_homepage_token_1p_item_check.rc != 0
+
+- name: Add user {{ proxmox_homepage_token_user }} to group {{ proxmox_homepage_token_group }}
+  ansible.builtin.command:
+    cmd: pveum user modify {{ proxmox_homepage_token_user }} -group {{ proxmox_homepage_token_group }}
+  delegate_to: "{{ proxmox_homepage_token_primary_node }}"
+  register: proxmox_homepage_token_user_modify
+  changed_when: true
+  when: proxmox_homepage_token_1p_item_check.rc != 0
+
+- name: Set ACL for group {{ proxmox_homepage_token_group }} with role {{ proxmox_homepage_token_role }}
+  ansible.builtin.command:
+    cmd: >-
+      pveum acl modify /
+      -group {{ proxmox_homepage_token_group }}
+      -role {{ proxmox_homepage_token_role }}
+      -propagate 1
+  delegate_to: "{{ proxmox_homepage_token_primary_node }}"
+  register: proxmox_homepage_token_acl_modify
+  changed_when: true
+  when: proxmox_homepage_token_1p_item_check.rc != 0
+
+- name: Check if API token {{ proxmox_homepage_token_user }}!{{ proxmox_homepage_token_id }} exists
+  ansible.builtin.command:
+    cmd: pveum user token list {{ proxmox_homepage_token_user }}
+  delegate_to: "{{ proxmox_homepage_token_primary_node }}"
+  register: proxmox_homepage_token_list
+  changed_when: false
+  when: proxmox_homepage_token_1p_item_check.rc != 0
+
+- name: Remove existing API token {{ proxmox_homepage_token_user }}!{{ proxmox_homepage_token_id }} if present
+  ansible.builtin.command:
+    cmd: pveum user token remove {{ proxmox_homepage_token_user }} {{ proxmox_homepage_token_id }}
+  delegate_to: "{{ proxmox_homepage_token_primary_node }}"
+  register: proxmox_homepage_token_remove
+  changed_when: true
+  when:
+    - proxmox_homepage_token_1p_item_check.rc != 0
+    - proxmox_homepage_token_list.stdout is defined
+    - proxmox_homepage_token_id in proxmox_homepage_token_list.stdout
+
+- name: Create API token {{ proxmox_homepage_token_user }}!{{ proxmox_homepage_token_id }} with privsep
+  ansible.builtin.command:
+    cmd: pveum user token add {{ proxmox_homepage_token_user }} {{ proxmox_homepage_token_id }} --privsep 1 --output-format json
+  delegate_to: "{{ proxmox_homepage_token_primary_node }}"
+  register: proxmox_homepage_token_create
+  changed_when: true
+  when: proxmox_homepage_token_1p_item_check.rc != 0
+
+- name: Parse token creation output when token was created
+  ansible.builtin.set_fact:
+    proxmox_homepage_token_secret_new: "{{ (proxmox_homepage_token_create.stdout | from_json).value }}"
+  when:
+    - proxmox_homepage_token_1p_item_check.rc != 0
+    - proxmox_homepage_token_create is defined
+    - proxmox_homepage_token_create.stdout is defined
+
+- name: Create 1Password item for new token
+  ansible.builtin.include_role:
+    name: op_item_create
+  vars:
+    op_item_create_vault_name: "{{ proxmox_homepage_token_1p_vault }}"
+    op_item_create_op_service_account_token: "{{ proxmox_homepage_token_op_service_account_token }}"
+    op_item_create_artifacts_path: "{{ proxmox_homepage_token_artifacts_path }}/op_item_create"
+    op_item_create_items:
+      - name: "{{ proxmox_homepage_token_1p_item_title }}"
+        category: api_credential
+        url: "{{ proxmox_homepage_token_url }}"
+        tags:
+          - ansible_managed
+          - proxmox
+          - homepage
+        fields:
+          username[text]: "{{ proxmox_homepage_token_user }}!{{ proxmox_homepage_token_id }}"
+          credential[concealed]: "{{ proxmox_homepage_token_secret_new }}"
+  when: proxmox_homepage_token_1p_item_check.rc != 0
+
+- name: Set facts from newly created token
+  ansible.builtin.set_fact:
+    proxmox_homepage_token_url_value: "{{ proxmox_homepage_token_url }}"
+    proxmox_homepage_token_username_value: "{{ proxmox_homepage_token_user }}!{{ proxmox_homepage_token_id }}"
+    proxmox_homepage_token_secret_value: "{{ proxmox_homepage_token_secret_new }}"
+    proxmox_homepage_token_exists: true
+  when: proxmox_homepage_token_1p_item_check.rc != 0
+
+- name: Build proxmox_homepage_token_artifacts
+  ansible.builtin.set_fact:
+    proxmox_homepage_token_artifacts:
+      url: "{{ proxmox_homepage_token_url_value }}"
+      username: "{{ proxmox_homepage_token_username_value }}"
+      secret: "{{ proxmox_homepage_token_secret_value }}"
+      exists: "{{ proxmox_homepage_token_exists }}"
+
+- name: Record proxmox_homepage_token artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    # noqa: var-naming
+    role_artifacts_path: "{{ proxmox_homepage_token_artifacts_path }}"
+    calling_role_name: proxmox_homepage_token
+    calling_role_artifacts_inputs: "{{ proxmox_homepage_token_artifacts }}"

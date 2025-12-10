@@ -3,6 +3,15 @@
     state: present
     definition: "{{ lookup('ansible.builtin.template', 'homepage-application.yml.j2') }}"
 
+- name: Apply Homepage Proxmox ConfigMap when credentials are provided
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('ansible.builtin.template', 'homepage-proxmox-configmap.yml.j2') }}"
+  when:
+    - homepage_deploy_proxmox_url | length > 0
+    - homepage_deploy_proxmox_username | length > 0
+    - homepage_deploy_proxmox_secret | length > 0
+
 - name: Discover Homepage ingress templates
   ansible.builtin.find:
     paths: "{{ homepage_deploy_ingress_templates_root }}"

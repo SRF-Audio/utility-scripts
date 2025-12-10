@@ -1,0 +1,43 @@
+argument_specs:
+  main:
+    options:
+      proxmox_homepage_token_user:
+        type: str
+        required: false
+        description: Proxmox user for Homepage API token (e.g., api@pam).
+      proxmox_homepage_token_group:
+        type: str
+        required: false
+        description: Proxmox group for read-only API access.
+      proxmox_homepage_token_role:
+        type: str
+        required: false
+        description: Proxmox role to assign to the group (e.g., PVEAuditor).
+      proxmox_homepage_token_id:
+        type: str
+        required: false
+        description: Token ID for the Homepage token.
+      proxmox_homepage_token_1p_vault:
+        type: str
+        required: false
+        description: 1Password vault name for storing the token.
+      proxmox_homepage_token_1p_item_title:
+        type: str
+        required: false
+        description: 1Password item title for the token.
+      proxmox_homepage_token_url:
+        type: str
+        required: false
+        description: Proxmox API URL including scheme and port.
+      proxmox_homepage_token_primary_node:
+        type: str
+        required: false
+        description: Primary Proxmox node to run pveum commands on.
+      proxmox_homepage_token_artifacts_path:
+        type: str
+        required: false
+        description: Base path for artifacts output.
+      proxmox_homepage_token_op_service_account_token:
+        type: str
+        required: false
+        description: 1Password service account token for API access.
