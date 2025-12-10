@@ -1,4 +1,3 @@
----
 - name: Check if argocd CLI is installed
   ansible.builtin.include_role:
     name: cli_tester
@@ -12,8 +11,8 @@
     - name: Gather OS facts for argocd CLI installation
       ansible.builtin.setup:
         gather_subset:
-          - '!all'
-          - '!min'
+          - "!all"
+          - "!min"
           - distribution
           - pkg_mgr
       when: ansible_facts.os_family is not defined
@@ -27,13 +26,13 @@
       ansible.builtin.get_url:
         url: "{{ argocd_homepage_token_cli_download_url }}"
         dest: /tmp/argocd
-        mode: '0755'
+        mode: "0755"
 
     - name: Install argocd CLI to /usr/local/bin
       ansible.builtin.copy:
         src: /tmp/argocd
         dest: /usr/local/bin/argocd
-        mode: '0755'
+        mode: "0755"
         remote_src: true
       become: true
 
@@ -71,7 +70,11 @@
 
     - name: Set argocd_homepage_token from 1Password
       ansible.builtin.set_fact:
-        argocd_homepage_token: "{{ op_read_artifacts.items[0].value }}"
+        argocd_homepage_token: >-
+          {{
+            (op_read_artifacts['items'] | default([]) | first).value
+            | default('')
+          }}
 
 - name: Create argocd homepage token when missing
   when: argocd_homepage_token_1p_check.rc != 0
@@ -128,7 +131,7 @@
         op_item_create_vault_name: "{{ argocd_homepage_token_1p_vault_name }}"
         op_item_create_items:
           - name: "{{ argocd_homepage_token_1p_item_name }}"
-            category: api_credential
+            category: "API Credential"
             url: "{{ argocd_homepage_token_server_url }}"
             tags: [ansible_managed, argocd, homepage]
             fields:
