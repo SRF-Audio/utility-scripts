@@ -11,9 +11,10 @@ metadata:
     gethomepage.dev/icon: "argocd.png"
     gethomepage.dev/widget.type: "argocd"
     gethomepage.dev/widget.url: "https://argocd.rohu-shark.ts.net"
+    gethomepage.dev/widget.key: "{{ argocd_homepage_token }}"
 spec:
   rules:
-    - host: argocd
+    - host: argocd.rohu-shark.ts.net
       http:
         paths:
           - path: /

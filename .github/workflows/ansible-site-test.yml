@@ -1,4 +1,4 @@
-name: Ansible Site Test
+name: Homelab – Ansible Site Test
 
 on:
   workflow_dispatch:
@@ -13,14 +13,10 @@ on:
       - "site.yml"
       - ".github/workflows/ansible-site-test.yml"
 
-env:
-  REGISTRY: ghcr.io
-
 jobs:
   ansible-site-test:
     runs-on: ubuntu-latest
     environment: HomeLab Actions
-
     permissions:
       contents: read
       packages: read
@@ -31,24 +27,24 @@ jobs:
         run: |
           echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
+      - name: Set tooling image
+        id: image
+        run: |
+          echo "IMAGE=ghcr.io/${{ steps.normalize.outputs.REPO_LOWER }}/fedora-43-homelab-tooling:latest" >> $GITHUB_OUTPUT
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set container image path
-        id: image
-        run: |
-          echo "IMAGE=ghcr.io/${{ steps.normalize.outputs.REPO_LOWER }}/fedora-ansible-43-ansible:latest" >> $GITHUB_OUTPUT
-
-      - name: Run playbook inside container
+      - name: Run Ansible inside tooling container
         uses: addnab/docker-run-action@v3
         with:
           image: ${{ steps.image.outputs.IMAGE }}
           options: |
+            -v ${{ github.workspace }}:/workspace
             --pull=always
             -e OP_SERVICE_ACCOUNT_TOKEN=${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           run: |
-            pwd
-            tree -aC
+            pwd && ls -la && tree -C
             cd ansible
             ansible-galaxy collection install -r requirements.yml
             ansible-playbook playbooks/op_tester.yml -vv

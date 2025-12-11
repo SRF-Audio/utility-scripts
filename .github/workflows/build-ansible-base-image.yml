@@ -1,21 +1,21 @@
-name: Build Ansible Base Image
+# .github/workflows/build-homelab-tooling-image.yml
+name: Homelab – Build Tooling Image
 
 on:
-  # Run manually when you actually want to rebuild the image
   workflow_dispatch:
-
-  # Optional: rebuild automatically if the Dockerfile or this workflow changes
   push:
     paths:
-      - ".github/docker/fedora-ansible-43.Dockerfile"
-      - ".github/workflows/build-ansible-base-image.yml"
+      - ".github/docker/fedora-43-homelab-tooling.Dockerfile"
+      - ".github/workflows/build-homelab-tooling-image.yml"
+  schedule:
+    - cron: "0 6 1 * *"
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME_LOWER: ${{ toLower(github.repository) }}
+  TOOLING_IMAGE_NAME: fedora-43-homelab-tooling
 
 jobs:
-  build-ansible-base-image:
+  build-and-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -25,6 +25,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Normalize repo name to lowercase
+        id: normalize
+        run: |
+          echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -33,11 +38,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract Docker metadata
-        # This will tag as :latest and :sha-<commit>
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}/fedora-ansible-43-ansible
+          images: ${{ env.REGISTRY }}/${{ steps.normalize.outputs.REPO_LOWER }}/${{ env.TOOLING_IMAGE_NAME }}
           tags: |
             type=raw,value=latest
             type=sha,format=long
@@ -46,7 +50,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: .github/docker/fedora-ansible-43.Dockerfile
+          file: .github/docker/fedora-43-homelab-tooling.Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

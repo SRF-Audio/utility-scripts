@@ -85,6 +85,11 @@
                     'Tailscale',
                     field='proxmox nodes',
                     vault='HomeLab') }}
+        argocd_homepage_token_op_service_account_token: >-
+          {{ lookup('community.general.onepassword',
+                    'Service Account Auth Token: Homelab Playbook',
+                    field='credential',
+                    vault='HomeLab') }}
       run_once: true
 
     - name: Set become vars for this play
