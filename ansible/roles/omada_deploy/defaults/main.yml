@@ -13,7 +13,13 @@ omada_deploy_tailscale_annotations:
   tailscale.com/expose: "true"
   tailscale.com/tags: "tag:k8s,tag:infra-network"
 
-omada_deploy_storage_class_synology: "synology-nfs"
+omada_deploy_storage_class_data: "local-path"
+omada_deploy_storage_class_synology: "synology-csi-nfs-delete"
+
+omada_deploy_logs_enabled: true
+omada_deploy_storage_class_logs: "{{ omada_deploy_storage_class_data }}"
+
+omada_deploy_manage_https_port: 443
 
 omada_deploy_service_type: LoadBalancer
 

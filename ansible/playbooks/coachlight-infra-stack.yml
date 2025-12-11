@@ -62,3 +62,4 @@
     - role: crafty_controller_deploy
       vars:
         crafty_controller_deploy_namespace: apps-crafty-controller
+    - role: omada_deploy
