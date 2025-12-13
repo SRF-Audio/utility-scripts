@@ -14,6 +14,22 @@
       tailscale_operator_deploy_repo_root
       ...must be defined for tailscale_operator_deploy.
 
+- name: Set path to secrets application manifest
+  ansible.builtin.set_fact:
+    tailscale_operator_deploy_secrets_manifest: >-
+      {{ [
+        tailscale_operator_deploy_repo_root,
+        'k8s/tailscale_operator_secrets/application.yml'
+      ] | join('/') }}
+
+- name: Set path to main application manifest
+  ansible.builtin.set_fact:
+    tailscale_operator_deploy_app_manifest: >-
+      {{ [
+        tailscale_operator_deploy_repo_root,
+        'k8s/tailscale_operator/application.yml'
+      ] | join('/') }}
+
 - name: Apply tailscale-operator-secrets Argo CD Application manifest
   ansible.builtin.include_role:
     name: k8s_object_manager
@@ -24,8 +40,7 @@
       {{ tailscale_operator_deploy_context }}
     k8s_object_manager_state: present
     k8s_object_manager_src: >-
-      {{ tailscale_operator_deploy_repo_root }}/k8s/
-      tailscale_operator_secrets/application.yml
+      {{ tailscale_operator_deploy_secrets_manifest }}
 
 - name: Capture k8s_object_manager result for secrets application
   ansible.builtin.set_fact:
@@ -42,8 +57,7 @@
       {{ tailscale_operator_deploy_context }}
     k8s_object_manager_state: present
     k8s_object_manager_src: >-
-      {{ tailscale_operator_deploy_repo_root }}/k8s/
-      tailscale_operator/application.yml
+      {{ tailscale_operator_deploy_app_manifest }}
 
 - name: Capture k8s_object_manager result for main application
   ansible.builtin.set_fact:
