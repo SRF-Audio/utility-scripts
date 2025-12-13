@@ -32,6 +32,16 @@
     k8s_object_manager_src: "{{ onepassword_operator_deploy_manifest }}"
   when: onepassword_operator_deploy_apply_objects | bool
 
+- name: Capture k8s_object_manager result if k8s objects were applied
+  ansible.builtin.set_fact:
+    onepassword_operator_deploy_k8s_result: "{{ k8s_object_manager_result }}"
+  when: onepassword_operator_deploy_apply_objects | bool
+
+- name: Set empty k8s result if objects were not applied
+  ansible.builtin.set_fact:
+    onepassword_operator_deploy_k8s_result: {}
+  when: not (onepassword_operator_deploy_apply_objects | bool)
+
 - name: Persist onepassword_operator_deploy artifacts
   ansible.builtin.include_role:
     name: role_artifacts
@@ -48,4 +58,4 @@
       tailscale_tags: "{{ onepassword_operator_deploy_tailscale_tags }}"
       tailnet_domain: "{{ onepassword_operator_deploy_tailnet_domain }}"
       homepage_url: "{{ onepassword_operator_deploy_tailscale_hostname }}.{{ onepassword_operator_deploy_tailnet_domain }}"
-      application_result: "{{ k8s_object_manager_result | default({}, true) }}"
+      application_result: "{{ onepassword_operator_deploy_k8s_result }}"
