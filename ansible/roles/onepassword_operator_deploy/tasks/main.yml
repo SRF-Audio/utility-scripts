@@ -4,13 +4,19 @@
       - onepassword_operator_deploy_kubeconfig is defined
       - onepassword_operator_deploy_context is defined
       - onepassword_operator_deploy_chart_version is defined
+      - onepassword_operator_deploy_connect_credentials is defined
+      - onepassword_operator_deploy_operator_token is defined
       - onepassword_operator_deploy_kubeconfig | string | length > 0
       - onepassword_operator_deploy_context | length > 0
       - onepassword_operator_deploy_chart_version | length > 0
+      - onepassword_operator_deploy_connect_credentials | length > 0
+      - onepassword_operator_deploy_operator_token | length > 0
     fail_msg: |
       onepassword_operator_deploy_kubeconfig
       onepassword_operator_deploy_context
       onepassword_operator_deploy_chart_version
+      onepassword_operator_deploy_connect_credentials
+      onepassword_operator_deploy_operator_token
       ...must be defined for onepassword_operator_deploy.
 
 - name: Render onepassword_operator_deploy ArgoCD Application manifest

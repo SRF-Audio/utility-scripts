@@ -60,10 +60,14 @@ argument_specs:
         type: str
         required: false
         description: Tailnet domain for the full hostname URL.
-      onepassword_operator_deploy_ingress_class:
+      onepassword_operator_deploy_connect_credentials:
         type: str
-        required: false
-        description: Ingress class name for the dummy Ingress.
+        required: true
+        description: Path to the 1password-credentials.json file for Connect.
+      onepassword_operator_deploy_operator_token:
+        type: str
+        required: true
+        description: 1Password Connect API token for the Operator.
       onepassword_operator_deploy_homepage_name:
         type: str
         required: false

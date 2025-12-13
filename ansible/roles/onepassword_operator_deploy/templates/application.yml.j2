@@ -13,6 +13,7 @@ spec:
       valuesObject:
         connect:
           create: true
+          credentials: "{{ onepassword_operator_deploy_connect_credentials }}"
           serviceType: ClusterIP
           serviceAnnotations:
             tailscale.com/expose: "true"
@@ -20,7 +21,6 @@ spec:
             tailscale.com/tags: "{{ onepassword_operator_deploy_tailscale_tags }}"
           ingress:
             enabled: true
-            ingressClassName: "{{ onepassword_operator_deploy_ingress_class }}"
             annotations:
               gethomepage.dev/enabled: "true"
               gethomepage.dev/name: "{{ onepassword_operator_deploy_homepage_name }}"
@@ -34,6 +34,8 @@ spec:
                     pathType: Prefix
         operator:
           create: true
+          token:
+            value: "{{ onepassword_operator_deploy_operator_token }}"
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ onepassword_operator_deploy_namespace }}
