@@ -7,4 +7,4 @@ ansible/playbooks/.artifacts/*
 */**/*.tmp
 */**/*.bak
 */**/*.old
-ansible/roles/tailscale_operator_deploy/templates/infra-tailscale-operator.yml
+ansible/roles/tailscale_operator_deploy/templates/infra-tailscale-operator.ymlsemicolon_delimited_script
