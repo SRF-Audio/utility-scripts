@@ -2,59 +2,12 @@ paperless_ngx_deploy_kubeconfig: "{{ k3s_kubeconfig_path | default('', true) }}"
 paperless_ngx_deploy_context: "{{ k3s_context_name | default('', true) }}"
 paperless_ngx_deploy_cluster_name: "{{ k3s_cluster_name | default('', true) }}"
 
-paperless_ngx_deploy_namespace: paperless-ngx
+paperless_ngx_deploy_app_name: paperless-ngx
+paperless_ngx_deploy_argocd_namespace: argocd
+paperless_ngx_deploy_project: default
 
-paperless_ngx_deploy_storage_class_local: local-path
-paperless_ngx_deploy_storage_class_synology: nfs-delete
-
-paperless_ngx_deploy_hostname: paperless
-
-paperless_ngx_deploy_tailscale_annotations:
-  tailscale.com/expose: "true"
-  tailscale.com/hostname: "{{ paperless_ngx_deploy_hostname }}"
-  tailscale.com/tags: "tag:k8s"
-
-paperless_ngx_deploy_homepage_annotations:
-  gethomepage.dev/enabled: "true"
-  gethomepage.dev/name: "Paperless-NGX"
-  gethomepage.dev/description: "Document management and archive"
-  gethomepage.dev/group: "Documents"
-  gethomepage.dev/icon: "paperless-ngx.png"
-
-paperless_ngx_deploy_enable_tika: false
-paperless_ngx_deploy_enable_gotenberg: false
-
-paperless_ngx_deploy_web_image: ghcr.io/paperless-ngx/paperless-ngx
-paperless_ngx_deploy_web_tag: latest
-
-paperless_ngx_deploy_db_image: postgres
-paperless_ngx_deploy_db_tag: "16"
-
-paperless_ngx_deploy_redis_image: redis
-paperless_ngx_deploy_redis_tag: "7"
-
-paperless_ngx_deploy_tika_image: ghcr.io/paperless-ngx/tika
-paperless_ngx_deploy_tika_tag: latest
-
-paperless_ngx_deploy_gotenberg_image: docker.io/gotenberg/gotenberg
-paperless_ngx_deploy_gotenberg_tag: "8.14"
-
-paperless_ngx_deploy_env_config:
-  PAPERLESS_OCR_LANGUAGE: eng
-
-paperless_ngx_deploy_env_secrets:
-  PAPERLESS_DBUSER: paperless
-  PAPERLESS_DBPASS: paperless
-  PAPERLESS_DBNAME: paperless
-  PAPERLESS_SECRET_KEY: changeme
+paperless_ngx_deploy_repo_url: https://github.com/SRF-Audio/utility-scripts
+paperless_ngx_deploy_target_revision: main
+paperless_ngx_deploy_path: k8s/paperless_ngx
 
 paperless_ngx_deploy_apply_objects: true
-
-paperless_ngx_deploy_pvc_data_size: 1Gi
-paperless_ngx_deploy_pvc_dbdata_size: 5Gi
-paperless_ngx_deploy_pvc_redisdata_size: 1Gi
-paperless_ngx_deploy_pvc_media_size: 50Gi
-paperless_ngx_deploy_pvc_export_size: 10Gi
-paperless_ngx_deploy_pvc_consume_size: 10Gi
-
-paperless_ngx_deploy_artifacts_path: "{{ artifacts_path | default('', true) }}"

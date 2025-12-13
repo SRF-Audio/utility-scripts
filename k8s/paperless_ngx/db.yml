@@ -2,11 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: paperless-ngx-db
-  namespace: {{ paperless_ngx_deploy_namespace }}
+  namespace: paperless-ngx
   labels:
     app.kubernetes.io/name: paperless-ngx
     app.kubernetes.io/component: db
-    app.kubernetes.io/managed-by: ansible
+    app.kubernetes.io/managed-by: argocd
 spec:
   replicas: 1
   selector:
@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: {{ paperless_ngx_deploy_db_image }}:{{ paperless_ngx_deploy_db_tag }}
+          image: postgres:16
           ports:
             - containerPort: 5432
               name: postgres
@@ -62,11 +62,11 @@ apiVersion: v1
 kind: Service
 metadata:
   name: paperless-ngx-db
-  namespace: {{ paperless_ngx_deploy_namespace }}
+  namespace: paperless-ngx
   labels:
     app.kubernetes.io/name: paperless-ngx
     app.kubernetes.io/component: db
-    app.kubernetes.io/managed-by: ansible
+    app.kubernetes.io/managed-by: argocd
 spec:
   type: ClusterIP
   ports:

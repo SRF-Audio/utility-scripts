@@ -1,9 +1,8 @@
 argument_specs:
   main:
     description: |
-      Deploy Paperless-NGX to a Kubernetes cluster using first-class Kubernetes manifests.
-      Mirrors the official Docker Compose layout with webserver, Postgres, Redis, and optional
-      Tika/Gotenberg services. Uses k8s_object_manager for all Kubernetes object management.
+      Deploy Paperless-NGX to a Kubernetes cluster via ArgoCD Application.
+      Points to raw manifests in k8s/paperless_ngx/ directory with OnePasswordItem CRD for secrets.
     options:
       paperless_ngx_deploy_kubeconfig:
         type: raw
@@ -17,115 +16,31 @@ argument_specs:
         type: str
         required: false
         description: Logical cluster name used for artifact recording.
-      paperless_ngx_deploy_namespace:
+      paperless_ngx_deploy_app_name:
         type: str
         required: false
-        description: Namespace where Paperless-NGX will be deployed.
-      paperless_ngx_deploy_storage_class_local:
+        description: ArgoCD Application name.
+      paperless_ngx_deploy_argocd_namespace:
         type: str
         required: false
-        description: Storage class for local provisioner PVCs (data, dbdata, redisdata) - I/O sensitive.
-      paperless_ngx_deploy_storage_class_synology:
+        description: ArgoCD namespace where Application will be created.
+      paperless_ngx_deploy_project:
         type: str
         required: false
-        description: Storage class for Synology CSI/NFS PVCs (media, export, consume).
-      paperless_ngx_deploy_hostname:
+        description: ArgoCD project name.
+      paperless_ngx_deploy_repo_url:
         type: str
         required: false
-        description: Hostname for the Paperless UI (used in Tailscale ingress).
-      paperless_ngx_deploy_tailscale_annotations:
-        type: dict
-        required: false
-        description: Additional Tailscale annotations for the ingress.
-      paperless_ngx_deploy_homepage_annotations:
-        type: dict
-        required: false
-        description: Homepage annotations for service discovery.
-      paperless_ngx_deploy_enable_tika:
-        type: bool
-        required: false
-        description: Enable Apache Tika for document parsing.
-      paperless_ngx_deploy_enable_gotenberg:
-        type: bool
-        required: false
-        description: Enable Gotenberg for document conversion.
-      paperless_ngx_deploy_web_image:
+        description: Git repository URL containing k8s manifests.
+      paperless_ngx_deploy_target_revision:
         type: str
         required: false
-        description: Paperless-NGX webserver container image.
-      paperless_ngx_deploy_web_tag:
+        description: Git branch or tag to track.
+      paperless_ngx_deploy_path:
         type: str
         required: false
-        description: Paperless-NGX webserver container image tag.
-      paperless_ngx_deploy_db_image:
-        type: str
-        required: false
-        description: PostgreSQL database container image.
-      paperless_ngx_deploy_db_tag:
-        type: str
-        required: false
-        description: PostgreSQL database container image tag.
-      paperless_ngx_deploy_redis_image:
-        type: str
-        required: false
-        description: Redis container image.
-      paperless_ngx_deploy_redis_tag:
-        type: str
-        required: false
-        description: Redis container image tag.
-      paperless_ngx_deploy_tika_image:
-        type: str
-        required: false
-        description: Apache Tika container image.
-      paperless_ngx_deploy_tika_tag:
-        type: str
-        required: false
-        description: Apache Tika container image tag.
-      paperless_ngx_deploy_gotenberg_image:
-        type: str
-        required: false
-        description: Gotenberg container image.
-      paperless_ngx_deploy_gotenberg_tag:
-        type: str
-        required: false
-        description: Gotenberg container image tag.
-      paperless_ngx_deploy_env_config:
-        type: dict
-        required: false
-        description: Non-secret environment variables for ConfigMap.
-      paperless_ngx_deploy_env_secrets:
-        type: dict
-        required: false
-        description: Secret environment variables for Kubernetes Secret.
+        description: Path within repo to k8s manifests.
       paperless_ngx_deploy_apply_objects:
         type: bool
         required: false
-        description: Whether to apply Kubernetes objects or just render manifests.
-      paperless_ngx_deploy_pvc_data_size:
-        type: str
-        required: false
-        description: Size of the data PVC (local provisioner).
-      paperless_ngx_deploy_pvc_dbdata_size:
-        type: str
-        required: false
-        description: Size of the PostgreSQL data PVC (local provisioner).
-      paperless_ngx_deploy_pvc_redisdata_size:
-        type: str
-        required: false
-        description: Size of the Redis data PVC (local provisioner).
-      paperless_ngx_deploy_pvc_media_size:
-        type: str
-        required: false
-        description: Size of the media PVC (Synology).
-      paperless_ngx_deploy_pvc_export_size:
-        type: str
-        required: false
-        description: Size of the export PVC (Synology).
-      paperless_ngx_deploy_pvc_consume_size:
-        type: str
-        required: false
-        description: Size of the consume PVC (Synology).
-      paperless_ngx_deploy_artifacts_path:
-        type: str
-        required: false
-        description: Base path for rendered manifests and artifacts.
+        description: Whether to apply ArgoCD Application or just render it.
