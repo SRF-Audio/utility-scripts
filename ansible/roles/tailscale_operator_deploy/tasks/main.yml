@@ -4,11 +4,14 @@
     that:
       - tailscale_operator_deploy_kubeconfig is defined
       - tailscale_operator_deploy_context is defined
+      - tailscale_operator_deploy_repo_root is defined
       - tailscale_operator_deploy_kubeconfig | string | length > 0
       - tailscale_operator_deploy_context | length > 0
+      - tailscale_operator_deploy_repo_root | length > 0
     fail_msg: |
       tailscale_operator_deploy_kubeconfig
       tailscale_operator_deploy_context
+      tailscale_operator_deploy_repo_root
       ...must be defined for tailscale_operator_deploy.
 
 - name: Apply tailscale-operator-secrets Argo CD Application manifest
