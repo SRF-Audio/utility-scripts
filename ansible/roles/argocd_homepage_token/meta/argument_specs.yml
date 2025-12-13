@@ -5,6 +5,9 @@ argument_specs:
       argocd_homepage_token_server_url:
         type: str
         required: false
+      argocd_homepage_token_widget_url:
+        type: str
+        required: false
       argocd_homepage_token_username:
         type: str
         required: false

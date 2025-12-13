@@ -31,3 +31,6 @@ argument_specs:
       argocd_homepage_token:
         type: str
         required: false
+      argocd_widget_url:
+        type: str
+        required: false

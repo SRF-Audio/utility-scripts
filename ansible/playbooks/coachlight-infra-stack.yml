@@ -58,6 +58,7 @@
     - role: homepage_deploy
       vars:
         argocd_homepage_token: "{{ argocd_homepage_token_artifacts.token | default('') }}"
+        argocd_widget_url: "{{ argocd_homepage_token_artifacts.widget_url | default('http://argocd-server.argocd') }}"
     # - role: argocd_api_auth
     #   vars:
     #     argocd_api_auth_username: "{{ argocd_admin_username }}"
