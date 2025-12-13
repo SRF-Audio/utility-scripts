@@ -10,7 +10,10 @@
     state: present
     definition: >-
       {{
-        lookup('ansible.builtin.file', 'homepage-argocd-onepassworditem.yml')
+        lookup(
+          'ansible.builtin.template',
+          'homepage-argocd-onepassworditem.yml.j2'
+        )
       }}
 
 - name: Discover Homepage ingress templates
