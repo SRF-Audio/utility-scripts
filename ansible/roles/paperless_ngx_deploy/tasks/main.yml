@@ -1,3 +1,4 @@
+---
 - name: Assert required paperless_ngx_deploy inputs are defined
   ansible.builtin.assert:
     that:
@@ -5,7 +6,9 @@
       - paperless_ngx_deploy_context is defined
       - paperless_ngx_deploy_kubeconfig | string | length > 0
       - paperless_ngx_deploy_context | length > 0
-    fail_msg: "paperless_ngx_deploy_kubeconfig and paperless_ngx_deploy_context must be defined for paperless_ngx_deploy."
+    fail_msg: >-
+      paperless_ngx_deploy_kubeconfig and paperless_ngx_deploy_context
+      must be defined for paperless_ngx_deploy.
 
 - name: Render paperless_ngx_deploy ArgoCD Application manifest
   ansible.builtin.template:
@@ -51,9 +54,11 @@
     - paperless_ngx_app_status.resources | length > 0
     - paperless_ngx_app_status.resources[0].status is defined
     - paperless_ngx_app_status.resources[0].status.sync is defined
-    - paperless_ngx_app_status.resources[0].status.sync.status == "Synced"
+    - >-
+      paperless_ngx_app_status.resources[0].status.sync.status == "Synced"
     - paperless_ngx_app_status.resources[0].status.health is defined
-    - paperless_ngx_app_status.resources[0].status.health.status == "Healthy"
+    - >-
+      paperless_ngx_app_status.resources[0].status.health.status == "Healthy"
   retries: 60
   delay: 5
   when: paperless_ngx_deploy_apply_objects | bool
@@ -65,7 +70,9 @@
     # noqa: var-naming
     calling_role_name: "paperless_ngx_deploy"
     calling_role_artifacts_inputs:
-      k3s_cluster_name: "{{ paperless_ngx_deploy_cluster_name | default(k3s_cluster_name | default('', true), true) }}"
+      k3s_cluster_name: >-
+        {{ paperless_ngx_deploy_cluster_name |
+        default(k3s_cluster_name | default('', true), true) }}
       application_name: "{{ paperless_ngx_deploy_app_name }}"
       argocd_namespace: "{{ paperless_ngx_deploy_argocd_namespace }}"
       application_result: "{{ paperless_ngx_deploy_k8s_result }}"
