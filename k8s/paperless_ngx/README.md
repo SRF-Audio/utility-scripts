@@ -18,7 +18,10 @@ This directory contains static Kubernetes manifests for deploying Paperless-NGX 
 - `tika.yml` - Apache Tika for advanced document parsing
 - `gotenberg.yml` - Gotenberg for document conversion
 
-To disable optional services, simply delete or comment out the corresponding files before deploying with ArgoCD.
+**Note**: The ConfigMap includes Tika and Gotenberg endpoints by default. If you remove these services, Paperless-NGX will log warnings but continue to function normally. To fully disable them, also remove or comment out the corresponding environment variables in `configmap.yml`:
+- `PAPERLESS_TIKA_ENABLED`
+- `PAPERLESS_TIKA_ENDPOINT`
+- `PAPERLESS_TIKA_GOTENBERG_ENDPOINT`
 
 ## Secrets
 
