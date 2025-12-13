@@ -1,3 +1,4 @@
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -12,8 +13,7 @@ spec:
     helm:
       valuesObject:
         oauth:
-          clientId: "{{ tailscale_operator_deploy_oauth_client_id }}"
-          clientSecret: "{{ tailscale_operator_deploy_oauth_client_secret }}"
+          existingSecret: tailscale-operator-oauth
   destination:
     server: https://kubernetes.default.svc
     namespace: infra-tailscale-operator

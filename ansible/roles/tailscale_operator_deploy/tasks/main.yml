@@ -1,36 +1,51 @@
+---
 - name: Assert required tailscale_operator_deploy inputs are defined
   ansible.builtin.assert:
     that:
       - tailscale_operator_deploy_kubeconfig is defined
       - tailscale_operator_deploy_context is defined
-      - tailscale_operator_deploy_oauth_client_id is defined
-      - tailscale_operator_deploy_oauth_client_secret is defined
       - tailscale_operator_deploy_kubeconfig | string | length > 0
       - tailscale_operator_deploy_context | length > 0
-      - tailscale_operator_deploy_oauth_client_id | length > 0
-      - tailscale_operator_deploy_oauth_client_secret | length > 0
     fail_msg: |
       tailscale_operator_deploy_kubeconfig
       tailscale_operator_deploy_context
-      tailscale_operator_deploy_oauth_client_id
-      tailscale_operator_deploy_oauth_client_secret
       ...must be defined for tailscale_operator_deploy.
 
-- name: Render tailscale_operator_deploy Argo CD Application manifest
-  ansible.builtin.template:
-    src: "{{ role_path }}/templates/infra-tailscale-operator.yml.j2"
-    dest: "{{ role_path }}/templates/infra-tailscale-operator.yml"
-    mode: "0644"
-
-- name: Set static path to pass to k8s_object_manager role
-  ansible.builtin.set_fact:
-    tailscale_operator_deploy_manifest: "{{ role_path }}/templates/infra-tailscale-operator.yml"
-
-- name: Apply infra-tailscale-operator Argo CD Application manifest
+- name: Apply tailscale-operator-secrets Argo CD Application manifest
   ansible.builtin.include_role:
     name: k8s_object_manager
   vars:
-    k8s_object_manager_src: "{{ tailscale_operator_deploy_manifest }}"
+    k8s_object_manager_kubeconfig: >-
+      {{ tailscale_operator_deploy_kubeconfig }}
+    k8s_object_manager_context: >-
+      {{ tailscale_operator_deploy_context }}
+    k8s_object_manager_state: present
+    k8s_object_manager_src: >-
+      {{ tailscale_operator_deploy_repo_root }}/k8s/
+      tailscale_operator_secrets/application.yml
+
+- name: Capture k8s_object_manager result for secrets application
+  ansible.builtin.set_fact:
+    tailscale_operator_deploy_secrets_result: >-
+      {{ k8s_object_manager_result }}
+
+- name: Apply tailscale-operator Argo CD Application manifest
+  ansible.builtin.include_role:
+    name: k8s_object_manager
+  vars:
+    k8s_object_manager_kubeconfig: >-
+      {{ tailscale_operator_deploy_kubeconfig }}
+    k8s_object_manager_context: >-
+      {{ tailscale_operator_deploy_context }}
+    k8s_object_manager_state: present
+    k8s_object_manager_src: >-
+      {{ tailscale_operator_deploy_repo_root }}/k8s/
+      tailscale_operator/application.yml
+
+- name: Capture k8s_object_manager result for main application
+  ansible.builtin.set_fact:
+    tailscale_operator_deploy_app_result: >-
+      {{ k8s_object_manager_result }}
 
 - name: Persist tailscale_operator_deploy artifacts
   ansible.builtin.include_role:
@@ -39,5 +54,10 @@
     # noqa: var-naming
     calling_role_name: "tailscale_operator_deploy"
     calling_role_artifacts_inputs:
-      k3s_cluster_name: "{{ tailscale_operator_deploy_cluster_name | default(k3s_cluster_name | default('', true), true) }}"
-      application_result: "{{ k8s_object_manager_result }}"
+      k3s_cluster_name: >-
+        {{ tailscale_operator_deploy_cluster_name |
+        default(k3s_cluster_name | default('', true), true) }}
+      secrets_application_result: >-
+        {{ tailscale_operator_deploy_secrets_result }}
+      application_result: >-
+        {{ tailscale_operator_deploy_app_result }}

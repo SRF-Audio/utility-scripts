@@ -1,0 +1,21 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tailscale-operator-secrets
+  namespace: argocd
+spec:
+  project: coachlight-k3s-infra
+  source:
+    repoURL: https://github.com/SRF-Audio/utility-scripts
+    targetRevision: main
+    path: k8s/tailscale_operator_secrets
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: infra-tailscale-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
