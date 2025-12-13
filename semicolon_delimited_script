@@ -1,0 +1,5 @@
+ansible --version
+ansible-lint --version
+yamllint --version
+python3 --version
+
