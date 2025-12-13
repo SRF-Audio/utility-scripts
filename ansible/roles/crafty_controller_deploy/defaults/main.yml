@@ -1,8 +1,16 @@
-crafty_controller_deploy_ingress_host: crafty-controller.rohu-shark.ts.net
-crafty_controller_deploy_tailscale_enabled: true
-crafty_controller_deploy_artifacts_path: "{{ artifacts_path }}"
-crafty_controller_deploy_render_dir: "{{ crafty_controller_deploy_artifacts_path }}/rendered-manifests"
-
-crafty_controller_deploy_default_json_render_path: >-
-  {{ crafty_controller_deploy_render_dir }}/default.json
-crafty_controller_deploy_default_json_secret_name: "crafty-controller-default-json"
+---
+crafty_controller_deploy_kubeconfig: >-
+  {{ k3s_kubeconfig_path | default('', true) }}
+crafty_controller_deploy_cluster_name: >-
+  {{ k3s_cluster_name | default('', true) }}
+crafty_controller_deploy_context: >-
+  {{ k3s_context_name | default('', true) }}
+crafty_controller_deploy_namespace: "apps-crafty-controller"
+crafty_controller_deploy_argocd_namespace: "argocd"
+crafty_controller_deploy_app_name: "crafty-controller"
+crafty_controller_deploy_project: "coachlight-k3s-infra"
+crafty_controller_deploy_apply_objects: true
+crafty_controller_deploy_repo_url: >-
+  https://github.com/SRF-Audio/utility-scripts
+crafty_controller_deploy_target_revision: "main"
+crafty_controller_deploy_path: "k8s/crafty_controller"

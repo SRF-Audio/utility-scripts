@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: apps-crafty-controller
+  labels:
+    app: crafty-controller
+    kubernetes.io/metadata.name: apps-crafty-controller

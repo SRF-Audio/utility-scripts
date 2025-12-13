@@ -1,126 +1,90 @@
+---
 - name: Assert required crafty_controller_deploy inputs are defined
   ansible.builtin.assert:
     that:
-      - crafty_controller_deploy_namespace is defined
-      - crafty_controller_deploy_namespace | length > 0
-      - crafty_controller_deploy_artifacts_path is defined
-      - crafty_controller_deploy_artifacts_path | length > 0
-      - crafty_controller_deploy_ingress_host is defined
-      - crafty_controller_deploy_ingress_host | length > 0
+      - crafty_controller_deploy_kubeconfig is defined
+      - crafty_controller_deploy_context is defined
+      - crafty_controller_deploy_kubeconfig | string | length > 0
+      - crafty_controller_deploy_context | length > 0
     fail_msg: >
-      crafty_controller_deploy_namespace, crafty_controller_deploy_artifacts_path,
-      and crafty_controller_deploy_ingress_host must be defined and non-empty.
+      crafty_controller_deploy_kubeconfig and
+      crafty_controller_deploy_context must be defined for
+      crafty_controller_deploy.
 
-- name: Assert Crafty default user password is defined
-  ansible.builtin.assert:
-    that:
-      - crafty_controller_deploy_sfroeber_password is defined
-      - crafty_controller_deploy_sfroeber_password | length > 0
-    fail_msg: >
-      crafty_controller_deploy_sfroeber_password must be defined and non-empty.
-
-- name: Ensure Crafty Controller render directory exists
-  ansible.builtin.file:
-    path: "{{ crafty_controller_deploy_render_dir }}"
-    state: directory
-    mode: "0755"
-
-- name: Render Crafty Controller default.json
+- name: Render crafty_controller_deploy ArgoCD Application manifest
   ansible.builtin.template:
-    src: default.json.j2
-    dest: "{{ crafty_controller_deploy_default_json_render_path }}"
-    mode: "0600"
-  no_log: true
-
-- name: Render Crafty Controller default.json Secret manifest
-  ansible.builtin.template:
-    src: secret-default-json.yml.j2
-    dest: "{{ crafty_controller_deploy_render_dir }}/secret-default-json.yml"
+    src: "{{ role_path }}/templates/application.yml.j2"
+    dest: "{{ role_path }}/templates/application.yml"
     mode: "0644"
 
-- name: Render Crafty Controller Namespace manifest
-  ansible.builtin.template:
-    src: namespace.yml.j2
-    dest: "{{ crafty_controller_deploy_render_dir }}/namespace.yml"
-    mode: "0644"
-
-- name: Apply Crafty Controller Namespace via k8s_object_manager
-  ansible.builtin.include_role:
-    name: k8s_object_manager
-  vars:
-    k8s_object_manager_src: "{{ crafty_controller_deploy_render_dir }}/namespace.yml"
-    k8s_object_manager_state: present
-
-- name: Render Crafty Controller PVC manifests
-  ansible.builtin.template:
-    src: "{{ item.src }}"
-    dest: "{{ crafty_controller_deploy_render_dir }}/{{ item.dest }}"
-    mode: "0644"
-  loop:
-    - src: pvc-backups.yml.j2
-      dest: pvc-backups.yml
-    - src: pvc-logs.yml.j2
-      dest: pvc-logs.yml
-    - src: pvc-servers.yml.j2
-      dest: pvc-servers.yml
-    - src: pvc-config.yml.j2
-      dest: pvc-config.yml
-    - src: pvc-import.yml.j2
-      dest: pvc-import.yml
-  loop_control:
-    label: "{{ item.dest }}"
-
-- name: Render Crafty Controller Deployment manifest
-  ansible.builtin.template:
-    src: deployment.yml.j2
-    dest: "{{ crafty_controller_deploy_render_dir }}/deployment.yml"
-    mode: "0644"
-
-- name: Render Crafty Controller Service manifest
-  ansible.builtin.template:
-    src: service.yml.j2
-    dest: "{{ crafty_controller_deploy_render_dir }}/service.yml"
-    mode: "0644"
-
-- name: Render Crafty Controller Ingress manifest
-  ansible.builtin.template:
-    src: ingress.yml.j2
-    dest: "{{ crafty_controller_deploy_render_dir }}/ingress-homepage.yml"
-    mode: "0644"
-
-- name: Discover rendered Crafty Controller manifests
-  ansible.builtin.find:
-    paths: "{{ crafty_controller_deploy_render_dir }}"
-    patterns:
-      - "*.yml"
-      - "*.yaml"
-    file_type: file
-  register: crafty_controller_deploy_manifest_files
-
-- name: Apply Crafty Controller manifests via k8s_object_manager
-  ansible.builtin.include_role:
-    name: k8s_object_manager
-  vars:
-    k8s_object_manager_src: "{{ item.path }}"
-    k8s_object_manager_state: present
-  loop: "{{ crafty_controller_deploy_manifest_files.files }}"
-  loop_control:
-    label: "{{ item.path | basename }}"
-  when: item.path | basename != "namespace.yml"
-
-- name: Set crafty_controller_deploy_artifacts fact
+- name: Set static path to pass to k8s_object_manager role
   ansible.builtin.set_fact:
-    crafty_controller_deploy_artifacts:
-      namespace: "{{ crafty_controller_deploy_namespace }}"
-      ingress_host: "{{ crafty_controller_deploy_ingress_host }}"
-      tailscale_enabled: "{{ crafty_controller_deploy_tailscale_enabled }}"
-      render_dir: "{{ crafty_controller_deploy_render_dir }}"
-      manifests: "{{ crafty_controller_deploy_manifest_files.files | map(attribute='path') | list }}"
+    crafty_controller_deploy_manifest: >-
+      {{ role_path }}/templates/application.yml
 
-- name: Persist crafty_controller_deploy artifacts via role_artifacts
+- name: Apply Crafty Controller ArgoCD Application manifest
+  ansible.builtin.include_role:
+    name: k8s_object_manager
+  vars:
+    k8s_object_manager_kubeconfig: >-
+      {{ crafty_controller_deploy_kubeconfig }}
+    k8s_object_manager_context: "{{ crafty_controller_deploy_context }}"
+    k8s_object_manager_state: present
+    k8s_object_manager_src: "{{ crafty_controller_deploy_manifest }}"
+  when: crafty_controller_deploy_apply_objects | bool
+
+- name: Capture k8s_object_manager result if k8s objects were applied
+  ansible.builtin.set_fact:
+    crafty_controller_deploy_k8s_result: >-
+      {{ k8s_object_manager_result }}
+  when: crafty_controller_deploy_apply_objects | bool
+
+- name: Set empty k8s result if objects were not applied
+  ansible.builtin.set_fact:
+    crafty_controller_deploy_k8s_result: {}
+  when: not (crafty_controller_deploy_apply_objects | bool)
+
+- name: Wait for Crafty Controller ArgoCD Application sync and health
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ crafty_controller_deploy_kubeconfig }}"
+    context: "{{ crafty_controller_deploy_context }}"
+    api_version: argoproj.io/v1alpha1
+    kind: Application
+    namespace: "{{ crafty_controller_deploy_argocd_namespace }}"
+    name: "{{ crafty_controller_deploy_app_name }}"
+  register: crafty_controller_app_status
+  until:
+    - crafty_controller_app_status.resources is defined
+    - crafty_controller_app_status.resources | length > 0
+    - crafty_controller_app_status.resources[0].status is defined
+    - crafty_controller_app_status.resources[0].status.sync is defined
+    - >-
+      crafty_controller_app_status.resources[0].status.sync.status ==
+      "Synced"
+    - crafty_controller_app_status.resources[0].status.health is defined
+    - >-
+      crafty_controller_app_status.resources[0].status.health.status ==
+      "Healthy"
+  retries: 60
+  delay: 5
+  when: crafty_controller_deploy_apply_objects | bool
+
+- name: Persist crafty_controller_deploy artifacts
   ansible.builtin.include_role:
     name: role_artifacts
   vars:
     # noqa: var-naming
-    calling_role_name: crafty_controller_deploy
-    calling_role_artifacts_inputs: "{{ crafty_controller_deploy_artifacts }}"
+    calling_role_name: "crafty_controller_deploy"
+    calling_role_artifacts_inputs:
+      k3s_cluster_name: >-
+        {{
+          crafty_controller_deploy_cluster_name |
+          default(k3s_cluster_name | default('', true), true)
+        }}
+      app_name: "{{ crafty_controller_deploy_app_name }}"
+      namespace: "{{ crafty_controller_deploy_namespace }}"
+      argocd_namespace: "{{ crafty_controller_deploy_argocd_namespace }}"
+      repo_url: "{{ crafty_controller_deploy_repo_url }}"
+      target_revision: "{{ crafty_controller_deploy_target_revision }}"
+      path: "{{ crafty_controller_deploy_path }}"
+      application_result: "{{ crafty_controller_deploy_k8s_result }}"
