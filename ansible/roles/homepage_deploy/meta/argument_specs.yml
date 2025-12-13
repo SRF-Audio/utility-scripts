@@ -7,27 +7,18 @@ argument_specs:
       homepage_deploy_argo_namespace:
         type: str
         required: false
-      homepage_deploy_project:
-        type: str
-        required: false
-      homepage_deploy_chart_repo:
-        type: str
-        required: false
-      homepage_deploy_chart_name:
-        type: str
-        required: false
-      homepage_deploy_chart_version:
-        type: str
-        required: false
       homepage_deploy_application_name:
         type: str
         required: false
-      homepage_deploy_ingress_templates_root:
+      homepage_deploy_manifests_path:
         type: str
-        required: false
+        required: true
+      homepage_deploy_kubeconfig:
+        type: str
+        required: true
+      homepage_deploy_context:
+        type: str
+        required: true
       homepage_deploy_artifacts_path:
-        type: str
-        required: false
-      argocd_homepage_token:
         type: str
         required: false

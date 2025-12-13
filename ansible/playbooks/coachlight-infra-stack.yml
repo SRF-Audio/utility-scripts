@@ -65,7 +65,9 @@
     - role: argocd_homepage_token
     - role: homepage_deploy
       vars:
-        argocd_homepage_token: "{{ argocd_homepage_token_artifacts.token | default('') }}"
+        homepage_deploy_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
+        homepage_deploy_context: "{{ kubeconfig_manager_artifacts.context_name }}"
+        homepage_deploy_manifests_path: "{{ playbook_dir }}/../k8s/homepage"
     # - role: argocd_api_auth
     #   vars:
     #     argocd_api_auth_username: "{{ argocd_admin_username }}"

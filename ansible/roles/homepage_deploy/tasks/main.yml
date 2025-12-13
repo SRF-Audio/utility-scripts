@@ -1,38 +1,11 @@
-- name: Ensure Homepage Argo CD Application is present
-  kubernetes.core.k8s:
-    state: present
-    definition: "{{ lookup('ansible.builtin.template', 'homepage-application.yml.j2') }}"
-
-- name: Apply Homepage Argo CD secret when token is available
-  kubernetes.core.k8s:
-    state: present
-    definition: "{{ lookup('ansible.builtin.template', 'homepage-argocd-secret.yml.j2') }}"
-  when:
-    - argocd_homepage_token is defined
-    - argocd_homepage_token | length > 0
-
-- name: Discover Homepage ingress templates
-  ansible.builtin.find:
-    paths: "{{ homepage_deploy_ingress_templates_root }}"
-    patterns:
-      - "*.yml.j2"
-      - "*.yaml.j2"
-    file_type: file
-  register: homepage_deploy_ingress_templates
-  when:
-    - homepage_deploy_ingress_templates_root is defined
-    - homepage_deploy_ingress_templates_root | length > 0
-
-- name: Apply Homepage ingress templates
-  kubernetes.core.k8s:
-    state: present
-    definition: "{{ lookup('ansible.builtin.template', item.path) }}"
-  loop: "{{ homepage_deploy_ingress_templates.files | default([]) }}"
-  loop_control:
-    label: "{{ item.path }}"
-  when:
-    - homepage_deploy_ingress_templates is defined
-    - homepage_deploy_ingress_templates.files | length > 0
+- name: Apply Homepage Argo CD Application manifest
+  ansible.builtin.include_role:
+    name: k8s_object_manager
+  vars:
+    k8s_object_manager_kubeconfig: "{{ homepage_deploy_kubeconfig }}"
+    k8s_object_manager_context: "{{ homepage_deploy_context }}"
+    k8s_object_manager_state: present
+    k8s_object_manager_src: "{{ homepage_deploy_manifests_path }}/application.yml"
 
 - name: Register homepage_deploy role artifacts when homepage_deploy_artifacts_path is defined
   ansible.builtin.import_role:
@@ -45,7 +18,7 @@
       application_name: "{{ homepage_deploy_application_name }}"
       application_namespace: "{{ homepage_deploy_argo_namespace }}"
       homepage_deploy_namespace: "{{ homepage_deploy_namespace }}"
-      ingress_templates_root: "{{ homepage_deploy_ingress_templates_root }}"
+      manifests_path: "{{ homepage_deploy_manifests_path }}"
   when:
     - homepage_deploy_artifacts_path is defined
     - homepage_deploy_artifacts_path | length > 0

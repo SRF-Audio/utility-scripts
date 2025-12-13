@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: homepage
+  namespace: infra-homepage
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: "homepage"
+    tailscale.com/tags: "tag:k8s,tag:infra-monitoring,tag:server-games"
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: homepage
+    app.kubernetes.io/instance: homepage

@@ -1,0 +1,21 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: homepage
+  namespace: argocd
+spec:
+  project: coachlight-k3s-infra
+  source:
+    repoURL: https://github.com/SRF-Audio/utility-scripts.git
+    targetRevision: main
+    path: k8s/homepage
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: infra-homepage
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
