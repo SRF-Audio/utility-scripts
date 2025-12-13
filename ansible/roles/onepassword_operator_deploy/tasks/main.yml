@@ -29,6 +29,7 @@
   vars:
     k8s_object_manager_kubeconfig: "{{ onepassword_operator_deploy_kubeconfig }}"
     k8s_object_manager_context: "{{ onepassword_operator_deploy_context }}"
+    k8s_object_manager_state: present
     k8s_object_manager_src: "{{ onepassword_operator_deploy_manifest }}"
   when: onepassword_operator_deploy_apply_objects | bool
 
