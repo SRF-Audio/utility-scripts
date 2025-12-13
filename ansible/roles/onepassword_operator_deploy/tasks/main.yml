@@ -49,6 +49,34 @@
     onepassword_operator_deploy_k8s_result: {}
   when: not (onepassword_operator_deploy_apply_objects | bool)
 
+- name: Wait for 1Password Connect deployment to be available
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ onepassword_operator_deploy_kubeconfig }}"
+    context: "{{ onepassword_operator_deploy_context }}"
+    kind: Deployment
+    namespace: "{{ onepassword_operator_deploy_namespace }}"
+    name: connect
+    wait: true
+    wait_condition:
+      type: Available
+      status: "True"
+    wait_timeout: 300
+  when: onepassword_operator_deploy_apply_objects | bool
+
+- name: Wait for 1Password Operator deployment to be available
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ onepassword_operator_deploy_kubeconfig }}"
+    context: "{{ onepassword_operator_deploy_context }}"
+    kind: Deployment
+    namespace: "{{ onepassword_operator_deploy_namespace }}"
+    name: operator
+    wait: true
+    wait_condition:
+      type: Available
+      status: "True"
+    wait_timeout: 300
+  when: onepassword_operator_deploy_apply_objects | bool
+
 - name: Persist onepassword_operator_deploy artifacts
   ansible.builtin.include_role:
     name: role_artifacts
