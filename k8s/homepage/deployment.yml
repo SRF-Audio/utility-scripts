@@ -1,4 +1,6 @@
 ---
+# Homepage Deployment
+# See README.md for details on secret key names and 1Password item structure
 apiVersion: apps/v1
 kind: Deployment
 metadata:
