@@ -1,3 +1,4 @@
+---
 homepage_deploy_namespace: infra-homepage
 homepage_deploy_argo_namespace: argocd
 homepage_deploy_project: coachlight-k3s-infra
@@ -11,5 +12,3 @@ homepage_deploy_application_name: homepage
 homepage_deploy_ingress_templates_root: "{{ role_path }}/templates/ingresses"
 
 homepage_deploy_artifacts_path: "{{ artifacts_path }}"
-
-argocd_homepage_token: ""
