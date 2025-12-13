@@ -1,8 +1,10 @@
+---
 argument_specs:
   main:
     description: |
       Deploy Paperless-NGX to a Kubernetes cluster via ArgoCD Application.
-      Points to raw manifests in k8s/paperless_ngx/ directory with OnePasswordItem CRD for secrets.
+      Points to raw manifests in k8s/paperless_ngx/ directory with
+      OnePasswordItem CRD for secrets.
     options:
       paperless_ngx_deploy_kubeconfig:
         type: raw
