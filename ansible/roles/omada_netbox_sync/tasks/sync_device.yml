@@ -1,8 +1,11 @@
 ---
 - name: >-
-    Check if device exists in NetBox by name for {{ omada_netbox_sync_device.name }}
+    Check if device exists in NetBox by name for
+    {{ omada_netbox_sync_device.name }}
   ansible.builtin.uri:
-    url: "{{ omada_netbox_sync_netbox_url }}/api/dcim/devices/?name={{ omada_netbox_sync_device.name | urlencode }}"
+    url: >-
+      {{ omada_netbox_sync_netbox_url }}/api/dcim/devices/?name={{
+      omada_netbox_sync_device.name | urlencode }}
     method: GET
     validate_certs: "{{ omada_netbox_sync_netbox_validate_certs }}"
     headers: "{{ omada_netbox_sync_netbox_headers }}"
@@ -81,7 +84,8 @@
       {{
         omada_netbox_sync_failed + [{
           'name': omada_netbox_sync_device.name,
-          'error': omada_netbox_sync_create_result.msg | default('unknown error')
+          'error': >-
+            {{ omada_netbox_sync_create_result.msg | default('unknown error') }}
         }]
       }}
   when:
@@ -90,7 +94,9 @@
 
 - name: Update device in NetBox for {{ omada_netbox_sync_device.name }}
   ansible.builtin.uri:
-    url: "{{ omada_netbox_sync_netbox_url }}/api/dcim/devices/{{ omada_netbox_sync_existing_device_id }}/"
+    url: >-
+      {{ omada_netbox_sync_netbox_url }}/api/dcim/devices/{{
+      omada_netbox_sync_existing_device_id }}/
     method: PATCH
     validate_certs: "{{ omada_netbox_sync_netbox_validate_certs }}"
     headers: "{{ omada_netbox_sync_netbox_headers }}"
@@ -104,7 +110,8 @@
 
 - name: Track updated device {{ omada_netbox_sync_device.name }}
   ansible.builtin.set_fact:
-    omada_netbox_sync_updated: "{{ omada_netbox_sync_updated + [omada_netbox_sync_device.name] }}"
+    omada_netbox_sync_updated: >-
+      {{ omada_netbox_sync_updated + [omada_netbox_sync_device.name] }}
   when:
     - omada_netbox_sync_device_exists
     - omada_netbox_sync_update_result.status | default(0) == 200
@@ -115,7 +122,8 @@
       {{
         omada_netbox_sync_failed + [{
           'name': omada_netbox_sync_device.name,
-          'error': omada_netbox_sync_update_result.msg | default('unknown error')
+          'error': >-
+            {{ omada_netbox_sync_update_result.msg | default('unknown error') }}
         }]
       }}
   when:
