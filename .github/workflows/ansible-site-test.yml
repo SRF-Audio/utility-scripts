@@ -4,13 +4,6 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "ansible/**"
-      - "site.yml"
-      - ".github/workflows/ansible-site-test.yml"
-  pull_request:
-    paths:
-      - "ansible/**"
-      - "site.yml"
       - ".github/workflows/ansible-site-test.yml"
 
 jobs:
