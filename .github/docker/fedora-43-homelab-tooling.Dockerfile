@@ -7,7 +7,6 @@ RUN dnf -y upgrade
 RUN dnf -y install \
     python3 \
     python3-pip \
-    ansible \
     git \
     tree \
     vim \
@@ -22,6 +21,8 @@ RUN dnf -y install \
     sudo \
     tmux \
     && dnf -y clean all
+
+RUN $ python3 -m pip install ansible
 
 # Clean up dnf caches to reduce image size
 RUN dnf clean all && rm -rf /var/cache/dnf
