@@ -1,12 +1,6 @@
----
-onepassword_operator_deploy_kubeconfig: >-
-  {{ k3s_kubeconfig_path | default('', true) }}
-onepassword_operator_deploy_cluster_name: >-
-  {{ k3s_cluster_name | default('', true) }}
-onepassword_operator_deploy_context: >-
-  {{ k3s_context_name | default('', true) }}
 onepassword_operator_deploy_namespace: "infra-1password-operator"
 onepassword_operator_deploy_argocd_namespace: "argocd"
+onepassword_operator_deploy_chart_version: "2.1.1"
 onepassword_operator_deploy_app_name: "1password-operator"
 onepassword_operator_deploy_project: "coachlight-k3s-infra"
 onepassword_operator_deploy_apply_objects: true

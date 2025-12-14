@@ -45,6 +45,7 @@
 
     - name: Gather Kubernetes cluster info
       kubernetes.core.k8s_cluster_info:
+        # noqa: var-naming
         api_key: "{{ k8s_validator_api_key | default(omit, true) }}"
         ca_cert: "{{ k8s_validator_ca_cert | default(omit, true) }}"
         client_cert: "{{ k8s_validator_client_cert | default(omit, true) }}"
