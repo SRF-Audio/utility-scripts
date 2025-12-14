@@ -15,7 +15,8 @@
       - item.src | length > 0
       - item.dest is defined
       - item.dest | length > 0
-    fail_msg: "Each file_copier item must include non-empty 'src' and 'dest'."
+    fail_msg: >-
+      Each file_copier item must include non-empty 'src' and 'dest'.
   loop: "{{ file_copier_items }}"
   loop_control:
     label: "{{ item | to_nice_json }}"

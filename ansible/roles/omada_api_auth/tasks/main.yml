@@ -43,7 +43,8 @@
     that:
       - omada_auth_result.json.errorCode is defined
       - omada_auth_result.json.errorCode == 0
-    fail_msg: "Omada API login failed. Check credentials and controller status."
+    fail_msg: >-
+      Omada API login failed. Check credentials and controller status.
 
 - name: Set Omada API token, cookies, and base path
   ansible.builtin.set_fact:

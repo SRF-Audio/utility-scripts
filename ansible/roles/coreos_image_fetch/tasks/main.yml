@@ -1,13 +1,15 @@
 ---
 - name: >-
-    Ensure CoreOS image download directory exists at {{ coreos_image_fetch_download_dir }}
+    Ensure CoreOS image download directory exists at
+    {{ coreos_image_fetch_download_dir }}
   ansible.builtin.file:
     path: "{{ coreos_image_fetch_download_dir }}"
     state: directory
     mode: "0755"
 
 - name: >-
-    Check for existing Fedora CoreOS qcow2 images in {{ coreos_image_fetch_download_dir }}
+    Check for existing Fedora CoreOS qcow2 images in
+    {{ coreos_image_fetch_download_dir }}
   ansible.builtin.find:
     paths: "{{ coreos_image_fetch_download_dir }}"
     patterns: "*.qcow2"
@@ -16,7 +18,9 @@
   register: coreos_image_fetch_existing
 
 - name: >-
-    Download Fedora CoreOS image (stream={{ coreos_image_fetch_stream }}, platform={{ coreos_image_fetch_platform }})
+    Download Fedora CoreOS image
+    (stream={{ coreos_image_fetch_stream }},
+    platform={{ coreos_image_fetch_platform }})
   ansible.builtin.command:
     argv: >-
       {{
@@ -46,17 +50,23 @@
   register: coreos_image_fetch_located
 
 - name: >-
-    Fail when Fedora CoreOS qcow2 image is missing in {{ coreos_image_fetch_download_dir }}
+    Fail when Fedora CoreOS qcow2 image is missing in
+    {{ coreos_image_fetch_download_dir }}
   ansible.builtin.fail:
     msg: >-
-      No Fedora CoreOS qcow2 image found in {{ coreos_image_fetch_download_dir }}
+      No Fedora CoreOS qcow2 image found in
+      {{ coreos_image_fetch_download_dir }}
   when: coreos_image_fetch_located.matched == 0
 
 - name: >-
-    Capture latest Fedora CoreOS image path from {{ coreos_image_fetch_download_dir }}
+    Capture latest Fedora CoreOS image path from
+    {{ coreos_image_fetch_download_dir }}
   ansible.builtin.set_fact:
     coreos_image_fetch_image_path: >-
-      {{ (coreos_image_fetch_located.files | sort(attribute='mtime', reverse=true))[0].path }}
+      {{
+      (coreos_image_fetch_located.files |
+      sort(attribute='mtime', reverse=true))[0].path
+      }}
 
 - name: Record CoreOS image fetch artifacts
   ansible.builtin.set_fact:

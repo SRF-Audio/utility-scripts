@@ -30,7 +30,8 @@
     that:
       - argocd_auth_result.json.token is defined
       - argocd_auth_result.json.token | length > 0
-    fail_msg: "Argo CD API login failed. Check credentials and server status."
+    fail_msg: >-
+      Argo CD API login failed. Check credentials and server status.
 
 - name: Set Argo CD API token, headers, and base path
   ansible.builtin.set_fact:
