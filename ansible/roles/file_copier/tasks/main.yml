@@ -22,7 +22,8 @@
     label: "{{ item | to_nice_json }}"
 # noqa: name[template]
 - name: >-
-    Ensure parent directory exists for file_copier dest {{ item }} on {{ inventory_hostname }}
+    Ensure parent directory exists for file_copier dest
+    {{ item }}on {{ inventory_hostname }}
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -39,7 +40,8 @@
     label: "{{ item }}"
 # noqa: name[template]
 - name: >-
-    Copy file_copier item on {{ inventory_hostname }} from {{ item.src }} to {{ item.dest }}
+    Copy file_copier item on
+    {{ inventory_hostname }}from {{ item.src }} to {{ item.dest }}
   ansible.builtin.copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"

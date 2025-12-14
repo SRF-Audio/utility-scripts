@@ -24,7 +24,8 @@
 
 # noqa: name[template]
 - name: >-
-    Render Butane template for control plane node {{ item.name }} from {{ ignition_renderer_template_src }}
+    Render Butane template for control plane node
+    {{ item.name }}from {{ ignition_renderer_template_src }}
   ansible.builtin.include_role:
     name: template_renderer
   vars:
@@ -38,7 +39,8 @@
     label: "{{ item.name }}"
 # noqa: name[template]
 - name: >-
-    Render Butane template for worker node {{ item.name }} from {{ ignition_renderer_template_src }}
+    Render Butane template for worker node
+    {{ item.name }}from {{ ignition_renderer_template_src }}
   ansible.builtin.include_role:
     name: template_renderer
   vars:

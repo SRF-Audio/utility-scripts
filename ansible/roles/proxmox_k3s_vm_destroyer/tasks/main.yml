@@ -49,7 +49,8 @@
     label: "{{ item.name }}"
 
 - name: >-
-    Delete ignition snippet {{ item.name }}.ign from Proxmox node {{ item.proxmox_node }}
+    Delete ignition snippet
+    {{ item.name }}.ign from Proxmox node {{ item.proxmox_node }}
   ansible.builtin.file:
     path: "{{ proxmox_cluster_storage_snippets_dir }}/{{ item.name }}.ign"
     state: absent
