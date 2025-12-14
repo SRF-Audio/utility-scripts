@@ -35,7 +35,7 @@ This deployment uses the 1Password Operator to inject secrets. Create a 1Passwor
 
 The manifests assume:
 - `local-path` storage class for local I/O-sensitive data (PostgreSQL, Redis, app data)
-- `nfs-delete` storage class for bulk storage (media, exports, consume)
+- `synology-csi-nfs-delete` storage class for bulk storage (media, exports, consume)
 
 Adjust storage classes and sizes in `pvcs.yml` as needed for your environment.
 
