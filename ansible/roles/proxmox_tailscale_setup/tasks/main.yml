@@ -4,10 +4,12 @@
     that:
       - ansible_facts.os_family == "Debian"
     fail_msg: >-
-      proxmox_tailscale_setup requires a Debian-family OS. Detected: {{ ansible_facts.os_family | default('unknown') }}
+      proxmox_tailscale_setup requires a Debian-family OS.
+      Detected: {{ ansible_facts.os_family | default('unknown') }}
 
 - name: >-
-    Assert proxmox_tailscale_setup_auth_key is defined on {{ inventory_hostname }}
+    Assert proxmox_tailscale_setup_auth_key is defined
+    on {{ inventory_hostname }}
   ansible.builtin.assert:
     that:
       - proxmox_tailscale_setup_auth_key is defined
@@ -55,20 +57,25 @@
     proxmox_tailscale_setup_hostname: >-
       {{ inventory_hostname }}{{ proxmox_tailscale_setup_hostname_suffix }}
     proxmox_tailscale_setup_tags_flag: >-
-      {{ ('--advertise-tags=' ~ (proxmox_tailscale_setup_advertise_tags | join(',')))
-         if proxmox_tailscale_setup_advertise_tags | length > 0 else '' }}
+      {{ ('--advertise-tags=' ~
+      (proxmox_tailscale_setup_advertise_tags | join(',')))
+      if proxmox_tailscale_setup_advertise_tags | length > 0
+      else '' }}
     proxmox_tailscale_setup_ssh_flag: >-
       {{ '--ssh' if proxmox_tailscale_setup_ssh_enabled else '' }}
     proxmox_tailscale_setup_operator_flag: >-
-      {{ '--operator=' ~ proxmox_tailscale_setup_operator if proxmox_tailscale_setup_operator else '' }}
+      {{ '--operator=' ~ proxmox_tailscale_setup_operator
+      if proxmox_tailscale_setup_operator else '' }}
 
 - name: Determine if tailscale up is needed on {{ inventory_hostname }}
   ansible.builtin.set_fact:
     proxmox_tailscale_setup_needs_up: >-
       {{
         proxmox_tailscale_setup_status_check.rc != 0 or
-        (proxmox_tailscale_setup_status.BackendState | default('')) != 'Running' or
-        (proxmox_tailscale_setup_status.Self.HostName | default('')) != proxmox_tailscale_setup_hostname
+        (proxmox_tailscale_setup_status.BackendState | default(''))
+        != 'Running' or
+        (proxmox_tailscale_setup_status.Self.HostName | default(''))
+        != proxmox_tailscale_setup_hostname
       }}
 
 - name: Run tailscale up on {{ inventory_hostname }}
@@ -101,9 +108,15 @@
 - name: Get tailscale IP addresses on {{ inventory_hostname }}
   ansible.builtin.set_fact:
     proxmox_tailscale_setup_ip_v4: >-
-      {{ proxmox_tailscale_setup_final.Self.TailscaleIPs | select('match', '^[0-9]+\\.') | first | default('') }}
+      {{
+      proxmox_tailscale_setup_final.Self.TailscaleIPs |
+      select('match', '^[0-9]+\\.') | first | default('')
+      }}
     proxmox_tailscale_setup_ip_v6: >-
-      {{ proxmox_tailscale_setup_final.Self.TailscaleIPs | select('match', '^[a-fA-F0-9]+:') | first | default('') }}
+      {{
+      proxmox_tailscale_setup_final.Self.TailscaleIPs |
+      select('match', '^[a-fA-F0-9]+:') | first | default('')
+      }}
 
 - name: Build proxmox_tailscale_setup_artifacts on {{ inventory_hostname }}
   ansible.builtin.set_fact:
