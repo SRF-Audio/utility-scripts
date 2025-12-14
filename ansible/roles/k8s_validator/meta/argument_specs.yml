@@ -17,7 +17,8 @@ argument_specs:
       k8s_validator_client_cert:
         type: path
         required: false
-        description: Path to client certificate used to authenticate with the API.
+        description: >-
+          Path to client certificate used to authenticate with the API.
       k8s_validator_client_key:
         type: path
         required: false
@@ -42,7 +43,8 @@ argument_specs:
       k8s_validator_invalidate_cache:
         type: bool
         required: false
-        description: Invalidate cache before retrieving information about cluster.
+        description: >-
+          Invalidate cache before retrieving information about cluster.
       k8s_validator_kubeconfig:
         type: raw
         required: false
@@ -50,7 +52,8 @@ argument_specs:
       k8s_validator_no_proxy:
         type: str
         required: false
-        description: Comma-separated list of hosts/domains/IP/CIDR that should not go through proxy.
+        description: >-
+          Comma-separated list of hosts/domains/IP/CIDR that should not go through proxy.
       k8s_validator_password:
         type: str
         required: false
@@ -70,11 +73,13 @@ argument_specs:
       k8s_validator_basic_auth:
         type: str
         required: false
-        description: Colon-separated username:password for basic authentication header.
+        description: >-
+          Colon-separated username:password for basic authentication header.
       k8s_validator_proxy_basic_auth:
         type: str
         required: false
-        description: Colon-separated username:password for proxy basic authentication header.
+        description: >-
+          Colon-separated username:password for proxy basic authentication header.
       k8s_validator_user_agent:
         type: str
         required: false

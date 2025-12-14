@@ -161,7 +161,8 @@
     omada_netbox_sync_skipped: []
     omada_netbox_sync_failed: []
 
-- name: Ensure device role exists in NetBox for {{ omada_netbox_sync_default_device_role }}
+- name: >-
+    Ensure device role exists in NetBox for {{ omada_netbox_sync_default_device_role }}
   ansible.builtin.uri:
     url: "{{ omada_netbox_sync_netbox_url }}/api/dcim/device-roles/"
     method: POST
@@ -177,7 +178,8 @@
   when: not omada_netbox_sync_dry_run
   changed_when: omada_netbox_sync_role_result.status in [200, 201]
 
-- name: Ensure manufacturer exists in NetBox for {{ omada_netbox_sync_manufacturer_slug }}
+- name: >-
+    Ensure manufacturer exists in NetBox for {{ omada_netbox_sync_manufacturer_slug }}
   ansible.builtin.uri:
     url: "{{ omada_netbox_sync_netbox_url }}/api/dcim/manufacturers/"
     method: POST
@@ -192,7 +194,8 @@
   when: not omada_netbox_sync_dry_run
   changed_when: omada_netbox_sync_manufacturer_result.status in [200, 201]
 
-- name: Ensure device type exists in NetBox for {{ omada_netbox_sync_device_type_slug }}
+- name: >-
+    Ensure device type exists in NetBox for {{ omada_netbox_sync_device_type_slug }}
   ansible.builtin.uri:
     url: "{{ omada_netbox_sync_netbox_url }}/api/dcim/device-types/"
     method: POST

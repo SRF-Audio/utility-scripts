@@ -5,7 +5,8 @@ argument_specs:
       k3s_kubeconfig_retriever_enabled:
         type: bool
         required: false
-        description: Whether this role should run. If false, the role skips all tasks.
+        description: >-
+          Whether this role should run. If false, the role skips all tasks.
       k3s_kubeconfig_retriever_control_plane_group:
         type: str
         required: false
@@ -13,11 +14,13 @@ argument_specs:
       k3s_kubeconfig_retriever_control_plane_host:
         type: str
         required: false
-        description: If set, use this host instead of the first host in the control-plane group.
+        description: >-
+          If set, use this host instead of the first host in the control-plane group.
       k3s_kubeconfig_retriever_remote_kubeconfig_path:
         type: str
         required: false
-        description: Path to the kubeconfig file on the remote control-plane node.
+        description: >-
+          Path to the kubeconfig file on the remote control-plane node.
       k3s_kubeconfig_retriever_local_output_dir:
         type: str
         required: false

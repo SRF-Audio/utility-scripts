@@ -56,7 +56,8 @@ argument_specs:
       velero_deploy_backup_storage_config:
         type: dict
         required: false
-        description: Provider-specific configuration for backup storage location.
+        description: >-
+          Provider-specific configuration for backup storage location.
       velero_deploy_snapshot_location_config:
         type: dict
         required: false

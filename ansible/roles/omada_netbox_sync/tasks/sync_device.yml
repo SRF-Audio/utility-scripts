@@ -1,5 +1,6 @@
 ---
-- name: Check if device exists in NetBox by name for {{ omada_netbox_sync_device.name }}
+- name: >-
+    Check if device exists in NetBox by name for {{ omada_netbox_sync_device.name }}
   ansible.builtin.uri:
     url: "{{ omada_netbox_sync_netbox_url }}/api/dcim/devices/?name={{ omada_netbox_sync_device.name | urlencode }}"
     method: GET

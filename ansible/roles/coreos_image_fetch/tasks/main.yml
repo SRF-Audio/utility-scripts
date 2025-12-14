@@ -1,11 +1,13 @@
 ---
-- name: Ensure CoreOS image download directory exists at {{ coreos_image_fetch_download_dir }}
+- name: >-
+    Ensure CoreOS image download directory exists at {{ coreos_image_fetch_download_dir }}
   ansible.builtin.file:
     path: "{{ coreos_image_fetch_download_dir }}"
     state: directory
     mode: "0755"
 
-- name: Check for existing Fedora CoreOS qcow2 images in {{ coreos_image_fetch_download_dir }}
+- name: >-
+    Check for existing Fedora CoreOS qcow2 images in {{ coreos_image_fetch_download_dir }}
   ansible.builtin.find:
     paths: "{{ coreos_image_fetch_download_dir }}"
     patterns: "*.qcow2"
@@ -13,7 +15,8 @@
     recurse: false
   register: coreos_image_fetch_existing
 
-- name: Download Fedora CoreOS image (stream={{ coreos_image_fetch_stream }}, platform={{ coreos_image_fetch_platform }})
+- name: >-
+    Download Fedora CoreOS image (stream={{ coreos_image_fetch_stream }}, platform={{ coreos_image_fetch_platform }})
   ansible.builtin.command:
     argv: >-
       {{
@@ -33,7 +36,8 @@
   register: coreos_image_fetch_download_cmd
   changed_when: coreos_image_fetch_download_cmd.rc == 0
 
-- name: Locate Fedora CoreOS qcow2 image in {{ coreos_image_fetch_download_dir }}
+- name: >-
+    Locate Fedora CoreOS qcow2 image in {{ coreos_image_fetch_download_dir }}
   ansible.builtin.find:
     paths: "{{ coreos_image_fetch_download_dir }}"
     patterns: "*.qcow2"
@@ -41,13 +45,15 @@
     recurse: false
   register: coreos_image_fetch_located
 
-- name: Fail when Fedora CoreOS qcow2 image is missing in {{ coreos_image_fetch_download_dir }}
+- name: >-
+    Fail when Fedora CoreOS qcow2 image is missing in {{ coreos_image_fetch_download_dir }}
   ansible.builtin.fail:
     msg: >-
       No Fedora CoreOS qcow2 image found in {{ coreos_image_fetch_download_dir }}
   when: coreos_image_fetch_located.matched == 0
 
-- name: Capture latest Fedora CoreOS image path from {{ coreos_image_fetch_download_dir }}
+- name: >-
+    Capture latest Fedora CoreOS image path from {{ coreos_image_fetch_download_dir }}
   ansible.builtin.set_fact:
     coreos_image_fetch_image_path: >-
       {{ (coreos_image_fetch_located.files | sort(attribute='mtime', reverse=true))[0].path }}

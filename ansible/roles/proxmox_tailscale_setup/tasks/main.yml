@@ -6,7 +6,8 @@
     fail_msg: >-
       proxmox_tailscale_setup requires a Debian-family OS. Detected: {{ ansible_facts.os_family | default('unknown') }}
 
-- name: Assert proxmox_tailscale_setup_auth_key is defined on {{ inventory_hostname }}
+- name: >-
+    Assert proxmox_tailscale_setup_auth_key is defined on {{ inventory_hostname }}
   ansible.builtin.assert:
     that:
       - proxmox_tailscale_setup_auth_key is defined
@@ -28,7 +29,8 @@
   changed_when: false
   failed_when: proxmox_tailscale_setup_tailscaled_check.rc != 0
 
-- name: Ensure tailscaled service is enabled and started on {{ inventory_hostname }}
+- name: >-
+    Ensure tailscaled service is enabled and started on {{ inventory_hostname }}
   ansible.builtin.systemd:
     name: tailscaled
     enabled: true

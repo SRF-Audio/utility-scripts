@@ -49,7 +49,8 @@ argument_specs:
       frigate_deploy_storage_class_longhorn:
         type: str
         required: false
-        description: Storage class name for Longhorn-backed PVCs (config and database).
+        description: >-
+          Storage class name for Longhorn-backed PVCs (config and database).
       frigate_deploy_storage_class_synology:
         type: str
         required: false
@@ -58,7 +59,8 @@ argument_specs:
       frigate_deploy_service_type:
         type: str
         required: false
-        description: Kubernetes service type for the Frigate service (ClusterIP, NodePort, LoadBalancer).
+        description: >-
+          Kubernetes service type for the Frigate service (ClusterIP, NodePort, LoadBalancer).
       frigate_deploy_apply_application:
         type: bool
         required: false

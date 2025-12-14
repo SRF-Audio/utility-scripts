@@ -26,7 +26,8 @@
     argocd_deploy_namespace_result: "{{ k8s_object_manager_result }}"
   when: argocd_deploy_namespace_include is succeeded
 
-- name: Apply Argo CD install manifest to namespace {{ argocd_deploy_namespace }}
+- name: >-
+    Apply Argo CD install manifest to namespace {{ argocd_deploy_namespace }}
   ansible.builtin.include_role:
     name: k8s_object_manager
   vars:

@@ -15,14 +15,16 @@
     butane_install_cli_name: "{{ ignition_renderer_butane_cli_name }}"
     butane_install_artifacts_path: "{{ ignition_renderer_artifacts_path }}"
 
-- name: Ensure ignition output directory exists at {{ ignition_renderer_output_dir }}
+- name: >-
+    Ensure ignition output directory exists at {{ ignition_renderer_output_dir }}
   ansible.builtin.file:
     path: "{{ ignition_renderer_output_dir }}"
     state: directory
     mode: "0755"
 
 # noqa: name[template]
-- name: Render Butane template for control plane node {{ item.name }} from {{ ignition_renderer_template_src }}
+- name: >-
+    Render Butane template for control plane node {{ item.name }} from {{ ignition_renderer_template_src }}
   ansible.builtin.include_role:
     name: template_renderer
   vars:
@@ -35,7 +37,8 @@
   loop_control:
     label: "{{ item.name }}"
 # noqa: name[template]
-- name: Render Butane template for worker node {{ item.name }} from {{ ignition_renderer_template_src }}
+- name: >-
+    Render Butane template for worker node {{ item.name }} from {{ ignition_renderer_template_src }}
   ansible.builtin.include_role:
     name: template_renderer
   vars:

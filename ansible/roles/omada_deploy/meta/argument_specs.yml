@@ -42,11 +42,13 @@ argument_specs:
       omada_deploy_tailscale_annotations:
         type: dict
         required: false
-        description: Additional Tailscale annotations to apply to ingress resources.
+        description: >-
+          Additional Tailscale annotations to apply to ingress resources.
       omada_deploy_storage_class_synology:
         type: str
         required: false
-        description: Optional Synology storage class name for logs or secondary storage.
+        description: >-
+          Optional Synology storage class name for logs or secondary storage.
       omada_deploy_service_type:
         type: str
         required: false

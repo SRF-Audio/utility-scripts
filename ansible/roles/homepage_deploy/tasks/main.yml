@@ -37,7 +37,8 @@
     - homepage_deploy_ingress_templates is defined
     - homepage_deploy_ingress_templates.files | length > 0
 
-- name: Register homepage_deploy role artifacts when homepage_deploy_artifacts_path is defined
+- name: >-
+    Register homepage_deploy role artifacts when homepage_deploy_artifacts_path is defined
   ansible.builtin.import_role:
     name: role_artifacts
   vars:

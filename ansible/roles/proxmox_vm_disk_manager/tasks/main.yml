@@ -17,7 +17,8 @@
     fail_msg: Required proxmox_vm_disk_manager variables must be defined. Either api_password or api_token_id and api_token_secret must be provided.
   no_log: true
 
-- name: Build proxmox_vm_disk_manager effective parameters for VM {{ proxmox_vm_disk_manager_vmid }} disk {{ proxmox_vm_disk_manager_disk }}
+- name: >-
+    Build proxmox_vm_disk_manager effective parameters for VM {{ proxmox_vm_disk_manager_vmid }} disk {{ proxmox_vm_disk_manager_disk }}
   ansible.builtin.set_fact:
     proxmox_vm_disk_manager_effective_params: >-
       {{
@@ -51,7 +52,8 @@
   community.proxmox.proxmox_disk: "{{ proxmox_vm_disk_manager_effective_params }}"
   register: proxmox_vm_disk_manager_result
 
-- name: Record proxmox_vm_disk_manager artifacts for VM {{ proxmox_vm_disk_manager_vmid }} disk {{ proxmox_vm_disk_manager_disk }}
+- name: >-
+    Record proxmox_vm_disk_manager artifacts for VM {{ proxmox_vm_disk_manager_vmid }} disk {{ proxmox_vm_disk_manager_disk }}
   ansible.builtin.include_role:
     name: role_artifacts
   vars:

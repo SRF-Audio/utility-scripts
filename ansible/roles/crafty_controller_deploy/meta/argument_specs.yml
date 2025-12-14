@@ -14,7 +14,8 @@ argument_specs:
       crafty_controller_deploy_artifacts_path:
         type: str
         required: true
-        description: Base artifacts path for this role where rendered manifests and outputs go.
+        description: >-
+          Base artifacts path for this role where rendered manifests and outputs go.
       crafty_controller_deploy_sfroeber_password:
         type: str
         required: true
@@ -22,7 +23,8 @@ argument_specs:
       crafty_controller_deploy_ingress_host:
         type: str
         required: false
-        description: Hostname for the Ingress resource used by Homepage discovery.
+        description: >-
+          Hostname for the Ingress resource used by Homepage discovery.
       crafty_controller_deploy_tailscale_enabled:
         type: bool
         required: false

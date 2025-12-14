@@ -5,7 +5,8 @@ argument_specs:
       proxmox_cluster_layout:
         type: dict
         required: true
-        description: Proxmox cluster layout containing control_planes and workers.
+        description: >-
+          Proxmox cluster layout containing control_planes and workers.
       proxmox_api_host:
         type: str
         required: true

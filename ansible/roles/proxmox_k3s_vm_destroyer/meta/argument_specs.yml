@@ -5,7 +5,8 @@ argument_specs:
       proxmox_cluster_layout:
         type: dict
         required: true
-        description: Proxmox cluster layout containing control_planes and workers.
+        description: >-
+          Proxmox cluster layout containing control_planes and workers.
       proxmox_api_host:
         type: str
         required: true
@@ -33,4 +34,5 @@ argument_specs:
       proxmox_cluster_storage_snippets_dir:
         type: str
         required: false
-        description: Directory on Proxmox nodes where ignition snippet .ign files are stored.
+        description: >-
+          Directory on Proxmox nodes where ignition snippet .ign files are stored.

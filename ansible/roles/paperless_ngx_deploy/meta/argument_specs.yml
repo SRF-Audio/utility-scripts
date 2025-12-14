@@ -25,11 +25,13 @@ argument_specs:
       paperless_ngx_deploy_storage_class_local:
         type: str
         required: false
-        description: Storage class for local provisioner PVCs (data, dbdata, redisdata) - I/O sensitive.
+        description: >-
+          Storage class for local provisioner PVCs (data, dbdata, redisdata) - I/O sensitive.
       paperless_ngx_deploy_storage_class_synology:
         type: str
         required: false
-        description: Storage class for Synology CSI/NFS PVCs (media, export, consume).
+        description: >-
+          Storage class for Synology CSI/NFS PVCs (media, export, consume).
       paperless_ngx_deploy_hostname:
         type: str
         required: false
@@ -101,7 +103,8 @@ argument_specs:
       paperless_ngx_deploy_apply_objects:
         type: bool
         required: false
-        description: Whether to apply Kubernetes objects or just render manifests.
+        description: >-
+          Whether to apply Kubernetes objects or just render manifests.
       paperless_ngx_deploy_pvc_data_size:
         type: str
         required: false

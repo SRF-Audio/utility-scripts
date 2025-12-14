@@ -13,4 +13,5 @@ argument_specs:
       proxmox_maintenance_reboot_timeout:
         type: int
         required: false
-        description: Maximum seconds to wait for the machine to reboot and respond.
+        description: >-
+          Maximum seconds to wait for the machine to reboot and respond.

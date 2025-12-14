@@ -8,7 +8,8 @@
       - template_renderer_dest | length > 0
     fail_msg: template_renderer_src and template_renderer_dest must be defined and non-empty.
 
-- name: Render template {{ template_renderer_src }} to {{ template_renderer_dest }}
+- name: >-
+    Render template {{ template_renderer_src }} to {{ template_renderer_dest }}
   ansible.builtin.template:
     src: "{{ template_renderer_src }}"
     dest: "{{ template_renderer_dest }}"

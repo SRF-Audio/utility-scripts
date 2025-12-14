@@ -9,7 +9,8 @@ argument_specs:
       coreos_image_fetch_platform:
         type: str
         required: false
-        description: Platform identifier for coreos-installer (for example, proxmoxve, qemu).
+        description: >-
+          Platform identifier for coreos-installer (for example, proxmoxve, qemu).
       coreos_image_fetch_format:
         type: str
         required: false

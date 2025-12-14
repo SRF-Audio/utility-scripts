@@ -34,7 +34,8 @@
     - omada_deploy_ingress_templates is defined
     - omada_deploy_ingress_templates.files | length > 0
 
-- name: Register omada_deploy role artifacts when omada_deploy_artifacts_path is defined
+- name: >-
+    Register omada_deploy role artifacts when omada_deploy_artifacts_path is defined
   ansible.builtin.import_role:
     name: role_artifacts
   vars:
