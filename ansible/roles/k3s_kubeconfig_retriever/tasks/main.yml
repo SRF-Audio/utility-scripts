@@ -7,11 +7,14 @@
   ansible.builtin.assert:
     that:
       - >-
-        k3s_kubeconfig_retriever_control_plane_host is defined
-        or (groups[k3s_kubeconfig_retriever_control_plane_group] | default([]) | length > 0)
+        k3s_kubeconfig_retriever_control_plane_host is defined or
+        (groups[k3s_kubeconfig_retriever_control_plane_group] |
+        default([]) | length > 0)
     fail_msg: >-
-      Either k3s_kubeconfig_retriever_control_plane_host must be defined,
-      or the inventory group '{{ k3s_kubeconfig_retriever_control_plane_group }}' must contain at least one host.
+      Either k3s_kubeconfig_retriever_control_plane_host must be
+      defined, or the inventory group '{{
+      k3s_kubeconfig_retriever_control_plane_group }}' must contain
+      at least one host.
 
 - name: Assert remote kubeconfig path is non-empty
   ansible.builtin.assert:
@@ -28,7 +31,8 @@
       }}
 
 - name: >-
-    Remove stale known_hosts entries for {{ k3s_kubeconfig_retriever_target_host }}
+    Remove stale known_hosts entries for
+    {{ k3s_kubeconfig_retriever_target_host }}
   ansible.builtin.lineinfile:
     path: "{{ lookup('env', 'HOME') }}/.ssh/known_hosts"
     state: absent
@@ -57,7 +61,8 @@
 - name: Write kubeconfig to local file
   ansible.builtin.copy:
     dest: >-
-      {{ k3s_kubeconfig_retriever_local_output_dir }}/{{ k3s_kubeconfig_retriever_local_output_filename }}
+      {{ k3s_kubeconfig_retriever_local_output_dir }}/{{
+      k3s_kubeconfig_retriever_local_output_filename }}
     content: "{{ k3s_kubeconfig_retriever_content }}"
     mode: "0600"
   delegate_to: localhost
@@ -69,7 +74,8 @@
       remote_kubeconfig_path: >-
         {{ k3s_kubeconfig_retriever_remote_kubeconfig_path }}
       local_output_path: >-
-        {{ k3s_kubeconfig_retriever_local_output_dir }}/{{ k3s_kubeconfig_retriever_local_output_filename }}
+        {{ k3s_kubeconfig_retriever_local_output_dir }}/{{
+        k3s_kubeconfig_retriever_local_output_filename }}
 
 - name: Record k3s_kubeconfig_retriever artifacts
   ansible.builtin.include_role:

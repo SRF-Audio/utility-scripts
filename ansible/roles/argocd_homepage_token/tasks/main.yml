@@ -21,7 +21,11 @@
     - name: Determine argocd CLI download URL
       ansible.builtin.set_fact:
         argocd_homepage_token_cli_download_url: >-
-          https://github.com/argoproj/argo-cd/releases/{{ 'latest/download' if argocd_homepage_token_cli_version == 'latest' else ('download/' + argocd_homepage_token_cli_version) }}/argocd-linux-amd64
+          https://github.com/argoproj/argo-cd/releases/{{
+          'latest/download'
+          if argocd_homepage_token_cli_version == 'latest'
+          else ('download/' + argocd_homepage_token_cli_version)
+          }}/argocd-linux-amd64
 
     - name: Download argocd CLI binary
       ansible.builtin.get_url:
@@ -95,19 +99,27 @@
         that:
           - argocd_homepage_token_admin_secret.resources is defined
           - argocd_homepage_token_admin_secret.resources | length > 0
-          - argocd_homepage_token_admin_secret.resources[0].data.password is defined
+          - >-
+            argocd_homepage_token_admin_secret.resources[0].data.password
+            is defined
         fail_msg: >-
-          argocd-initial-admin-secret not found or does not contain password field
+          argocd-initial-admin-secret not found or does not contain
+          password field
 
     - name: Decode argocd admin password
       ansible.builtin.set_fact:
         argocd_homepage_token_admin_password: >-
-          {{ argocd_homepage_token_admin_secret.resources[0].data.password | b64decode }}
+          {{
+          argocd_homepage_token_admin_secret.resources[0].data.password |
+          b64decode
+          }}
 
     - name: Login to Argo CD API
       ansible.builtin.shell:
         cmd: >-
-          argocd login {{ argocd_homepage_token_server_url | regex_replace('^https?://', '') }}
+          argocd login {{
+          argocd_homepage_token_server_url |
+          regex_replace('^https?://', '') }}
           --username admin
           --password "${ARGOCD_PASSWORD}"
           --insecure
