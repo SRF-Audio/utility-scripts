@@ -96,7 +96,8 @@
           - argocd_homepage_token_admin_secret.resources is defined
           - argocd_homepage_token_admin_secret.resources | length > 0
           - argocd_homepage_token_admin_secret.resources[0].data.password is defined
-        fail_msg: "argocd-initial-admin-secret not found or does not contain password field"
+        fail_msg: >-
+          argocd-initial-admin-secret not found or does not contain password field
 
     - name: Decode argocd admin password
       ansible.builtin.set_fact:

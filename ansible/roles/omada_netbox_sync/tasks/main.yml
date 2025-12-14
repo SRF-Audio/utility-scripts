@@ -51,7 +51,8 @@
     that:
       - omada_netbox_sync_clients_response.json.errorCode is defined
       - omada_netbox_sync_clients_response.json.errorCode == 0
-    fail_msg: "Failed to fetch Omada clients. Error: {{ omada_netbox_sync_clients_response.json | default('unknown') }}"
+    fail_msg: >-
+      Failed to fetch Omada clients. Error: {{ omada_netbox_sync_clients_response.json | default('unknown') }}
 
 - name: Set raw Omada clients data
   ansible.builtin.set_fact:

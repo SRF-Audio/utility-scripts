@@ -6,7 +6,8 @@
       - velero_deploy_context is defined
       - velero_deploy_kubeconfig | string | length > 0
       - velero_deploy_context | length > 0
-    fail_msg: "velero_deploy_kubeconfig and velero_deploy_context must be defined for velero_deploy."
+    fail_msg: >-
+      velero_deploy_kubeconfig and velero_deploy_context must be defined for velero_deploy.
 
 - name: Ensure Velero tmp directory exists
   ansible.builtin.file:

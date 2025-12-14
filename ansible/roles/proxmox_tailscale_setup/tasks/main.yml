@@ -3,7 +3,8 @@
   ansible.builtin.assert:
     that:
       - ansible_facts.os_family == "Debian"
-    fail_msg: "proxmox_tailscale_setup requires a Debian-family OS. Detected: {{ ansible_facts.os_family | default('unknown') }}"
+    fail_msg: >-
+      proxmox_tailscale_setup requires a Debian-family OS. Detected: {{ ansible_facts.os_family | default('unknown') }}
 
 - name: Assert proxmox_tailscale_setup_auth_key is defined on {{ inventory_hostname }}
   ansible.builtin.assert:

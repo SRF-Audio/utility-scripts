@@ -3,7 +3,8 @@
   ansible.builtin.assert:
     that:
       - ansible_facts.os_family == "Debian"
-    fail_msg: "proxmox_maintenance requires a Debian-family OS. Detected: {{ ansible_facts.os_family | default('unknown') }}"
+    fail_msg: >-
+      proxmox_maintenance requires a Debian-family OS. Detected: {{ ansible_facts.os_family | default('unknown') }}
 
 - name: Update apt cache and upgrade packages on {{ inventory_hostname }}
   ansible.builtin.apt:

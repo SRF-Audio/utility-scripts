@@ -7,8 +7,10 @@ proxmox_fcos_version: 1.5.0
 proxmox_storage: local-zfs
 proxmox_storage_type: scsi
 proxmox_cluster_storage_mount: "/mnt/pve/proxmox-cluster-storage"
-proxmox_cluster_storage_template_dir: "{{ proxmox_cluster_storage_mount }}/template/qemu"
-proxmox_cluster_storage_snippets_dir: "{{ proxmox_cluster_storage_mount }}/snippets"
+proxmox_cluster_storage_template_dir: >-
+  {{ proxmox_cluster_storage_mount }}/template/qemu
+proxmox_cluster_storage_snippets_dir: >-
+  {{ proxmox_cluster_storage_mount }}/snippets
 
 proxmox_bridge: vmbr0
 
@@ -123,7 +125,8 @@ proxmox_api_user: "root@pam"
 proxmox_cluster_storage_id: "proxmox-cluster-storage"
 
 # Tailscale setup configuration for Proxmox nodes
-# Note: proxmox_tailscale_setup_auth_key must be set at runtime (e.g. from site.yml via 1Password lookup)
+# Note: proxmox_tailscale_setup_auth_key must be set at runtime
+# (e.g. from site.yml via 1Password lookup)
 proxmox_tailscale_setup_hostname_suffix: "-proxmox"
 proxmox_tailscale_setup_advertise_tags:
   - tag:proxmox

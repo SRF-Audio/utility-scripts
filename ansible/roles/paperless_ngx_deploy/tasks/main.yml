@@ -6,7 +6,8 @@
       - paperless_ngx_deploy_context is defined
       - paperless_ngx_deploy_kubeconfig | string | length > 0
       - paperless_ngx_deploy_context | length > 0
-    fail_msg: "paperless_ngx_deploy_kubeconfig and paperless_ngx_deploy_context must be defined for paperless_ngx_deploy."
+    fail_msg: >-
+      paperless_ngx_deploy_kubeconfig and paperless_ngx_deploy_context must be defined for paperless_ngx_deploy.
 
 - name: Set paperless_ngx_deploy temporary directory
   ansible.builtin.set_fact:

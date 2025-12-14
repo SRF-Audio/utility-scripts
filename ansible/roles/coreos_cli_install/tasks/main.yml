@@ -41,7 +41,8 @@
 
         - name: Fail when coreos-installer installation attempt failed on {{ inventory_hostname }}
           ansible.builtin.fail:
-            msg: "Failed to install coreos-installer via package manager on unsupported OS family {{ ansible_facts['os_family'] }}."
+            msg: >-
+              Failed to install coreos-installer via package manager on unsupported OS family {{ ansible_facts['os_family'] }}.
           when: coreos_cli_install_package_attempt.rc != 0
 
 - name: Record coreos_cli_install role artifacts for {{ ansible_facts['os_family'] }}

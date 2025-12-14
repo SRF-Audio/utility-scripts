@@ -1,13 +1,18 @@
 ---
-- name: Assert exactly one of source_kubeconfig_path or source_kubeconfig_content is provided
+- name: >-
+    Assert exactly one of source_kubeconfig_path or
+    source_kubeconfig_content is provided
   ansible.builtin.assert:
     that:
       - >-
-        (kubeconfig_manager_source_kubeconfig_path is defined and kubeconfig_manager_source_kubeconfig_path | length > 0)
-        != (kubeconfig_manager_source_kubeconfig_content is defined and kubeconfig_manager_source_kubeconfig_content | length > 0)
+        (kubeconfig_manager_source_kubeconfig_path is defined and
+        kubeconfig_manager_source_kubeconfig_path | length > 0) !=
+        (kubeconfig_manager_source_kubeconfig_content is defined and
+        kubeconfig_manager_source_kubeconfig_content | length > 0)
     fail_msg: >-
-      Exactly one of kubeconfig_manager_source_kubeconfig_path or kubeconfig_manager_source_kubeconfig_content
-      must be provided, but not both.
+      Exactly one of kubeconfig_manager_source_kubeconfig_path or
+      kubeconfig_manager_source_kubeconfig_content must be provided,
+      but not both.
 
 - name: Assert required parameters are non-empty
   ansible.builtin.assert:

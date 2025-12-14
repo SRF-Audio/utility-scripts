@@ -9,7 +9,8 @@
       - argocd_api_auth_base_url | length > 0
       - argocd_api_auth_username | length > 0
       - argocd_api_auth_password | length > 0
-    fail_msg: "argocd_api_auth_base_url, argocd_api_auth_username, and argocd_api_auth_password must be defined for argocd_api_auth_auth."
+    fail_msg: >-
+      argocd_api_auth_base_url, argocd_api_auth_username, and argocd_api_auth_password must be defined for argocd_api_auth_auth.
 
 - name: Perform Argo CD API login via http_api_auth
   ansible.builtin.include_role:

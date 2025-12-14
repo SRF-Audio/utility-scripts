@@ -6,7 +6,8 @@
       - argocd_deploy_context is defined
       - argocd_deploy_kubeconfig | string | length > 0
       - argocd_deploy_context | length > 0
-    fail_msg: "argocd_deploy_kubeconfig and argocd_deploy_context must be defined for argocd_deploy."
+    fail_msg: >-
+      argocd_deploy_kubeconfig and argocd_deploy_context must be defined for argocd_deploy.
 
 - name: Create Argo CD namespace {{ argocd_deploy_namespace }}
   ansible.builtin.include_role:

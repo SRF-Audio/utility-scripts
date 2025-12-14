@@ -6,7 +6,8 @@
       - frigate_deploy_context is defined
       - frigate_deploy_kubeconfig | string | length > 0
       - frigate_deploy_context | length > 0
-    fail_msg: "frigate_deploy_kubeconfig and frigate_deploy_context must be defined when frigate_deploy_apply_application is true."
+    fail_msg: >-
+      frigate_deploy_kubeconfig and frigate_deploy_context must be defined when frigate_deploy_apply_application is true.
   when: frigate_deploy_apply_application | bool
 
 - name: Set frigate_deploy tmp directory path

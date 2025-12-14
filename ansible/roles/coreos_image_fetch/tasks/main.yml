@@ -43,7 +43,8 @@
 
 - name: Fail when Fedora CoreOS qcow2 image is missing in {{ coreos_image_fetch_download_dir }}
   ansible.builtin.fail:
-    msg: "No Fedora CoreOS qcow2 image found in {{ coreos_image_fetch_download_dir }}"
+    msg: >-
+      No Fedora CoreOS qcow2 image found in {{ coreos_image_fetch_download_dir }}
   when: coreos_image_fetch_located.matched == 0
 
 - name: Capture latest Fedora CoreOS image path from {{ coreos_image_fetch_download_dir }}

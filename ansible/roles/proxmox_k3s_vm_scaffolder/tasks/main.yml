@@ -35,7 +35,8 @@
       ostype: l26
       boot: "order=scsi0"
       onboot: true
-      args: "-fw_cfg name=opt/com.coreos/config,file={{ proxmox_cluster_storage_snippets_dir }}/{{ item.name }}.ign"
+      args: >-
+        -fw_cfg name=opt/com.coreos/config,file={{ proxmox_cluster_storage_snippets_dir }}/{{ item.name }}.ign
       pool: kubernetes
       tags:
         - coachlight-homelab
