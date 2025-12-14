@@ -6,7 +6,9 @@
       - ignition_renderer_cluster_layout | length > 0
       - '"control_planes" in ignition_renderer_cluster_layout'
       - '"workers" in ignition_renderer_cluster_layout'
-    fail_msg: ignition_renderer_cluster_layout must be defined and contain control_planes and workers.
+    fail_msg: >-
+      ignition_renderer_cluster_layout must be defined and contain
+      control_planes and workers.
 
 - name: Ensure installation of {{ ignition_renderer_butane_cli_name }}
   ansible.builtin.include_role:
@@ -16,7 +18,8 @@
     butane_install_artifacts_path: "{{ ignition_renderer_artifacts_path }}"
 
 - name: >-
-    Ensure ignition output directory exists at {{ ignition_renderer_output_dir }}
+    Ensure ignition output directory exists at
+    {{ ignition_renderer_output_dir }}
   ansible.builtin.file:
     path: "{{ ignition_renderer_output_dir }}"
     state: directory
@@ -30,7 +33,8 @@
     name: template_renderer
   vars:
     template_renderer_src: "{{ ignition_renderer_template_src }}"
-    template_renderer_dest: "{{ ignition_renderer_output_dir }}/{{ item.name }}.bu"
+    template_renderer_dest: >-
+      {{ ignition_renderer_output_dir }}/{{ item.name }}.bu
     # noqa: var-naming
     proxmox_vm_hostname: "{{ item.name }}"
     proxmox_k3s_role: "{{ item.role }}"
@@ -45,7 +49,8 @@
     name: template_renderer
   vars:
     template_renderer_src: "{{ ignition_renderer_template_src }}"
-    template_renderer_dest: "{{ ignition_renderer_output_dir }}/{{ item.name }}.bu"
+    template_renderer_dest: >-
+      {{ ignition_renderer_output_dir }}/{{ item.name }}.bu
     # noqa: var-naming
     proxmox_vm_hostname: "{{ item.name }}"
     proxmox_k3s_role: "worker"
