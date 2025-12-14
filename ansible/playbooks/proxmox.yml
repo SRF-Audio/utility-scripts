@@ -33,7 +33,11 @@
       vault='HomeLab') }}"
     ansible_user: root
     ansible_password: "{{ bootstrap_password }}"
-    ansible_ssh_common_args: "-o IdentitiesOnly=yes -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no"
+    ansible_ssh_common_args: >-
+      -o IdentitiesOnly=yes
+      -o PreferredAuthentications=password
+      -o PubkeyAuthentication=no
+      -o StrictHostKeyChecking=no
   roles:
     - proxmox_cluster_prep
 
@@ -60,11 +64,15 @@
     - name: Set fact for existing cluster
       set_fact:
         existing_cluster: true
-      when: (cluster_check.stdout is search('(?m)^\\s*Quorate:\\s*Yes$')) and (cluster_check.stdout is search('(?m)^\\s*Nodes:\\s*3\\s*$'))
+      when: >-
+        (cluster_check.stdout is
+        search('(?m)^\\s*Quorate:\\s*Yes$')) and
+        (cluster_check.stdout is search('(?m)^\\s*Nodes:\\s*3\\s*$'))
 
     - name: Join existing cluster
-      ansible.builtin.command: >
-        pvecm add {{ hostvars[groups['proxmox_primary'][0]].proxmox_ip }} --use_ssh true
+      ansible.builtin.command: >-
+        pvecm add {{ hostvars[groups['proxmox_primary'][0]].proxmox_ip }}
+        --use_ssh true
       args:
         creates: /etc/pve/corosync.conf
       register: join_out
@@ -91,7 +99,11 @@
   vars:
     pve_admin_group: administrators
     pve_admin_user: sfroeber@pam
-    pve_admin_password: "{{ lookup('community.general.onepassword', 'Coachlight ProxMox Cluster', field='password', vault='HomeLab') }}"
+    pve_admin_password: >-
+      {{ lookup('community.general.onepassword',
+                'Coachlight ProxMox Cluster',
+                field='password',
+                vault='HomeLab') }}
     linux_admin_user: sfroeber
     comment: "Stephen Froeber's user, created by Ansible"
     ansible_user: root

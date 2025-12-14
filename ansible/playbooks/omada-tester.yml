@@ -5,9 +5,15 @@
   vars:
     omada_api_base_url: "https://192.168.226.6:8043"
     omada_api_username: >-
-      {{ lookup('community.general.onepassword', 'ss53lvwaeb3gwi5wfa77dbh22y', field='username', vault='HomeLab') }}
+      {{ lookup('community.general.onepassword',
+                'ss53lvwaeb3gwi5wfa77dbh22y',
+                field='username',
+                vault='HomeLab') }}
     omada_api_password: >-
-      {{ lookup('community.general.onepassword', 'ss53lvwaeb3gwi5wfa77dbh22y', field='password', vault='HomeLab') }}
+      {{ lookup('community.general.onepassword',
+                'ss53lvwaeb3gwi5wfa77dbh22y',
+                field='password',
+                vault='HomeLab') }}
 
   tasks:
     - name: Authenticate to Omada API

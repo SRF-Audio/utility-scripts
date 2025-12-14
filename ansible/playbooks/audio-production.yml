@@ -3,6 +3,10 @@
   hosts: localhost
   gather_facts: true
   vars:
-    ansible_become_password: "{{ lookup('community.general.onepassword', 'Fedora KDE Workstation (AMD Desktop)', field='password', vault='HomeLab') }}"
+    ansible_become_password: >-
+      {{ lookup('community.general.onepassword',
+                'Fedora KDE Workstation (AMD Desktop)',
+                field='password',
+                vault='HomeLab') }}
   roles:
     - audio_tools_install

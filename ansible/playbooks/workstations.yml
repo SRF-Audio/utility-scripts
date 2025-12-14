@@ -4,6 +4,7 @@
   gather_facts: true
 
   tasks:
+    # yamllint disable rule:line-length rule:comments-indentation
 
     # - name: Assemble first name
     #   ansible.builtin.set_fact:
@@ -74,8 +75,10 @@
     #     path: /etc/hosts
     #     regexp: '^127\\.0\\.0\\.1'
     #     line: "127.0.0.1   localhost {{ static_hostname }}"
+    # yamllint enable rule:line-length rule:comments-indentation
 
   roles:
+    # yamllint disable rule:line-length
     - role: oh_my_zsh_install
 
     # - name: Install TigerVNC
@@ -296,3 +299,4 @@
 
     # - name: Reboot the system
     #   reboot:
+    # yamllint enable rule:line-length
