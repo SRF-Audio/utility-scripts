@@ -23,7 +23,7 @@ ignition_renderer_output_dir: "{{ artifacts_path }}/ignitions"
 
 file_publish_default_mode: "0644"
 file_publish_destination: "{{ proxmox_cluster_storage_mount }}"
-file_publish_items: [] # Only set if you want to override the dynamic values in
+file_publish_items: []  # Only set if you want to override the dynamic values in
 # playbooks/k3s-cluster-setup.yml
 # Example usage:
 # file_publish_items:

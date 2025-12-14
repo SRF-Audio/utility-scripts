@@ -108,4 +108,4 @@
     path: "{{ ansible_env.HOME }}/.zshrc"
     regexp: '^\[\[ ! -f ~/.p10k.zsh \]\] \|\| source ~/.p10k.zsh'
     line: "[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh"
-    insertafter: "^ZSH_THEME=" # or wherever you like
+    insertafter: "^ZSH_THEME="  # or wherever you like
