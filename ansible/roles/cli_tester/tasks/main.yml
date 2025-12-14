@@ -1,3 +1,4 @@
+---
 # roles/cli_tester/tasks/main.yml
 - name: Assert cli_tester_cli_name is defined and non-empty
   ansible.builtin.assert:

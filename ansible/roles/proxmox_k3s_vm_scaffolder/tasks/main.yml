@@ -1,3 +1,4 @@
+---
 - name: Build combined VM list for k3s cluster
   ansible.builtin.set_fact:
     proxmox_k3s_vm_scaffolder_all_vms: "{{ proxmox_cluster_layout.control_planes + proxmox_cluster_layout.workers }}"

@@ -1,3 +1,4 @@
+---
 omada_deploy_namespace: infra-omada-controller
 omada_deploy_argo_namespace: argocd
 omada_deploy_argo_project: coachlight-k3s-infra

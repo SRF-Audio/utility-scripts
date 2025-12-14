@@ -1,3 +1,4 @@
+---
 - name: Assert ignition_renderer inputs are defined
   ansible.builtin.assert:
     that:

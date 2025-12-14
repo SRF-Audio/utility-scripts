@@ -1,3 +1,4 @@
+---
 - name: Sync Omada Devices to NetBox
   hosts: localhost
   gather_facts: false

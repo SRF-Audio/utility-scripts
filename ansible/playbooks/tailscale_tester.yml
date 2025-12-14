@@ -1,3 +1,4 @@
+---
 - name: Validate Tailscale installation and connectivity
   hosts: localhost
   connection: local

@@ -1,3 +1,4 @@
+---
 - name: Assert required crafty_controller_deploy inputs are defined
   ansible.builtin.assert:
     that:

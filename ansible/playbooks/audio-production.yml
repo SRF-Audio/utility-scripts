@@ -1,3 +1,4 @@
+---
 - name: Stephen's Audio Production Playbook for Linux
   hosts: localhost
   gather_facts: true

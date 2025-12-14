@@ -1,3 +1,4 @@
+---
 - name: Validate op_item_delete_items input
   ansible.builtin.assert:
     that:

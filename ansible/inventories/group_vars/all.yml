@@ -1,3 +1,4 @@
+---
 # ansible/inventories/group_vars/all.yml
 ansible_user: sfroeber
 ansible_ssh_private_key_file: "~/.ssh/coachlight-homelab.pem"

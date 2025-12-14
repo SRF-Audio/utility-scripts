@@ -1,3 +1,4 @@
+---
 - name: Validate op_read item inputs
   ansible.builtin.assert:
     that:

@@ -1,3 +1,4 @@
+---
 tailscale_advertise_tags:
   - tag:cluster-worker
   - tag:server-utility

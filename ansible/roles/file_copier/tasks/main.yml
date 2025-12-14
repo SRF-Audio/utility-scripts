@@ -1,3 +1,4 @@
+---
 - name: Assert file_copier_items is a non-empty list
   ansible.builtin.assert:
     that:

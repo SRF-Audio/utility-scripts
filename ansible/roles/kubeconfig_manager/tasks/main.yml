@@ -1,3 +1,4 @@
+---
 - name: Assert exactly one of source_kubeconfig_path or source_kubeconfig_content is provided
   ansible.builtin.assert:
     that:

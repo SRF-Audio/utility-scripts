@@ -1,3 +1,4 @@
+---
 - name: Check if oh-my-zsh is installed
   ansible.builtin.stat:
     path: "{{ ansible_env.HOME }}/.oh-my-zsh"

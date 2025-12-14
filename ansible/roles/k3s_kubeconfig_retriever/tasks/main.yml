@@ -1,3 +1,4 @@
+---
 - name: Skip k3s_kubeconfig_retriever when disabled
   ansible.builtin.meta: end_play
   when: not k3s_kubeconfig_retriever_enabled

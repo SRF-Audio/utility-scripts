@@ -1,3 +1,4 @@
+---
 - name: Assert OS is Debian-family on {{ inventory_hostname }}
   ansible.builtin.assert:
     that:

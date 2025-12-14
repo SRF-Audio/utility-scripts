@@ -1,3 +1,4 @@
+---
 - name: Assert proxmox_kvm_manager required inputs are defined for VM {{ proxmox_kvm_manager_vmid }}
   ansible.builtin.assert:
     that:

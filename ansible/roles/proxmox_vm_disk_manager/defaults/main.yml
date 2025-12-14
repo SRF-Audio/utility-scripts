@@ -1,3 +1,4 @@
+---
 proxmox_vm_disk_manager_state: present
 proxmox_vm_disk_manager_validate_certs: false
 proxmox_vm_disk_manager_module_params: {}

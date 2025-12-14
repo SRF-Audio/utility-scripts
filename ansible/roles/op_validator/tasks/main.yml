@@ -1,3 +1,4 @@
+---
 - name: Check for op CLI presence
   ansible.builtin.command:
     cmd: "{{ op_validator_op_executable }} --version"

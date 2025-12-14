@@ -1,3 +1,4 @@
+---
 - name: Assert k3s_cluster_domain is defined
   ansible.builtin.assert:
     that:

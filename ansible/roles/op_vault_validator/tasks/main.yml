@@ -1,3 +1,4 @@
+---
 - name: Validate op_vault_validator_vault_name input
   ansible.builtin.assert:
     that:

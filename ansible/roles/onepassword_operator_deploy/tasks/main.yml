@@ -1,3 +1,4 @@
+---
 - name: Assert required onepassword_operator_deploy inputs are defined
   ansible.builtin.assert:
     that:

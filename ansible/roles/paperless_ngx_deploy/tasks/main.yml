@@ -1,3 +1,4 @@
+---
 - name: Assert required paperless_ngx_deploy inputs are defined
   ansible.builtin.assert:
     that:

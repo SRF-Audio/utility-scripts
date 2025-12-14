@@ -1,3 +1,4 @@
+---
 velero_deploy_kubeconfig: "{{ k3s_kubeconfig_path | default('', true) }}"
 velero_deploy_context: "{{ k3s_context_name | default('', true) }}"
 velero_deploy_cluster_name: "{{ k3s_cluster_name | default('', true) }}"

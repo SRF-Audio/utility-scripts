@@ -1,3 +1,4 @@
+---
 - name: Validate 1Password CLI with service account token
   hosts: localhost
   connection: local

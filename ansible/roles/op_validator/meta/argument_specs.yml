@@ -1,3 +1,4 @@
+---
 argument_specs:
   main:
     short_description: Validate presence and configuration of the 1Password CLI using a service account token

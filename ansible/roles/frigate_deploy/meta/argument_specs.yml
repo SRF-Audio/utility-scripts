@@ -1,3 +1,4 @@
+---
 argument_specs:
   main:
     short_description: Deploy Frigate NVR Argo CD Application into k3s cluster

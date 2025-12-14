@@ -1,3 +1,4 @@
+---
 # roles/http_api_auth/tasks/main.yml
 - name: Assert required HTTP API auth inputs are defined
   ansible.builtin.assert:

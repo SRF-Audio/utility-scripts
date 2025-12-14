@@ -1,3 +1,4 @@
+---
 # roles/argocd_api_auth_auth/tasks/main.yml
 - name: Assert required Argo CD API auth inputs are defined
   ansible.builtin.assert:

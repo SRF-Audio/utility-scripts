@@ -1,3 +1,4 @@
+---
 - name: Ensure Omada Argo CD Application is present
   kubernetes.core.k8s:
     state: present

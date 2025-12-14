@@ -1,3 +1,4 @@
+---
 # roles/tailscale_install/tasks/main.yml
 - name: Download Tailscale install script
   ansible.builtin.get_url:

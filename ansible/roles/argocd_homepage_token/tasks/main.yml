@@ -1,3 +1,4 @@
+---
 - name: Check if argocd CLI is installed
   ansible.builtin.include_role:
     name: cli_tester

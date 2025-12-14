@@ -1,3 +1,4 @@
+---
 argument_specs:
   main:
     short_description: Sync Omada SDN Controller device inventory to NetBox

@@ -1,3 +1,4 @@
+---
 # roles/http_api_auth/meta/argument_specs.yml
 argument_specs:
   main:

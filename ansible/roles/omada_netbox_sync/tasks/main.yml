@@ -1,3 +1,4 @@
+---
 - name: Assert required inputs are defined
   ansible.builtin.assert:
     that:

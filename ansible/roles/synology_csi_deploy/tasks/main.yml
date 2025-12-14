@@ -1,3 +1,4 @@
+---
 - name: Set Synology NAS LAN facts
   ansible.builtin.set_fact:
     synology_csi_deploy_nas_host: "{{ groups['synology_nas'][0] }}"

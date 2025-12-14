@@ -1,3 +1,4 @@
+---
 - name: Assert butane_install inputs are defined
   ansible.builtin.assert:
     that:

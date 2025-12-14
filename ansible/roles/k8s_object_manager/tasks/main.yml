@@ -1,3 +1,4 @@
+---
 - name: Validate Kubernetes cluster if needed
   ansible.builtin.include_role:
     name: k8s_validator

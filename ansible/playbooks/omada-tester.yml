@@ -1,3 +1,4 @@
+---
 - name: Omada API Tester Playbook
   hosts: localhost
   gather_facts: false

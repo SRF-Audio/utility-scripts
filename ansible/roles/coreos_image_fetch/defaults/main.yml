@@ -1,3 +1,4 @@
+---
 coreos_image_fetch_stream: stable
 coreos_image_fetch_platform: proxmoxve
 coreos_image_fetch_format: qcow2.xz

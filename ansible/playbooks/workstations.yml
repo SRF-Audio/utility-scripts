@@ -1,3 +1,4 @@
+---
 - name: Stephen's Linux Setup Playbook
   hosts: localhost
   gather_facts: true

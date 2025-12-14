@@ -1,3 +1,4 @@
+---
 control_host_dependencies_python_executable: pip3
 control_host_dependencies_pip_packages:
   - proxmoxer

@@ -1,3 +1,4 @@
+---
 - name: Assert required frigate_deploy inputs are defined when applying
   ansible.builtin.assert:
     that:

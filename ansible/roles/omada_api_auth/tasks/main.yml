@@ -1,3 +1,4 @@
+---
 # roles/omada_api_auth/tasks/main.yml
 - name: Assert required Omada API auth inputs are defined
   ansible.builtin.assert:

@@ -1,3 +1,4 @@
+---
 - name: Ensure CoreOS image download directory exists at {{ coreos_image_fetch_download_dir }}
   ansible.builtin.file:
     path: "{{ coreos_image_fetch_download_dir }}"

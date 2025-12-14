@@ -1,3 +1,4 @@
+---
 - name: Check for coreos-installer via cli_tester on {{ inventory_hostname }}
   ansible.builtin.include_role:
     name: cli_tester

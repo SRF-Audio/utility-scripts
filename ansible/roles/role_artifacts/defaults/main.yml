@@ -1,1 +1,2 @@
+---
 role_artifacts_path: "{{ artifacts_path }}"

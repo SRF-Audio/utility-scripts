@@ -1,3 +1,4 @@
+---
 - name: Assert required tailscale_operator_deploy inputs are defined
   ansible.builtin.assert:
     that:
