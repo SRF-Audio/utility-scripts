@@ -43,7 +43,8 @@
 
 - name: Decode kubeconfig content
   ansible.builtin.set_fact:
-    k3s_kubeconfig_retriever_content: "{{ k3s_kubeconfig_retriever_slurp_result.content | b64decode }}"
+    k3s_kubeconfig_retriever_content: >-
+      {{ k3s_kubeconfig_retriever_slurp_result.content | b64decode }}
 
 - name: Ensure local output directory exists for kubeconfig
   ansible.builtin.file:
@@ -54,7 +55,8 @@
 
 - name: Write kubeconfig to local file
   ansible.builtin.copy:
-    dest: "{{ k3s_kubeconfig_retriever_local_output_dir }}/{{ k3s_kubeconfig_retriever_local_output_filename }}"
+    dest: >-
+      {{ k3s_kubeconfig_retriever_local_output_dir }}/{{ k3s_kubeconfig_retriever_local_output_filename }}
     content: "{{ k3s_kubeconfig_retriever_content }}"
     mode: "0600"
   delegate_to: localhost
@@ -63,8 +65,10 @@
   ansible.builtin.set_fact:
     k3s_kubeconfig_retriever_artifacts:
       target_host: "{{ k3s_kubeconfig_retriever_target_host }}"
-      remote_kubeconfig_path: "{{ k3s_kubeconfig_retriever_remote_kubeconfig_path }}"
-      local_output_path: "{{ k3s_kubeconfig_retriever_local_output_dir }}/{{ k3s_kubeconfig_retriever_local_output_filename }}"
+      remote_kubeconfig_path: >-
+        {{ k3s_kubeconfig_retriever_remote_kubeconfig_path }}
+      local_output_path: >-
+        {{ k3s_kubeconfig_retriever_local_output_dir }}/{{ k3s_kubeconfig_retriever_local_output_filename }}
 
 - name: Record k3s_kubeconfig_retriever artifacts
   ansible.builtin.include_role:

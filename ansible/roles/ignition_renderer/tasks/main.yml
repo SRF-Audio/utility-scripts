@@ -87,4 +87,5 @@
       ignition_renderer_template_src: "{{ ignition_renderer_template_src }}"
       ignition_renderer_output_dir: "{{ ignition_renderer_output_dir }}"
       ignition_renderer_cluster_layout: "{{ ignition_renderer_cluster_layout }}"
-      ignition_renderer_butane_cli_name: "{{ ignition_renderer_butane_cli_name }}"
+      ignition_renderer_butane_cli_name: >-
+        {{ ignition_renderer_butane_cli_name }}

@@ -2,12 +2,14 @@
 - name: Ensure Homepage Argo CD Application is present
   kubernetes.core.k8s:
     state: present
-    definition: "{{ lookup('ansible.builtin.template', 'homepage-application.yml.j2') }}"
+    definition: >-
+      {{ lookup('ansible.builtin.template', 'homepage-application.yml.j2') }}
 
 - name: Apply Homepage Argo CD secret when token is available
   kubernetes.core.k8s:
     state: present
-    definition: "{{ lookup('ansible.builtin.template', 'homepage-argocd-secret.yml.j2') }}"
+    definition: >-
+      {{ lookup('ansible.builtin.template', 'homepage-argocd-secret.yml.j2') }}
   when:
     - argocd_homepage_token is defined
     - argocd_homepage_token | length > 0

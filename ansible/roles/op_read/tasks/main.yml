@@ -25,7 +25,8 @@
             out_file_ssh_format: true
   loop: "{{ op_read_items }}"
   loop_control:
-    label: "{{ item.vault_name }}/{{ item.item_name }}/{{ item.field_name | default('') }}"
+    label: >-
+      {{ item.vault_name }}/{{ item.item_name }}/{{ item.field_name | default('') }}
 
 - name: Validate out_file_path when out_file is true
   ansible.builtin.assert:
@@ -34,7 +35,8 @@
     fail_msg: out_file_path must be provided when out_file is true for an op_read item.
   loop: "{{ op_read_items }}"
   loop_control:
-    label: "{{ item.vault_name }}/{{ item.item_name }}/{{ item.field_name | default('') }}"
+    label: >-
+      {{ item.vault_name }}/{{ item.item_name }}/{{ item.field_name | default('') }}
 
 - name: Read items from 1Password using op CLI
   ansible.builtin.command:
@@ -81,7 +83,8 @@
              } ] }}
   loop: "{{ op_read_items | zip(op_read_command_results.results) | list }}"
   loop_control:
-    label: "{{ item.0.vault_name }}/{{ item.0.item_name }}/{{ item.0.field_name }}"
+    label: >-
+      {{ item.0.vault_name }}/{{ item.0.item_name }}/{{ item.0.field_name }}
 
 - name: Pass role artifacts
   ansible.builtin.include_role:

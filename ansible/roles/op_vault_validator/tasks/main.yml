@@ -26,7 +26,8 @@
     cmd: >-
       op vault get {{ op_vault_validator_vault_name }} --format=json
   environment:
-    OP_SERVICE_ACCOUNT_TOKEN: "{{ op_vault_validator_op_service_account_token }}"
+    OP_SERVICE_ACCOUNT_TOKEN: >-
+      {{ op_vault_validator_op_service_account_token }}
   register: op_vault_validator_get_result
   failed_when: false
   changed_when: false
@@ -35,7 +36,8 @@
   ansible.builtin.set_fact:
     op_vault_validator_vault_exists: true
     op_vault_validator_vault_created: false
-    op_vault_validator_vault: "{{ op_vault_validator_get_result.stdout | from_json }}"
+    op_vault_validator_vault: >-
+      {{ op_vault_validator_get_result.stdout | from_json }}
   when: op_vault_validator_get_result.rc == 0
 
 - name: Create 1Password vault when missing
@@ -43,7 +45,8 @@
     cmd: >-
       op vault create {{ op_vault_validator_vault_name }} --format=json
   environment:
-    OP_SERVICE_ACCOUNT_TOKEN: "{{ op_vault_validator_op_service_account_token }}"
+    OP_SERVICE_ACCOUNT_TOKEN: >-
+      {{ op_vault_validator_op_service_account_token }}
   register: op_vault_validator_create_result
   when: op_vault_validator_get_result.rc != 0
   changed_when: true
@@ -52,7 +55,8 @@
   ansible.builtin.set_fact:
     op_vault_validator_vault_exists: true
     op_vault_validator_vault_created: true
-    op_vault_validator_vault: "{{ op_vault_validator_create_result.stdout | from_json }}"
+    op_vault_validator_vault: >-
+      {{ op_vault_validator_create_result.stdout | from_json }}
   when:
     - op_vault_validator_get_result.rc != 0
     - op_vault_validator_create_result is defined
@@ -66,7 +70,8 @@
     role_artifacts_path: "{{ op_vault_validator_artifacts_path }}"
     calling_role_name: op_vault_validator
     calling_role_artifacts_inputs:
-      vault_name: "{{ op_vault_validator_vault.name | default(op_vault_validator_vault_name) }}"
+      vault_name: >-
+        {{ op_vault_validator_vault.name | default(op_vault_validator_vault_name) }}
       vault_id: "{{ op_vault_validator_vault.id | default(omit) }}"
       exists: "{{ op_vault_validator_vault_exists | default(false) }}"
       created: "{{ op_vault_validator_vault_created | default(false) }}"

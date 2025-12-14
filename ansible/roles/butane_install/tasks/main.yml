@@ -33,5 +33,7 @@
     calling_role_artifacts_inputs:
       butane_install_cli_name: "{{ butane_install_cli_name }}"
       butane_install_package_name: "{{ butane_install_package_name }}"
-      butane_install_package_changed: "{{ butane_install_package_result.changed | default(false) }}"
-      butane_install_is_cli_installed: "{{ cli_tester_is_cli_installed | default(false) }}"
+      butane_install_package_changed: >-
+        {{ butane_install_package_result.changed | default(false) }}
+      butane_install_is_cli_installed: >-
+        {{ cli_tester_is_cli_installed | default(false) }}

@@ -2,7 +2,8 @@
 - name: Set Synology NAS LAN facts
   ansible.builtin.set_fact:
     synology_csi_deploy_nas_host: "{{ groups['synology_nas'][0] }}"
-    synology_csi_deploy_nas_lan_ip: "{{ hostvars[groups['synology_nas'][0]].lan_ip }}"
+    synology_csi_deploy_nas_lan_ip: >-
+      {{ hostvars[groups['synology_nas'][0]].lan_ip }}
 
 - name: Ensure Synology CSI tmp directory exists
   ansible.builtin.file:

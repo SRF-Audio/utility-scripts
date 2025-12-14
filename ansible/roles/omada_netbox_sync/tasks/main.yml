@@ -35,7 +35,8 @@
 
 - name: Fetch Omada clients from site {{ omada_netbox_sync_omada_site }}
   ansible.builtin.uri:
-    url: "{{ omada_netbox_sync_clients_url | replace('\n', '') | replace(' ', '') }}"
+    url: >-
+      {{ omada_netbox_sync_clients_url | replace('\n', '') | replace(' ', '') }}
     method: GET
     validate_certs: "{{ omada_netbox_sync_omada_api_validate_certs }}"
     return_content: true
@@ -54,7 +55,8 @@
 
 - name: Set raw Omada clients data
   ansible.builtin.set_fact:
-    omada_netbox_sync_raw_clients: "{{ omada_netbox_sync_clients_response.json.result.data | default([]) }}"
+    omada_netbox_sync_raw_clients: >-
+      {{ omada_netbox_sync_clients_response.json.result.data | default([]) }}
 
 - name: Build normalized device list
   ansible.builtin.set_fact:
@@ -134,7 +136,8 @@
 
 - name: Set existing NetBox devices fact
   ansible.builtin.set_fact:
-    omada_netbox_sync_existing_devices: "{{ omada_netbox_sync_netbox_devices_response.json.results | default([]) }}"
+    omada_netbox_sync_existing_devices: >-
+      {{ omada_netbox_sync_netbox_devices_response.json.results | default([]) }}
   when: not omada_netbox_sync_dry_run
 
 - name: Build existing device MAC to ID mapping
@@ -198,7 +201,8 @@
     body:
       manufacturer:
         slug: "{{ omada_netbox_sync_manufacturer_slug }}"
-      model: "{{ omada_netbox_sync_device_type_slug | replace('-', ' ') | capitalize }}"
+      model: >-
+        {{ omada_netbox_sync_device_type_slug | replace('-', ' ') | capitalize }}
       slug: "{{ omada_netbox_sync_device_type_slug }}"
     status_code: [200, 201, 400]
   register: omada_netbox_sync_device_type_result

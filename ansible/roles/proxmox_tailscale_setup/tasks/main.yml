@@ -43,17 +43,21 @@
 
 - name: Parse tailscale status on {{ inventory_hostname }}
   ansible.builtin.set_fact:
-    proxmox_tailscale_setup_status: "{{ proxmox_tailscale_setup_status_check.stdout | from_json }}"
+    proxmox_tailscale_setup_status: >-
+      {{ proxmox_tailscale_setup_status_check.stdout | from_json }}
   when: proxmox_tailscale_setup_status_check.rc == 0
 
 - name: Build tailscale up command flags on {{ inventory_hostname }}
   ansible.builtin.set_fact:
-    proxmox_tailscale_setup_hostname: "{{ inventory_hostname }}{{ proxmox_tailscale_setup_hostname_suffix }}"
+    proxmox_tailscale_setup_hostname: >-
+      {{ inventory_hostname }}{{ proxmox_tailscale_setup_hostname_suffix }}
     proxmox_tailscale_setup_tags_flag: >-
       {{ ('--advertise-tags=' ~ (proxmox_tailscale_setup_advertise_tags | join(',')))
          if proxmox_tailscale_setup_advertise_tags | length > 0 else '' }}
-    proxmox_tailscale_setup_ssh_flag: "{{ '--ssh' if proxmox_tailscale_setup_ssh_enabled else '' }}"
-    proxmox_tailscale_setup_operator_flag: "{{ '--operator=' ~ proxmox_tailscale_setup_operator if proxmox_tailscale_setup_operator else '' }}"
+    proxmox_tailscale_setup_ssh_flag: >-
+      {{ '--ssh' if proxmox_tailscale_setup_ssh_enabled else '' }}
+    proxmox_tailscale_setup_operator_flag: >-
+      {{ '--operator=' ~ proxmox_tailscale_setup_operator if proxmox_tailscale_setup_operator else '' }}
 
 - name: Determine if tailscale up is needed on {{ inventory_hostname }}
   ansible.builtin.set_fact:
@@ -88,19 +92,24 @@
 
 - name: Parse final tailscale status on {{ inventory_hostname }}
   ansible.builtin.set_fact:
-    proxmox_tailscale_setup_final: "{{ proxmox_tailscale_setup_final_status.stdout | from_json }}"
+    proxmox_tailscale_setup_final: >-
+      {{ proxmox_tailscale_setup_final_status.stdout | from_json }}
 
 - name: Get tailscale IP addresses on {{ inventory_hostname }}
   ansible.builtin.set_fact:
-    proxmox_tailscale_setup_ip_v4: "{{ proxmox_tailscale_setup_final.Self.TailscaleIPs | select('match', '^[0-9]+\\.') | first | default('') }}"
-    proxmox_tailscale_setup_ip_v6: "{{ proxmox_tailscale_setup_final.Self.TailscaleIPs | select('match', '^[a-fA-F0-9]+:') | first | default('') }}"
+    proxmox_tailscale_setup_ip_v4: >-
+      {{ proxmox_tailscale_setup_final.Self.TailscaleIPs | select('match', '^[0-9]+\\.') | first | default('') }}
+    proxmox_tailscale_setup_ip_v6: >-
+      {{ proxmox_tailscale_setup_final.Self.TailscaleIPs | select('match', '^[a-fA-F0-9]+:') | first | default('') }}
 
 - name: Build proxmox_tailscale_setup_artifacts on {{ inventory_hostname }}
   ansible.builtin.set_fact:
     proxmox_tailscale_setup_artifacts:
       host: "{{ inventory_hostname }}"
-      hostname: "{{ proxmox_tailscale_setup_final.Self.HostName | default('') }}"
-      backend_state: "{{ proxmox_tailscale_setup_final.BackendState | default('') }}"
+      hostname: >-
+        {{ proxmox_tailscale_setup_final.Self.HostName | default('') }}
+      backend_state: >-
+        {{ proxmox_tailscale_setup_final.BackendState | default('') }}
       tailscale_ip_v4: "{{ proxmox_tailscale_setup_ip_v4 }}"
       tailscale_ip_v6: "{{ proxmox_tailscale_setup_ip_v6 }}"
       tags: "{{ proxmox_tailscale_setup_final.Self.Tags | default([]) }}"

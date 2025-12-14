@@ -55,7 +55,8 @@
                'item_spec': op_item_edit_pair.0,
                'item_json': (op_item_edit_pair.1.stdout | from_json)
              } ] }}
-  loop: "{{ op_item_edit_items | zip(op_item_edit_get_results.results) | list }}"
+  loop: >-
+    {{ op_item_edit_items | zip(op_item_edit_get_results.results) | list }}
   loop_control:
     loop_var: op_item_edit_pair
     label: "{{ op_item_edit_vault_name }}/{{ op_item_edit_pair.0.name }}"
@@ -69,7 +70,8 @@
                'vault_name': op_item_edit_vault_name,
                'item_spec': op_item_edit_pair.0
              } ] }}
-  loop: "{{ op_item_edit_items | zip(op_item_edit_get_results.results) | list }}"
+  loop: >-
+    {{ op_item_edit_items | zip(op_item_edit_get_results.results) | list }}
   loop_control:
     loop_var: op_item_edit_pair
     label: "{{ op_item_edit_vault_name }}/{{ op_item_edit_pair.0.name }}"
@@ -126,7 +128,8 @@
   loop: "{{ op_item_edit_existing_items | default([]) }}"
   loop_control:
     loop_var: op_item_edit_existing
-    label: "{{ op_item_edit_vault_name }}/{{ op_item_edit_existing.item_spec.name }}"
+    label: >-
+      {{ op_item_edit_vault_name }}/{{ op_item_edit_existing.item_spec.name }}
   register: op_item_edit_edit_results
   when: (op_item_edit_existing_items | default([])) | length > 0
   vars:

@@ -197,7 +197,8 @@
     # noqa: var-naming
     calling_role_name: "paperless_ngx_deploy"
     calling_role_artifacts_inputs:
-      k3s_cluster_name: "{{ paperless_ngx_deploy_cluster_name | default(k3s_cluster_name | default('', true), true) }}"
+      k3s_cluster_name: >-
+        {{ paperless_ngx_deploy_cluster_name | default(k3s_cluster_name | default('', true), true) }}
       namespace: "{{ paperless_ngx_deploy_namespace }}"
       hostname: "{{ paperless_ngx_deploy_hostname }}"
       enable_tika: "{{ paperless_ngx_deploy_enable_tika }}"

@@ -50,6 +50,7 @@
       op_executable: "{{ op_validator_op_executable }}"
       cli_installed: "{{ op_validator_cli_installed | bool }}"
       cli_version: "{{ op_validator_cli_check.stdout | default('') }}"
-      service_account_token_present: "{{ op_validator_op_service_account_token | length > 0 }}"
+      service_account_token_present: >-
+        {{ op_validator_op_service_account_token | length > 0 }}
       authenticated: "{{ op_validator_whoami.rc == 0 }}"
       whoami_json: "{{ op_validator_whoami.stdout | default('') }}"

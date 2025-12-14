@@ -58,5 +58,6 @@
     # noqa: var-naming
     calling_role_name: proxmox_kvm_manager_{{ proxmox_kvm_manager_vmid }}
     calling_role_artifacts_inputs:
-      proxmox_kvm_manager_effective_params: "{{ proxmox_kvm_manager_effective_params }}"
+      proxmox_kvm_manager_effective_params: >-
+        {{ proxmox_kvm_manager_effective_params }}
       proxmox_kvm_manager_result: "{{ proxmox_kvm_manager_result }}"

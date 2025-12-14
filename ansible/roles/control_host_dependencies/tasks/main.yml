@@ -37,9 +37,12 @@
 - name: Collect control host dependency artifacts
   ansible.builtin.set_fact:
     control_host_dependencies_artifacts:
-      packages_installed: "{{ control_host_dependencies_system_packages | default([]) }}"
-      pip_packages_installed: "{{ control_host_dependencies_pip_packages | default([]) }}"
-      tools_checked: "{{ control_host_dependencies_tools_to_check | default([]) }}"
+      packages_installed: >-
+        {{ control_host_dependencies_system_packages | default([]) }}
+      pip_packages_installed: >-
+        {{ control_host_dependencies_pip_packages | default([]) }}
+      tools_checked: >-
+        {{ control_host_dependencies_tools_to_check | default([]) }}
 
 - name: Publish control host dependency artifacts
   ansible.builtin.include_role:

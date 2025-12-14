@@ -4,25 +4,43 @@
     name: k8s_validator
   when: not (is_k3s_cluster_valid | default(false) | bool)
   vars:
-    k8s_validator_api_key: "{{ k8s_object_manager_api_key | default(omit, true) }}"
-    k8s_validator_ca_cert: "{{ k8s_object_manager_ca_cert | default(omit, true) }}"
-    k8s_validator_client_cert: "{{ k8s_object_manager_client_cert | default(omit, true) }}"
-    k8s_validator_client_key: "{{ k8s_object_manager_client_key | default(omit, true) }}"
-    k8s_validator_context: "{{ k8s_object_manager_context | default(omit, true) }}"
+    k8s_validator_api_key: >-
+      {{ k8s_object_manager_api_key | default(omit, true) }}
+    k8s_validator_ca_cert: >-
+      {{ k8s_object_manager_ca_cert | default(omit, true) }}
+    k8s_validator_client_cert: >-
+      {{ k8s_object_manager_client_cert | default(omit, true) }}
+    k8s_validator_client_key: >-
+      {{ k8s_object_manager_client_key | default(omit, true) }}
+    k8s_validator_context: >-
+      {{ k8s_object_manager_context | default(omit, true) }}
     k8s_validator_host: "{{ k8s_object_manager_host | default(omit, true) }}"
-    k8s_validator_impersonate_groups: "{{ k8s_object_manager_impersonate_groups | default(omit, true) }}"
-    k8s_validator_impersonate_user: "{{ k8s_object_manager_impersonate_user | default(omit, true) }}"
-    k8s_validator_kubeconfig: "{{ k8s_object_manager_kubeconfig | default(omit, true) }}"
-    k8s_validator_no_proxy: "{{ k8s_object_manager_no_proxy | default(omit, true) }}"
-    k8s_validator_password: "{{ k8s_object_manager_password | default(omit, true) }}"
-    k8s_validator_persist_config: "{{ k8s_object_manager_persist_config | default(omit, true) }}"
-    k8s_validator_proxy: "{{ k8s_object_manager_proxy | default(omit, true) }}"
-    k8s_validator_proxy_headers: "{{ k8s_object_manager_proxy_headers | default(omit, true) }}"
-    k8s_validator_basic_auth: "{{ k8s_object_manager_basic_auth | default(omit, true) }}"
-    k8s_validator_proxy_basic_auth: "{{ k8s_object_manager_proxy_basic_auth | default(omit, true) }}"
-    k8s_validator_user_agent: "{{ k8s_object_manager_user_agent | default(omit, true) }}"
-    k8s_validator_username: "{{ k8s_object_manager_username | default(omit, true) }}"
-    k8s_validator_validate_certs: "{{ k8s_object_manager_validate_certs | default(omit, true) }}"
+    k8s_validator_impersonate_groups: >-
+      {{ k8s_object_manager_impersonate_groups | default(omit, true) }}
+    k8s_validator_impersonate_user: >-
+      {{ k8s_object_manager_impersonate_user | default(omit, true) }}
+    k8s_validator_kubeconfig: >-
+      {{ k8s_object_manager_kubeconfig | default(omit, true) }}
+    k8s_validator_no_proxy: >-
+      {{ k8s_object_manager_no_proxy | default(omit, true) }}
+    k8s_validator_password: >-
+      {{ k8s_object_manager_password | default(omit, true) }}
+    k8s_validator_persist_config: >-
+      {{ k8s_object_manager_persist_config | default(omit, true) }}
+    k8s_validator_proxy: >-
+      {{ k8s_object_manager_proxy | default(omit, true) }}
+    k8s_validator_proxy_headers: >-
+      {{ k8s_object_manager_proxy_headers | default(omit, true) }}
+    k8s_validator_basic_auth: >-
+      {{ k8s_object_manager_basic_auth | default(omit, true) }}
+    k8s_validator_proxy_basic_auth: >-
+      {{ k8s_object_manager_proxy_basic_auth | default(omit, true) }}
+    k8s_validator_user_agent: >-
+      {{ k8s_object_manager_user_agent | default(omit, true) }}
+    k8s_validator_username: >-
+      {{ k8s_object_manager_username | default(omit, true) }}
+    k8s_validator_validate_certs: >-
+      {{ k8s_object_manager_validate_certs | default(omit, true) }}
 
 - name: Apply Kubernetes object via kubernetes.core.k8s
   kubernetes.core.k8s:
@@ -34,39 +52,53 @@
     client_cert: "{{ k8s_object_manager_client_cert | default(omit, true) }}"
     client_key: "{{ k8s_object_manager_client_key | default(omit, true) }}"
     context: "{{ k8s_object_manager_context | default(omit, true) }}"
-    continue_on_error: "{{ k8s_object_manager_continue_on_error | default(omit, true) }}"
+    continue_on_error: >-
+      {{ k8s_object_manager_continue_on_error | default(omit, true) }}
     delete_all: "{{ k8s_object_manager_delete_all | default(omit, true) }}"
-    delete_options: "{{ k8s_object_manager_delete_options | default(omit, true) }}"
+    delete_options: >-
+      {{ k8s_object_manager_delete_options | default(omit, true) }}
     force: "{{ k8s_object_manager_force | default(omit, true) }}"
-    generate_name: "{{ k8s_object_manager_generate_name | default(omit, true) }}"
-    hidden_fields: "{{ k8s_object_manager_hidden_fields | default(omit, true) }}"
+    generate_name: >-
+      {{ k8s_object_manager_generate_name | default(omit, true) }}
+    hidden_fields: >-
+      {{ k8s_object_manager_hidden_fields | default(omit, true) }}
     host: "{{ k8s_object_manager_host | default(omit, true) }}"
-    impersonate_groups: "{{ k8s_object_manager_impersonate_groups | default(omit, true) }}"
-    impersonate_user: "{{ k8s_object_manager_impersonate_user | default(omit, true) }}"
+    impersonate_groups: >-
+      {{ k8s_object_manager_impersonate_groups | default(omit, true) }}
+    impersonate_user: >-
+      {{ k8s_object_manager_impersonate_user | default(omit, true) }}
     kind: "{{ k8s_object_manager_kind | default(omit, true) }}"
     kubeconfig: "{{ k8s_object_manager_kubeconfig | default(omit, true) }}"
-    label_selectors: "{{ k8s_object_manager_label_selectors | default(omit, true) }}"
+    label_selectors: >-
+      {{ k8s_object_manager_label_selectors | default(omit, true) }}
     merge_type: "{{ k8s_object_manager_merge_type | default(omit, true) }}"
     name: "{{ k8s_object_manager_name | default(omit, true) }}"
     namespace: "{{ k8s_object_manager_namespace | default(omit, true) }}"
     no_proxy: "{{ k8s_object_manager_no_proxy | default(omit, true) }}"
     password: "{{ k8s_object_manager_password | default(omit, true) }}"
-    persist_config: "{{ k8s_object_manager_persist_config | default(omit, true) }}"
+    persist_config: >-
+      {{ k8s_object_manager_persist_config | default(omit, true) }}
     proxy: "{{ k8s_object_manager_proxy | default(omit, true) }}"
-    proxy_headers: "{{ k8s_object_manager_proxy_headers | default(omit, true) }}"
+    proxy_headers: >-
+      {{ k8s_object_manager_proxy_headers | default(omit, true) }}
     basic_auth: "{{ k8s_object_manager_basic_auth | default(omit, true) }}"
-    proxy_basic_auth: "{{ k8s_object_manager_proxy_basic_auth | default(omit, true) }}"
+    proxy_basic_auth: >-
+      {{ k8s_object_manager_proxy_basic_auth | default(omit, true) }}
     user_agent: "{{ k8s_object_manager_user_agent | default(omit, true) }}"
-    resource_definition: "{{ k8s_object_manager_resource_definition | default(omit, true) }}"
-    server_side_apply: "{{ k8s_object_manager_server_side_apply | default(omit, true) }}"
+    resource_definition: >-
+      {{ k8s_object_manager_resource_definition | default(omit, true) }}
+    server_side_apply: >-
+      {{ k8s_object_manager_server_side_apply | default(omit, true) }}
     src: "{{ k8s_object_manager_src | default(omit, true) }}"
     state: "{{ k8s_object_manager_state | default(omit, true) }}"
     template: "{{ k8s_object_manager_template | default(omit, true) }}"
     username: "{{ k8s_object_manager_username | default(omit, true) }}"
     validate: "{{ k8s_object_manager_validate | default(omit, true) }}"
-    validate_certs: "{{ k8s_object_manager_validate_certs | default(omit, true) }}"
+    validate_certs: >-
+      {{ k8s_object_manager_validate_certs | default(omit, true) }}
     wait: "{{ k8s_object_manager_wait | default(omit, true) }}"
-    wait_condition: "{{ k8s_object_manager_wait_condition | default(omit, true) }}"
+    wait_condition: >-
+      {{ k8s_object_manager_wait_condition | default(omit, true) }}
     wait_sleep: "{{ k8s_object_manager_wait_sleep | default(omit, true) }}"
     wait_timeout: "{{ k8s_object_manager_wait_timeout | default(omit, true) }}"
   register: k8s_object_manager_result
