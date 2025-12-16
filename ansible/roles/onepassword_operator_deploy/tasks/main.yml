@@ -22,21 +22,7 @@
 
       ...must be defined for onepassword_operator_deploy.
 
-- name: Render onepassword_operator_deploy ArgoCD Application manifest
-  ansible.builtin.template:
-    src: "{{ role_path }}/templates/application.yml.j2"
-    dest: >-
-      {{
-      [
-      (lookup('env', 'PWD') | default(playbook_dir, true)),
-      'argocd',
-      'onepassword_operator',
-      'onepassword_operator.yml'
-      ] | join('/')
-      }}
-    mode: "0644"
-
-- name: Set static path to pass to k8s_object_manager role
+- name: Set onepassword_operator_deploy Application manifest path
   ansible.builtin.set_fact:
     onepassword_operator_deploy_manifest: >-
       {{
@@ -47,6 +33,12 @@
       'onepassword_operator.yml'
       ] | join('/')
       }}
+
+- name: Render onepassword_operator_deploy ArgoCD Application manifest
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/application.yml.j2"
+    dest: "{{ onepassword_operator_deploy_manifest }}"
+    mode: "0644"
 
 - name: Apply 1password-operator ArgoCD Application manifest
   ansible.builtin.include_role:
