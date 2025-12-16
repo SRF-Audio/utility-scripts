@@ -17,21 +17,30 @@
       tailscale_operator_deploy_oauth_client_secret
       ...must be defined for tailscale_operator_deploy.
 
-- name: Render tailscale_operator_deploy Argo CD Application manifest
+- name: >-
+    Compute path to tailscale_operator Application manifest in argocd directory
+  ansible.builtin.set_fact:
+    tailscale_operator_deploy_app_source: >-
+      {{
+        [
+          playbook_dir | dirname,
+          "argocd",
+          "tailscale_operator",
+          "tailscale_operator.yml"
+        ] | join("/")
+      }}
+
+- name: Render tailscale_operator Application manifest to temporary location
   ansible.builtin.template:
-    src: "{{ role_path }}/templates/infra-tailscale-operator.yml.j2"
-    dest: "{{ role_path }}/templates/infra-tailscale-operator.yml"
+    src: "{{ tailscale_operator_deploy_app_source }}"
+    dest: /tmp/tailscale_operator_application.yml
     mode: "0644"
 
-- name: Set static path to pass to k8s_object_manager role
-  ansible.builtin.set_fact:
-    tailscale_operator_deploy_manifest: "{{ role_path }}/templates/infra-tailscale-operator.yml"
-
-- name: Apply infra-tailscale-operator Argo CD Application manifest
+- name: Apply tailscale_operator Argo CD Application manifest
   ansible.builtin.include_role:
     name: k8s_object_manager
   vars:
-    k8s_object_manager_src: "{{ tailscale_operator_deploy_manifest }}"
+    k8s_object_manager_src: /tmp/tailscale_operator_application.yml
 
 - name: Persist tailscale_operator_deploy artifacts
   ansible.builtin.include_role:
