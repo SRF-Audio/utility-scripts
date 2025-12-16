@@ -1,3 +1,4 @@
+---
 - name: Configure /etc/hosts with cluster hosts
   ansible.builtin.template:
     src: "{{ role_path }}/files/hosts.j2"

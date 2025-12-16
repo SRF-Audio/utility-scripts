@@ -1,3 +1,4 @@
+---
 - name: Create GitLab/GitHub directories
   ansible.builtin.file:
     path: "{{ item }}"

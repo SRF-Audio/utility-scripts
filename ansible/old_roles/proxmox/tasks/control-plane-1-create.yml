@@ -1,3 +1,4 @@
+---
 - name: Set facts for API vars
   set_fact:
     proxmox_api_host_ip: >-

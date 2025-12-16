@@ -1,3 +1,4 @@
+---
 - name: Ensure coreos/images and coreos/snippets exist on primary
   ansible.builtin.file:
     path: "{{ item }}"

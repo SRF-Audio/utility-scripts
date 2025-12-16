@@ -1,3 +1,4 @@
+---
 - name: Extract ID from /etc/os-release
   set_fact:
     os_id: >-

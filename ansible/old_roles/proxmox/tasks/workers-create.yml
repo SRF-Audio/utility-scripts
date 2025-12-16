@@ -1,3 +1,4 @@
+---
 - name: Set class counts
   ansible.builtin.set_fact:
     _w_count: "{{ proxmox_k3s_worker_config.worker.count | int }}"

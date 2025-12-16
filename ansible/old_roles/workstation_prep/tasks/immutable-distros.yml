@@ -1,3 +1,4 @@
+---
 - name: Debug todo
   ansible.builtin.debug:
     msg: "This task is a placeholder for future implementation."
