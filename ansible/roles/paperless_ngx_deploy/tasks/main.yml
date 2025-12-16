@@ -55,8 +55,7 @@
 
 - name: Capture secrets k8s_object_manager result
   ansible.builtin.set_fact:
-    paperless_ngx_deploy_secrets_k8s_result: >-
-      {{ k8s_object_manager_result }}
+    paperless_ngx_deploy_secrets_k8s_result: "{{ k8s_object_manager_result }}"
   when: paperless_ngx_deploy_apply_objects | bool
 
 - name: Apply paperless-ngx main ArgoCD Application manifest
@@ -145,4 +144,5 @@
       argocd_namespace: "{{ paperless_ngx_deploy_argocd_namespace }}"
       secrets_application_result: >-
         {{ paperless_ngx_deploy_secrets_k8s_result }}
-      main_application_result: "{{ paperless_ngx_deploy_main_k8s_result }}"
+      main_application_result: >-
+        {{ paperless_ngx_deploy_main_k8s_result }}
