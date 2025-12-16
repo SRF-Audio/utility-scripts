@@ -35,10 +35,10 @@
     dest: ~/.ssh/coachlight-homelab.pem
     content: "{{ proxmox_cluster_prep_clh_private }}"
     mode: "0600"
-  when:
-    - not proxmox_cluster_prep_coachlight_key_stat.stat.exists or
-      (proxmox_cluster_prep_existing_key_content.content | b64decode) !=
-      proxmox_cluster_prep_clh_private
+  when: >-
+    not proxmox_cluster_prep_coachlight_key_stat.stat.exists or
+    (proxmox_cluster_prep_existing_key_content.content | b64decode) !=
+    proxmox_cluster_prep_clh_private
   delegate_to: localhost
   run_once: true
   no_log: true
