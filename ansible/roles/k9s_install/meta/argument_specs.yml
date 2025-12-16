@@ -1,0 +1,14 @@
+argument_specs:
+  main:
+    short_description: Install the k9s CLI
+    options:
+      k9s_install_version:
+        type: str
+        required: true
+        description: |
+          K9s release tag used for GitHub download (for example, "v0.50.16").
+          https://github.com/derailed/k9s/releases
+      k9s_install_artifacts_path:
+        type: str
+        required: true
+        description: Global base path for artifacts output, not including the role name.
