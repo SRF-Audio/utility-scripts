@@ -1,3 +1,4 @@
+---
 - name: Assert coreos-installer is present (localhost only)
   ansible.builtin.package:
     name: coreos-installer

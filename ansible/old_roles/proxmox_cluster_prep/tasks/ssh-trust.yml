@@ -1,3 +1,4 @@
+---
 - name: Pull coachlight-homelab keypair from 1Password
   ansible.builtin.set_fact:
     proxmox_cluster_prep_clh_public: >-

@@ -1,3 +1,4 @@
+---
 - name: Set facts for NFS storage
   ansible.builtin.set_fact:
     synology_ip: >-

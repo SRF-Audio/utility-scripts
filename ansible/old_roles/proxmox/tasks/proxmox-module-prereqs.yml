@@ -1,3 +1,4 @@
+---
 - name: Ensure proxmoxer + deps are present
   ansible.builtin.pip:
     name:
