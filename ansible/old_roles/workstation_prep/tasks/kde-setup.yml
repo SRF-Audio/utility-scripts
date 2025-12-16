@@ -1,6 +1,8 @@
 - name: Setup KDE Activities
   ansible.builtin.command:
-    cmd: qdbus org.kde.ActivityManager /ActivityManager/Activities AddActivity "{{ item }}"
+    cmd: >-
+      qdbus org.kde.ActivityManager /ActivityManager/Activities
+      AddActivity "{{ item }}"
   loop:
     - "Work"
     - "Homelab"
