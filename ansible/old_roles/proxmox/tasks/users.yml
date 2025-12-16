@@ -64,10 +64,10 @@
       - "{{ pve_admin_user }}"
       - --groups
       - "{{ pve_admin_group }}"
-  when:
-    - _user_add is defined and _user_add.changed or
-      pve_admin_user not in _pve_users.stdout
-    - inventory_hostname in groups['proxmox_primary']
+  when: >-
+    (_user_add is defined and _user_add.changed or
+    pve_admin_user not in _pve_users.stdout) and
+    inventory_hostname in groups['proxmox_primary']
 
 - name: Explain password steps
   ansible.builtin.debug:

@@ -26,9 +26,9 @@
       -f qcow2.xz
       --decompress
   register: coreos_dl
-  changed_when:
-    - "'Downloading' in coreos_dl.stdout or
-      'Decompressing' in coreos_dl.stdout"
+  changed_when: >-
+    'Downloading' in coreos_dl.stdout or
+    'Decompressing' in coreos_dl.stdout
   when: inventory_hostname in groups['local']
 
 - name: Locate the freshly downloaded FCOS raw image
