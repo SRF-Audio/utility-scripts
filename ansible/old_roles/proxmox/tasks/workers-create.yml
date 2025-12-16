@@ -66,7 +66,9 @@
     api_host: "{{ proxmox_api_host_ip }}"
     api_user: "{{ proxmox_api_user }}"
     api_password: "{{ proxmox_api_password }}"
-    node: "{{ groups['proxmox'][ (item | int) % (groups['proxmox'] | length) ] }}"
+    node: >-
+      {{ groups['proxmox'][
+      (item | int) % (groups['proxmox'] | length) ] }}
     vmid: "{{ proxmox_k3s_worker_vmid_start | int + (item | int) }}"
     name: >-
       {{ proxmox_k3s_worker_prefix_map.worker }}-{{ (item | int) + 1 }}
@@ -270,7 +272,9 @@
       (_w_count | int) + (item | int) }}
     disk: scsi0
     storage: "{{ proxmox_storage }}"
-    import_from: "{{ proxmox_fcos_storage_path }}/images/{{ proxmox_fcos_path | basename }}"
+    import_from: >-
+      {{ proxmox_fcos_storage_path }}/images/{{
+      proxmox_fcos_path | basename }}
     state: present
     validate_certs: false
   loop: "{{ range(0, (_m_count | int)) | list }}"
@@ -281,8 +285,13 @@
     api_host: "{{ proxmox_api_host_ip }}"
     api_user: "{{ proxmox_api_user }}"
     api_password: "{{ proxmox_api_password }}"
-    node: "{{ groups['proxmox'][ ((_w_count | int) + (item | int)) % (groups['proxmox'] | length) ] }}"
-    vmid: "{{ proxmox_k3s_worker_vmid_start | int + (_w_count | int) + (item | int) }}"
+    node: >-
+      {{ groups['proxmox'][
+      ((_w_count | int) + (item | int)) %
+      (groups['proxmox'] | length) ] }}
+    vmid: >-
+      {{ proxmox_k3s_worker_vmid_start | int +
+      (_w_count | int) + (item | int) }}
     boot: "order=scsi0"
     state: present
     update: true
@@ -295,8 +304,13 @@
     api_host: "{{ proxmox_api_host_ip }}"
     api_user: "{{ proxmox_api_user }}"
     api_password: "{{ proxmox_api_password }}"
-    node: "{{ groups['proxmox'][ ((_w_count | int) + (item | int)) % (groups['proxmox'] | length) ] }}"
-    vmid: "{{ proxmox_k3s_worker_vmid_start | int + (_w_count | int) + (item | int) }}"
+    node: >-
+      {{ groups['proxmox'][
+      ((_w_count | int) + (item | int)) %
+      (groups['proxmox'] | length) ] }}
+    vmid: >-
+      {{ proxmox_k3s_worker_vmid_start | int +
+      (_w_count | int) + (item | int) }}
     state: started
     validate_certs: false
   loop: "{{ range(0, (_m_count | int)) | list }}"
@@ -308,7 +322,9 @@
     api_user: "{{ proxmox_api_user }}"
     api_password: "{{ proxmox_api_password }}"
     node: "{{ proxmox_api_host }}"
-    vmid: "{{ proxmox_k3s_worker_vmid_start | int + (_w_count | int) + (item | int) }}"
+    vmid: >-
+      {{ proxmox_k3s_worker_vmid_start | int +
+      (_w_count | int) + (item | int) }}
     state: current
     validate_certs: false
   register: _mw_state
