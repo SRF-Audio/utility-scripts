@@ -2,6 +2,15 @@
 argument_specs:
   main:
     options:
+      homepage_deploy_kubeconfig:
+        type: str
+        required: false
+      homepage_deploy_cluster_name:
+        type: str
+        required: false
+      homepage_deploy_context:
+        type: str
+        required: false
       homepage_deploy_namespace:
         type: str
         required: false
@@ -11,24 +20,6 @@ argument_specs:
       homepage_deploy_project:
         type: str
         required: false
-      homepage_deploy_chart_repo:
-        type: str
-        required: false
-      homepage_deploy_chart_name:
-        type: str
-        required: false
-      homepage_deploy_chart_version:
-        type: str
-        required: false
-      homepage_deploy_application_name:
-        type: str
-        required: false
-      homepage_deploy_ingress_templates_root:
-        type: str
-        required: false
-      homepage_deploy_artifacts_path:
-        type: str
-        required: false
-      argocd_homepage_token:
+      homepage_deploy_argocd_manifests_path:
         type: str
         required: false

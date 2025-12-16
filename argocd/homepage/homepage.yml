@@ -1,0 +1,111 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: homepage
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: coachlight-k3s-infra
+  sources:
+    - repoURL: https://jameswynn.github.io/helm-charts
+      chart: homepage
+      targetRevision: 2.1.0
+      helm:
+        valuesObject:
+          service:
+            main:
+              annotations:
+                tailscale.com/expose: "true"
+                tailscale.com/hostname: "homepage"
+                tailscale.com/tags: "tag:k8s,tag:infra-monitoring,tag:server-games"
+              ports:
+                http:
+                  port: 80
+                  targetPort: 3000
+
+          config:
+            services:
+              - Monitoring:
+                  - NextDNS:
+                      href: https://my.nextdns.io
+                      widget:
+                        type: nextdns
+                        profile: 62778c
+                        key: "{{HOMEPAGE_VAR_NEXTDNS_API_TOKEN}}"
+
+                  - Proxmox:
+                      href: https://192.168.226.90:8006
+                      widget:
+                        type: proxmox
+                        url: https://192.168.226.90:8006
+                        username: sfroeber
+                        password: "{{HOMEPAGE_VAR_PROXMOX_API_PASSWORD}}"
+
+            widgets:
+              - datetime:
+                  format:
+                    dateStyle: short
+                    timeStyle: short
+                    hourCycle: h23
+
+              - kubernetes:
+                  cluster:
+                    show: true
+                    cpu: true
+                    memory: true
+                    showLabel: true
+                    label: "cluster"
+                  nodes:
+                    show: true
+                    cpu: true
+                    memory: true
+                    showLabel: true
+
+
+            kubernetes:
+              mode: cluster
+
+            settings: {}
+
+          serviceAccount:
+            create: true
+            name: homepage
+
+          enableRbac: true
+
+          ingress:
+            main:
+              enabled: false
+
+          env:
+            - name: HOMEPAGE_ALLOWED_HOSTS
+              value: "homepage.rohu-shark.ts.net"
+            - name: HOMEPAGE_VAR_ARGOCD_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-argocd-token
+                  key: token
+            - name: HOMEPAGE_VAR_NEXTDNS_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-nextdns-api-token
+                  key: homepage_api_token
+            - name: HOMEPAGE_VAR_PROXMOX_API_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-proxmox-api-password
+                  key: password
+    - repoURL: https://github.com/SRF-Audio/utility-scripts
+      targetRevision: main
+      path: k8s/homepage
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: infra-homepage
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
