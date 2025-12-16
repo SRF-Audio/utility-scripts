@@ -11,7 +11,9 @@
 - name: Upload FCOS qcow2 to each node's coreos storage
   ansible.builtin.copy:
     src: "{{ proxmox_fcos_path }}"
-    dest: "{{ proxmox_fcos_storage_path }}/images/{{ proxmox_fcos_path | basename }}"
+    dest: >-
+      {{ proxmox_fcos_storage_path }}/images/{{
+      proxmox_fcos_path | basename }}
     mode: "0644"
   loop: "{{ groups['proxmox'] }}"
   delegate_to: "{{ item }}"
@@ -56,8 +58,9 @@
   vars:
     proxmox_vm_hostname: "k3s-cp-{{ item }}"
     vm_ip: >-
-      {{ proxmox_k3s_control_plane_start_ip.split('.')[:-1] | join('.') }}.
-      {{ (proxmox_k3s_control_plane_start_ip.split('.')[-1] | int) + (item | int - 1) }}
+      {{ proxmox_k3s_control_plane_start_ip.split('.')[:-1] |
+      join('.') }}.{{ (proxmox_k3s_control_plane_start_ip.
+      split('.')[-1] | int) + (item | int - 1) }}
   loop: "{{ range(2, (proxmox_k3s_control_plane_count | int) + 1) | list }}"
 
 - name: Transpile additional control plane Butane -> Ignition (localhost)
@@ -83,8 +86,9 @@
       vars:
         proxmox_vm_hostname: "{{ item.name }}"
         vm_ip: >-
-          {{ proxmox_k3s_control_plane_start_ip.split('.')[:-1] | join('.') }}.
-          {{ (proxmox_k3s_control_plane_start_ip.split('.')[-1] | int) + (item.ip_offset | int) }}
+          {{ proxmox_k3s_control_plane_start_ip.split('.')[:-1] |
+          join('.') }}.{{ (proxmox_k3s_control_plane_start_ip.
+          split('.')[-1] | int) + (item.ip_offset | int) }}
       loop: "{{ proxmox_k3s_worker_vm_list }}"
 
     - name: Transpile workers Butane -> Ignition
