@@ -1,10 +1,7 @@
 ---
-homepage_deploy_kubeconfig: >-
-  {{ k3s_kubeconfig_path | default('', true) }}
-homepage_deploy_cluster_name: >-
-  {{ k3s_cluster_name | default('', true) }}
-homepage_deploy_context: >-
-  {{ k3s_context_name | default('', true) }}
+homepage_deploy_kubeconfig: "{{ k3s_kubeconfig_path | default('', true) }}"
+homepage_deploy_cluster_name: "{{ k3s_cluster_name | default('', true) }}"
+homepage_deploy_context: "{{ k3s_context_name | default('', true) }}"
 homepage_deploy_namespace: "infra-homepage"
 homepage_deploy_argo_namespace: "argocd"
 homepage_deploy_project: "coachlight-k3s-infra"
