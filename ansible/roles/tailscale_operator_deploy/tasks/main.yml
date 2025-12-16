@@ -40,6 +40,8 @@
   ansible.builtin.include_role:
     name: k8s_object_manager
   vars:
+    k8s_object_manager_kubeconfig: "{{ tailscale_operator_deploy_kubeconfig }}"
+    k8s_object_manager_context: "{{ tailscale_operator_deploy_context }}"
     k8s_object_manager_src: /tmp/tailscale_operator_application.yml
 
 - name: Persist tailscale_operator_deploy artifacts
