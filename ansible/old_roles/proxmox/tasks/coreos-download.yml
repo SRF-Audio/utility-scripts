@@ -5,7 +5,10 @@
   when: inventory_hostname in groups['local']
   become: true
   vars:
-    ansible_become_password: "{{ lookup('community.general.onepassword', 's3wpaur4krdgrdrn24rrqw7ewm', field='password', vault='Stephen and Christine') }}"
+    ansible_become_password: >-
+      {{ lookup('community.general.onepassword',
+      's3wpaur4krdgrdrn24rrqw7ewm', field='password',
+      vault='Stephen and Christine') }}
 
 - name: Ensure local download dir exists
   ansible.builtin.file:
@@ -23,7 +26,9 @@
       -f qcow2.xz
       --decompress
   register: coreos_dl
-  changed_when: "'Downloading' in coreos_dl.stdout or 'Decompressing' in coreos_dl.stdout"
+  changed_when:
+    - "'Downloading' in coreos_dl.stdout or
+      'Decompressing' in coreos_dl.stdout"
   when: inventory_hostname in groups['local']
 
 - name: Locate the freshly downloaded FCOS raw image
@@ -36,7 +41,8 @@
 
 - name: Publish proxmox_fcos_path to all proxmox hosts
   ansible.builtin.set_fact:
-    proxmox_fcos_path: "{{ hostvars['localhost']['proxmox_fcos_find'].files[0].path }}"
+    proxmox_fcos_path: >-
+      {{ hostvars['localhost']['proxmox_fcos_find'].files[0].path }}
   delegate_to: "{{ item }}"
   delegate_facts: true
   loop: "{{ groups['proxmox'] }}"

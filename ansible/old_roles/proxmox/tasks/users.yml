@@ -14,7 +14,10 @@
       - "{{ pve_admin_group }}"
       - --comment
       - "{{ comment }}"
-  when: (_pve_groups.stdout is defined and pve_admin_group not in _pve_groups.stdout) and inventory_hostname in groups['proxmox_primary']
+  when:
+    - _pve_groups.stdout is defined
+    - pve_admin_group not in _pve_groups.stdout
+    - inventory_hostname in groups['proxmox_primary']
 
 - name: Ensure administrators group has the Administrator role at /
   ansible.builtin.command:
@@ -47,7 +50,9 @@
       - "{{ pve_admin_user }}"
       - --comment
       - "{{ comment }}"
-  when: pve_admin_user not in _pve_users.stdout and inventory_hostname in groups['proxmox_primary']
+  when:
+    - pve_admin_user not in _pve_users.stdout
+    - inventory_hostname in groups['proxmox_primary']
   register: _user_add
 
 - name: Add sfroeber to administrators group
@@ -59,7 +64,10 @@
       - "{{ pve_admin_user }}"
       - --groups
       - "{{ pve_admin_group }}"
-  when: (_user_add is defined and _user_add.changed or pve_admin_user not in _pve_users.stdout) and inventory_hostname in groups['proxmox_primary']
+  when:
+    - _user_add is defined and _user_add.changed or
+      pve_admin_user not in _pve_users.stdout
+    - inventory_hostname in groups['proxmox_primary']
 
 - name: Explain password steps
   ansible.builtin.debug:
@@ -85,4 +93,7 @@
       - kubernetes
       - --comment
       - "All Kubernetes VMs/CTs"
-  when: (inventory_hostname in groups['proxmox_primary']) and (_pools.stdout is defined and 'kubernetes' not in _pools.stdout)
+  when:
+    - inventory_hostname in groups['proxmox_primary']
+    - _pools.stdout is defined
+    - "'kubernetes' not in _pools.stdout"
