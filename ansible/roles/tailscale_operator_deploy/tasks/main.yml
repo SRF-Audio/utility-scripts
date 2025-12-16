@@ -54,7 +54,7 @@
   ansible.builtin.file:
     path: "{{ tailscale_operator_deploy_temp_file.path }}"
     state: absent
-  when: tailscale_operator_deploy_temp_file.path is defined
+  when: tailscale_operator_deploy_temp_file is succeeded
 
 - name: Persist tailscale_operator_deploy artifacts
   ansible.builtin.include_role:
