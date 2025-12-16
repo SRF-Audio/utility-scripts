@@ -1,3 +1,4 @@
+---
 - name: Assert required paperless_ngx_deploy inputs are defined
   ansible.builtin.assert:
     that:
@@ -5,188 +6,61 @@
       - paperless_ngx_deploy_context is defined
       - paperless_ngx_deploy_kubeconfig | string | length > 0
       - paperless_ngx_deploy_context | length > 0
-    fail_msg: "paperless_ngx_deploy_kubeconfig and paperless_ngx_deploy_context must be defined for paperless_ngx_deploy."
+    fail_msg: >-
+      paperless_ngx_deploy_kubeconfig and paperless_ngx_deploy_context
+      must be defined for paperless_ngx_deploy.
 
-- name: Set paperless_ngx_deploy temporary directory
+- name: Render paperless_ngx_deploy ArgoCD Application manifest
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/application.yml.j2"
+    dest: "{{ role_path }}/templates/application.yml"
+    mode: "0644"
+
+- name: Set static path to pass to k8s_object_manager role
   ansible.builtin.set_fact:
-    paperless_ngx_deploy_tmp_dir: "{{ paperless_ngx_deploy_artifacts_path }}/paperless_ngx_deploy"
-  when: paperless_ngx_deploy_artifacts_path | length > 0
+    paperless_ngx_deploy_manifest: "{{ role_path }}/templates/application.yml"
 
-- name: Set paperless_ngx_deploy temporary directory fallback
+- name: Apply paperless-ngx ArgoCD Application manifest
+  ansible.builtin.include_role:
+    name: k8s_object_manager
+  vars:
+    k8s_object_manager_kubeconfig: "{{ paperless_ngx_deploy_kubeconfig }}"
+    k8s_object_manager_context: "{{ paperless_ngx_deploy_context }}"
+    k8s_object_manager_state: present
+    k8s_object_manager_src: "{{ paperless_ngx_deploy_manifest }}"
+  when: paperless_ngx_deploy_apply_objects | bool
+
+- name: Capture k8s_object_manager result if k8s objects were applied
   ansible.builtin.set_fact:
-    paperless_ngx_deploy_tmp_dir: "/tmp/paperless_ngx_deploy"
-  when: paperless_ngx_deploy_artifacts_path | length == 0
-
-- name: Ensure paperless_ngx_deploy temporary directory exists
-  ansible.builtin.file:
-    path: "{{ paperless_ngx_deploy_tmp_dir }}"
-    state: directory
-    mode: "0755"
-
-- name: Render Namespace manifest
-  ansible.builtin.template:
-    src: "{{ role_path }}/templates/namespace.yml.j2"
-    dest: "{{ paperless_ngx_deploy_tmp_dir }}/namespace.yml"
-    mode: "0644"
-
-- name: Render ConfigMap manifest
-  ansible.builtin.template:
-    src: "{{ role_path }}/templates/configmap.yml.j2"
-    dest: "{{ paperless_ngx_deploy_tmp_dir }}/configmap.yml"
-    mode: "0644"
-
-- name: Render Secret manifest
-  ansible.builtin.template:
-    src: "{{ role_path }}/templates/secret.yml.j2"
-    dest: "{{ paperless_ngx_deploy_tmp_dir }}/secret.yml"
-    mode: "0644"
-
-- name: Render PVCs manifest
-  ansible.builtin.template:
-    src: "{{ role_path }}/templates/pvcs.yml.j2"
-    dest: "{{ paperless_ngx_deploy_tmp_dir }}/pvcs.yml"
-    mode: "0644"
-
-- name: Render Database manifest
-  ansible.builtin.template:
-    src: "{{ role_path }}/templates/db.yml.j2"
-    dest: "{{ paperless_ngx_deploy_tmp_dir }}/db.yml"
-    mode: "0644"
-
-- name: Render Broker manifest
-  ansible.builtin.template:
-    src: "{{ role_path }}/templates/broker.yml.j2"
-    dest: "{{ paperless_ngx_deploy_tmp_dir }}/broker.yml"
-    mode: "0644"
-
-- name: Render Webserver manifest
-  ansible.builtin.template:
-    src: "{{ role_path }}/templates/webserver.yml.j2"
-    dest: "{{ paperless_ngx_deploy_tmp_dir }}/webserver.yml"
-    mode: "0644"
-
-- name: Render Tika manifest
-  ansible.builtin.template:
-    src: "{{ role_path }}/templates/tika.yml.j2"
-    dest: "{{ paperless_ngx_deploy_tmp_dir }}/tika.yml"
-    mode: "0644"
-  when: paperless_ngx_deploy_enable_tika | bool
-
-- name: Render Gotenberg manifest
-  ansible.builtin.template:
-    src: "{{ role_path }}/templates/gotenberg.yml.j2"
-    dest: "{{ paperless_ngx_deploy_tmp_dir }}/gotenberg.yml"
-    mode: "0644"
-  when: paperless_ngx_deploy_enable_gotenberg | bool
-
-- name: Render Ingress manifest
-  ansible.builtin.template:
-    src: "{{ role_path }}/templates/ingress.yml.j2"
-    dest: "{{ paperless_ngx_deploy_tmp_dir }}/ingress.yml"
-    mode: "0644"
-
-- name: Apply Namespace via k8s_object_manager
-  ansible.builtin.include_role:
-    name: k8s_object_manager
-  vars:
-    k8s_object_manager_kubeconfig: "{{ paperless_ngx_deploy_kubeconfig }}"
-    k8s_object_manager_context: "{{ paperless_ngx_deploy_context }}"
-    k8s_object_manager_state: present
-    k8s_object_manager_src: "{{ paperless_ngx_deploy_tmp_dir }}/namespace.yml"
+    paperless_ngx_deploy_k8s_result: "{{ k8s_object_manager_result }}"
   when: paperless_ngx_deploy_apply_objects | bool
 
-- name: Apply ConfigMap via k8s_object_manager
-  ansible.builtin.include_role:
-    name: k8s_object_manager
-  vars:
-    k8s_object_manager_kubeconfig: "{{ paperless_ngx_deploy_kubeconfig }}"
-    k8s_object_manager_context: "{{ paperless_ngx_deploy_context }}"
-    k8s_object_manager_state: present
-    k8s_object_manager_src: "{{ paperless_ngx_deploy_tmp_dir }}/configmap.yml"
-  when: paperless_ngx_deploy_apply_objects | bool
+- name: Set empty k8s result if objects were not applied
+  ansible.builtin.set_fact:
+    paperless_ngx_deploy_k8s_result: {}
+  when: not (paperless_ngx_deploy_apply_objects | bool)
 
-- name: Apply Secret via k8s_object_manager
-  ansible.builtin.include_role:
-    name: k8s_object_manager
-  vars:
-    k8s_object_manager_kubeconfig: "{{ paperless_ngx_deploy_kubeconfig }}"
-    k8s_object_manager_context: "{{ paperless_ngx_deploy_context }}"
-    k8s_object_manager_state: present
-    k8s_object_manager_src: "{{ paperless_ngx_deploy_tmp_dir }}/secret.yml"
-  when: paperless_ngx_deploy_apply_objects | bool
-
-- name: Apply PVCs via k8s_object_manager
-  ansible.builtin.include_role:
-    name: k8s_object_manager
-  vars:
-    k8s_object_manager_kubeconfig: "{{ paperless_ngx_deploy_kubeconfig }}"
-    k8s_object_manager_context: "{{ paperless_ngx_deploy_context }}"
-    k8s_object_manager_state: present
-    k8s_object_manager_src: "{{ paperless_ngx_deploy_tmp_dir }}/pvcs.yml"
-  when: paperless_ngx_deploy_apply_objects | bool
-
-- name: Apply Database via k8s_object_manager
-  ansible.builtin.include_role:
-    name: k8s_object_manager
-  vars:
-    k8s_object_manager_kubeconfig: "{{ paperless_ngx_deploy_kubeconfig }}"
-    k8s_object_manager_context: "{{ paperless_ngx_deploy_context }}"
-    k8s_object_manager_state: present
-    k8s_object_manager_src: "{{ paperless_ngx_deploy_tmp_dir }}/db.yml"
-  when: paperless_ngx_deploy_apply_objects | bool
-
-- name: Apply Broker via k8s_object_manager
-  ansible.builtin.include_role:
-    name: k8s_object_manager
-  vars:
-    k8s_object_manager_kubeconfig: "{{ paperless_ngx_deploy_kubeconfig }}"
-    k8s_object_manager_context: "{{ paperless_ngx_deploy_context }}"
-    k8s_object_manager_state: present
-    k8s_object_manager_src: "{{ paperless_ngx_deploy_tmp_dir }}/broker.yml"
-  when: paperless_ngx_deploy_apply_objects | bool
-
-- name: Apply Tika via k8s_object_manager
-  ansible.builtin.include_role:
-    name: k8s_object_manager
-  vars:
-    k8s_object_manager_kubeconfig: "{{ paperless_ngx_deploy_kubeconfig }}"
-    k8s_object_manager_context: "{{ paperless_ngx_deploy_context }}"
-    k8s_object_manager_state: present
-    k8s_object_manager_src: "{{ paperless_ngx_deploy_tmp_dir }}/tika.yml"
-  when:
-    - paperless_ngx_deploy_apply_objects | bool
-    - paperless_ngx_deploy_enable_tika | bool
-
-- name: Apply Gotenberg via k8s_object_manager
-  ansible.builtin.include_role:
-    name: k8s_object_manager
-  vars:
-    k8s_object_manager_kubeconfig: "{{ paperless_ngx_deploy_kubeconfig }}"
-    k8s_object_manager_context: "{{ paperless_ngx_deploy_context }}"
-    k8s_object_manager_state: present
-    k8s_object_manager_src: "{{ paperless_ngx_deploy_tmp_dir }}/gotenberg.yml"
-  when:
-    - paperless_ngx_deploy_apply_objects | bool
-    - paperless_ngx_deploy_enable_gotenberg | bool
-
-- name: Apply Webserver via k8s_object_manager
-  ansible.builtin.include_role:
-    name: k8s_object_manager
-  vars:
-    k8s_object_manager_kubeconfig: "{{ paperless_ngx_deploy_kubeconfig }}"
-    k8s_object_manager_context: "{{ paperless_ngx_deploy_context }}"
-    k8s_object_manager_state: present
-    k8s_object_manager_src: "{{ paperless_ngx_deploy_tmp_dir }}/webserver.yml"
-  when: paperless_ngx_deploy_apply_objects | bool
-
-- name: Apply Ingress via k8s_object_manager
-  ansible.builtin.include_role:
-    name: k8s_object_manager
-  vars:
-    k8s_object_manager_kubeconfig: "{{ paperless_ngx_deploy_kubeconfig }}"
-    k8s_object_manager_context: "{{ paperless_ngx_deploy_context }}"
-    k8s_object_manager_state: present
-    k8s_object_manager_src: "{{ paperless_ngx_deploy_tmp_dir }}/ingress.yml"
+- name: Wait for Paperless-NGX ArgoCD Application to be synced and healthy
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ paperless_ngx_deploy_kubeconfig }}"
+    context: "{{ paperless_ngx_deploy_context }}"
+    api_version: argoproj.io/v1alpha1
+    kind: Application
+    namespace: "{{ paperless_ngx_deploy_argocd_namespace }}"
+    name: "{{ paperless_ngx_deploy_app_name }}"
+  register: paperless_ngx_app_status
+  until:
+    - paperless_ngx_app_status.resources is defined
+    - paperless_ngx_app_status.resources | length > 0
+    - paperless_ngx_app_status.resources[0].status is defined
+    - paperless_ngx_app_status.resources[0].status.sync is defined
+    - >-
+      paperless_ngx_app_status.resources[0].status.sync.status == "Synced"
+    - paperless_ngx_app_status.resources[0].status.health is defined
+    - >-
+      paperless_ngx_app_status.resources[0].status.health.status == "Healthy"
+  retries: 60
+  delay: 5
   when: paperless_ngx_deploy_apply_objects | bool
 
 - name: Persist paperless_ngx_deploy artifacts
@@ -196,9 +70,9 @@
     # noqa: var-naming
     calling_role_name: "paperless_ngx_deploy"
     calling_role_artifacts_inputs:
-      k3s_cluster_name: "{{ paperless_ngx_deploy_cluster_name | default(k3s_cluster_name | default('', true), true) }}"
-      namespace: "{{ paperless_ngx_deploy_namespace }}"
-      hostname: "{{ paperless_ngx_deploy_hostname }}"
-      enable_tika: "{{ paperless_ngx_deploy_enable_tika }}"
-      enable_gotenberg: "{{ paperless_ngx_deploy_enable_gotenberg }}"
-      manifests_dir: "{{ paperless_ngx_deploy_tmp_dir }}"
+      k3s_cluster_name: >-
+        {{ paperless_ngx_deploy_cluster_name |
+        default(k3s_cluster_name | default('', true), true) }}
+      application_name: "{{ paperless_ngx_deploy_app_name }}"
+      argocd_namespace: "{{ paperless_ngx_deploy_argocd_namespace }}"
+      application_result: "{{ paperless_ngx_deploy_k8s_result }}"

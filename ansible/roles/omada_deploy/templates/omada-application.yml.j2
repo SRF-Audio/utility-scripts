@@ -11,14 +11,23 @@ spec:
     targetRevision: {{ omada_deploy_helm_chart_version }}
     helm:
       valuesObject:
+        config:
+          rootless: false
+          ports:
+            manageHttps: {{ omada_deploy_manage_https_port }}
         persistence:
           data:
             enabled: true
-            storageClass: {{ omada_deploy_storage_class_longhorn }}
-{% if omada_deploy_storage_class_synology | length > 0 %}
+            storageClassName: "{{ omada_deploy_storage_class_data }}"
+{% if omada_deploy_logs_enabled %}
           logs:
             enabled: true
-            storageClass: {{ omada_deploy_storage_class_synology }}
+{% if omada_deploy_storage_class_logs | length > 0 %}
+            storageClassName: "{{ omada_deploy_storage_class_logs }}"
+{% endif %}
+{% else %}
+          logs:
+            enabled: false
 {% endif %}
 
         service:
@@ -30,17 +39,7 @@ spec:
             tailscale.com/hostname: "{{ omada_deploy_hostname }}"
 
         ingress:
-          enabled: true
-          ingressClassName: tailscale
-          annotations:
-{% for key, value in omada_deploy_tailscale_annotations.items() %}
-            {{ key }}: "{{ value }}"
-{% endfor %}
-          hosts:
-            - host: {{ omada_deploy_hostname }}
-              paths:
-                - path: /
-                  pathType: Prefix
+          enabled: false
 {% if omada_deploy_values_overrides | length > 0 %}
 {{ omada_deploy_values_overrides | to_nice_yaml | indent(8, first=true) }}
 {% endif %}

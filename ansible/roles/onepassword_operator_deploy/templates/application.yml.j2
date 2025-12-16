@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ onepassword_operator_deploy_app_name }}
+  namespace: {{ onepassword_operator_deploy_argocd_namespace }}
+spec:
+  project: {{ onepassword_operator_deploy_project }}
+  source:
+    repoURL: {{ onepassword_operator_deploy_helm_repo_url }}
+    chart: {{ onepassword_operator_deploy_chart }}
+    targetRevision: "{{ onepassword_operator_deploy_chart_version }}"
+    helm:
+      valuesObject:
+        connect:
+          create: true
+          credentials: "{{ onepassword_operator_deploy_connect_credentials }}"
+          serviceType: ClusterIP
+          serviceAnnotations:
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "{{ onepassword_operator_deploy_tailscale_hostname }}"
+            tailscale.com/tags: "{{ onepassword_operator_deploy_tailscale_tags }}"
+          ingress:
+            enabled: true
+            annotations:
+              gethomepage.dev/enabled: "true"
+              gethomepage.dev/name: "{{ onepassword_operator_deploy_homepage_name }}"
+              gethomepage.dev/description: "{{ onepassword_operator_deploy_homepage_description }}"
+              gethomepage.dev/group: "{{ onepassword_operator_deploy_homepage_group }}"
+              gethomepage.dev/icon: "{{ onepassword_operator_deploy_homepage_icon }}"
+            hosts:
+              - host: "{{ onepassword_operator_deploy_tailscale_hostname }}.{{ onepassword_operator_deploy_tailnet_domain }}"
+                paths:
+                  - path: /
+                    pathType: Prefix
+        operator:
+          create: true
+          token:
+            value: "{{ onepassword_operator_deploy_operator_token }}"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ onepassword_operator_deploy_namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

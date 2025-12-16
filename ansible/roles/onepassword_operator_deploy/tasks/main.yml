@@ -1,0 +1,89 @@
+- name: Assert required onepassword_operator_deploy inputs are defined
+  ansible.builtin.assert:
+    that:
+      - onepassword_operator_deploy_kubeconfig is defined
+      - onepassword_operator_deploy_context is defined
+      - onepassword_operator_deploy_chart_version is defined
+      - onepassword_operator_deploy_connect_credentials is defined
+      - onepassword_operator_deploy_operator_token is defined
+      - onepassword_operator_deploy_kubeconfig | string | length > 0
+      - onepassword_operator_deploy_context | length > 0
+      - onepassword_operator_deploy_chart_version | length > 0
+      - onepassword_operator_deploy_connect_credentials | length > 0
+      - onepassword_operator_deploy_operator_token | length > 0
+    fail_msg: |
+      onepassword_operator_deploy_kubeconfig
+      onepassword_operator_deploy_context
+      onepassword_operator_deploy_chart_version
+      onepassword_operator_deploy_connect_credentials
+      onepassword_operator_deploy_operator_token
+      ...must be defined for onepassword_operator_deploy.
+
+- name: Render onepassword_operator_deploy ArgoCD Application manifest
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/application.yml.j2"
+    dest: "{{ role_path }}/templates/application.yml"
+    mode: "0644"
+
+- name: Set static path to pass to k8s_object_manager role
+  ansible.builtin.set_fact:
+    onepassword_operator_deploy_manifest: "{{ role_path }}/templates/application.yml"
+
+- name: Apply 1password-operator ArgoCD Application manifest
+  ansible.builtin.include_role:
+    name: k8s_object_manager
+  vars:
+    k8s_object_manager_kubeconfig: "{{ onepassword_operator_deploy_kubeconfig }}"
+    k8s_object_manager_context: "{{ onepassword_operator_deploy_context }}"
+    k8s_object_manager_state: present
+    k8s_object_manager_src: "{{ onepassword_operator_deploy_manifest }}"
+  when: onepassword_operator_deploy_apply_objects | bool
+
+- name: Capture k8s_object_manager result if k8s objects were applied
+  ansible.builtin.set_fact:
+    onepassword_operator_deploy_k8s_result: "{{ k8s_object_manager_result }}"
+  when: onepassword_operator_deploy_apply_objects | bool
+
+- name: Set empty k8s result if objects were not applied
+  ansible.builtin.set_fact:
+    onepassword_operator_deploy_k8s_result: {}
+  when: not (onepassword_operator_deploy_apply_objects | bool)
+
+- name: Wait for 1Password Operator ArgoCD Application to be synced and healthy
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ onepassword_operator_deploy_kubeconfig }}"
+    context: "{{ onepassword_operator_deploy_context }}"
+    api_version: argoproj.io/v1alpha1
+    kind: Application
+    namespace: "{{ onepassword_operator_deploy_argocd_namespace }}"
+    name: "{{ onepassword_operator_deploy_app_name }}"
+  register: onepassword_operator_app_status
+  until:
+    - onepassword_operator_app_status.resources is defined
+    - onepassword_operator_app_status.resources | length > 0
+    - onepassword_operator_app_status.resources[0].status is defined
+    - onepassword_operator_app_status.resources[0].status.sync is defined
+    - onepassword_operator_app_status.resources[0].status.sync.status == "Synced"
+    - onepassword_operator_app_status.resources[0].status.health is defined
+    - onepassword_operator_app_status.resources[0].status.health.status == "Healthy"
+  retries: 60
+  delay: 5
+  when: onepassword_operator_deploy_apply_objects | bool
+
+- name: Persist onepassword_operator_deploy artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    # noqa: var-naming
+    calling_role_name: "onepassword_operator_deploy"
+    calling_role_artifacts_inputs:
+      k3s_cluster_name: "{{ onepassword_operator_deploy_cluster_name | default(k3s_cluster_name | default('', true), true) }}"
+      app_name: "{{ onepassword_operator_deploy_app_name }}"
+      namespace: "{{ onepassword_operator_deploy_namespace }}"
+      chart: "{{ onepassword_operator_deploy_chart }}"
+      chart_version: "{{ onepassword_operator_deploy_chart_version }}"
+      tailscale_hostname: "{{ onepassword_operator_deploy_tailscale_hostname }}"
+      tailscale_tags: "{{ onepassword_operator_deploy_tailscale_tags }}"
+      tailnet_domain: "{{ onepassword_operator_deploy_tailnet_domain }}"
+      homepage_url: "{{ onepassword_operator_deploy_tailscale_hostname }}.{{ onepassword_operator_deploy_tailnet_domain }}"
+      application_result: "{{ onepassword_operator_deploy_k8s_result }}"

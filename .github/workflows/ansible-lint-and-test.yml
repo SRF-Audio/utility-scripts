@@ -1,0 +1,125 @@
+name: Ansible – Lint and Test
+
+on:
+  pull_request:
+    paths:
+      - "ansible/**"
+      - ".github/workflows/ansible-lint-and-test.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "ansible/**"
+      - ".github/workflows/ansible-lint-and-test.yml"
+
+jobs:
+  ansible-yamllint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Normalize repo name to lowercase
+        id: normalize
+        run: |
+          echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Set tooling image
+        id: image
+        run: |
+          echo "IMAGE=ghcr.io/${{ steps.normalize.outputs.REPO_LOWER }}/fedora-43-homelab-tooling:latest" >> $GITHUB_OUTPUT
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run yamllint inside tooling container
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ${{ steps.image.outputs.IMAGE }}
+          options: |
+            -v ${{ github.workspace }}:/workspace
+            --pull=always
+          run: |
+            pip install --quiet yamllint
+            echo "Running yamllint on Ansible YAML files..."
+            yamllint ansible/
+
+  ansible-lint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Normalize repo name to lowercase
+        id: normalize
+        run: |
+          echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Set tooling image
+        id: image
+        run: |
+          echo "IMAGE=ghcr.io/${{ steps.normalize.outputs.REPO_LOWER }}/fedora-43-homelab-tooling:latest" >> $GITHUB_OUTPUT
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run ansible-lint inside tooling container
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ${{ steps.image.outputs.IMAGE }}
+          options: |
+            -v ${{ github.workspace }}:/workspace
+            --pull=always
+          run: |
+            ansible-galaxy collection install -r ansible/requirements.yml
+            pip install --quiet ansible-lint
+            echo "Running ansible-lint on roles and playbooks..."
+            ansible-lint ansible/playbooks/ ansible/roles/ ansible/site.yml --exclude ansible/old_roles/
+
+  ansible-playbook-syntax:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix:
+        playbook:
+          - ansible/playbooks/audio-production.yml
+          - ansible/playbooks/coachlight-infra-stack.yml
+          - ansible/playbooks/file_copier_examples.yml
+          - ansible/playbooks/k3s-cluster-setup.yml
+          - ansible/playbooks/omada-netbox-sync.yml
+          - ansible/playbooks/omada-tester.yml
+          - ansible/playbooks/op_tester.yml
+          - ansible/playbooks/proxmox.yml
+          - ansible/playbooks/workstations.yml
+          - ansible/site.yml
+
+    steps:
+      - name: Normalize repo name to lowercase
+        id: normalize
+        run: |
+          echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Set tooling image
+        id: image
+        run: |
+          echo "IMAGE=ghcr.io/${{ steps.normalize.outputs.REPO_LOWER }}/fedora-43-homelab-tooling:latest" >> $GITHUB_OUTPUT
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run syntax check on ${{ matrix.playbook }}
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ${{ steps.image.outputs.IMAGE }}
+          options: |
+            -v ${{ github.workspace }}:/workspace
+            --pull=always
+          run: |
+            ansible-galaxy collection install -r ansible/requirements.yml
+            echo "Checking syntax for ${{ matrix.playbook }}..."
+            ansible-playbook ${{ matrix.playbook }} --syntax-check

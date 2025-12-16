@@ -1,0 +1,86 @@
+argument_specs:
+  main:
+    description: |
+      Deploy the 1Password Connect and Kubernetes Operator ArgoCD Application into a Kubernetes cluster.
+      Configures Tailscale-only access via service annotations and a dummy Ingress for Homepage discovery.
+    options:
+      onepassword_operator_deploy_kubeconfig:
+        type: raw
+        required: true
+        description: Path to kubeconfig file or configuration dict.
+      onepassword_operator_deploy_context:
+        type: str
+        required: true
+        description: Kubernetes context name to use for deployment.
+      onepassword_operator_deploy_cluster_name:
+        type: str
+        required: false
+        description: Logical cluster name used for artifact recording.
+      onepassword_operator_deploy_namespace:
+        type: str
+        required: false
+        description: Namespace where 1Password Connect and Operator will be deployed.
+      onepassword_operator_deploy_argocd_namespace:
+        type: str
+        required: false
+        description: Namespace where the ArgoCD Application resource will be created.
+      onepassword_operator_deploy_app_name:
+        type: str
+        required: false
+        description: Name of the ArgoCD Application resource.
+      onepassword_operator_deploy_project:
+        type: str
+        required: false
+        description: ArgoCD project name for the Application.
+      onepassword_operator_deploy_apply_objects:
+        type: bool
+        required: false
+        description: Whether to apply the ArgoCD Application manifest to the cluster.
+      onepassword_operator_deploy_helm_repo_url:
+        type: str
+        required: false
+        description: Helm repository URL for the 1Password Connect chart.
+      onepassword_operator_deploy_chart:
+        type: str
+        required: false
+        description: Chart name in the Helm repository.
+      onepassword_operator_deploy_chart_version:
+        type: str
+        required: true
+        description: Pinned chart version to deploy.
+      onepassword_operator_deploy_tailscale_hostname:
+        type: str
+        required: false
+        description: Tailscale hostname for the Connect service.
+      onepassword_operator_deploy_tailscale_tags:
+        type: str
+        required: false
+        description: Tailscale tags for the Connect service.
+      onepassword_operator_deploy_tailnet_domain:
+        type: str
+        required: false
+        description: Tailnet domain for the full hostname URL.
+      onepassword_operator_deploy_connect_credentials:
+        type: str
+        required: true
+        description: Path to the 1password-credentials.json file for Connect.
+      onepassword_operator_deploy_operator_token:
+        type: str
+        required: true
+        description: 1Password Connect API token for the Operator.
+      onepassword_operator_deploy_homepage_name:
+        type: str
+        required: false
+        description: Homepage display name for the service.
+      onepassword_operator_deploy_homepage_description:
+        type: str
+        required: false
+        description: Homepage description for the service.
+      onepassword_operator_deploy_homepage_group:
+        type: str
+        required: false
+        description: Homepage group for the service.
+      onepassword_operator_deploy_homepage_icon:
+        type: str
+        required: false
+        description: Homepage icon for the service.
