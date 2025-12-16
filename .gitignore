@@ -8,5 +8,5 @@ ansible/playbooks/.artifacts/*
 */**/*.bak
 */**/*.old
 ansible/roles/tailscale_operator_deploy/templates/infra-tailscale-operator.yml
-ansible/roles/onepassword_operator_deploy/templates/application.yml
+argocd/onepassword_operator/onepassword_operator.yml
 ansible/roles/paperless_ngx_deploy/templates/application.yml

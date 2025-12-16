@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: {{ onepassword_operator_deploy_app_name }}
   namespace: {{ onepassword_operator_deploy_argocd_namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: {{ onepassword_operator_deploy_project }}
   source:
