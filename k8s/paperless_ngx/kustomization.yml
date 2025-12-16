@@ -1,0 +1,13 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yml
+  - configmap.yml
+  - pvcs.yml
+  - db.yml
+  - broker.yml
+  - gotenberg.yml
+  - tika.yml
+  - webserver.yml
+  - ingress.yml
