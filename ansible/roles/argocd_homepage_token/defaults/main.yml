@@ -1,5 +1,5 @@
 ---
-argocd_homepage_token_server_url: "https://argocd.rohu-shark.ts.net"
+argocd_homepage_token_server_url: "argocd.rohu-shark.ts.net"
 argocd_homepage_token_username: homepage
 argocd_homepage_token_namespace: argocd
 argocd_homepage_token_1p_vault_name: HomeLab
