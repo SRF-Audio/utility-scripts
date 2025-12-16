@@ -5,21 +5,29 @@
   block:
     - name: Disable Enterprise repo
       ansible.builtin.apt_repository:
-        repo: "deb https://enterprise.proxmox.com/debian/pve bookworm pve-enterprise"
+        repo: >-
+          deb https://enterprise.proxmox.com/debian/pve
+          bookworm pve-enterprise
         state: absent
 
     - name: Enable no-subscription repo
       ansible.builtin.apt_repository:
-        repo: "deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription"
+        repo: >-
+          deb http://download.proxmox.com/debian/pve
+          bookworm pve-no-subscription
         filename: pve-no-subscription
         state: present
 
     - name: Disable Ceph Enterprise repo
       ansible.builtin.apt_repository:
-        repo: "deb https://enterprise.proxmox.com/debian/ceph-quincy bookworm enterprise"
+        repo: >-
+          deb https://enterprise.proxmox.com/debian/ceph-quincy
+          bookworm enterprise
         state: absent
 
     - name: Enable Ceph no-subscription repo
       ansible.builtin.apt_repository:
-        repo: "deb http://download.proxmox.com/debian/ceph-quincy bookworm no-subscription"
+        repo: >-
+          deb http://download.proxmox.com/debian/ceph-quincy
+          bookworm no-subscription
         state: present
