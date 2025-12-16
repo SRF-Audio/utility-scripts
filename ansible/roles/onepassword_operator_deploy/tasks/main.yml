@@ -13,11 +13,13 @@
       - onepassword_operator_deploy_connect_credentials | length > 0
       - onepassword_operator_deploy_operator_token | length > 0
     fail_msg: |
-      onepassword_operator_deploy_kubeconfig
-      onepassword_operator_deploy_context
-      onepassword_operator_deploy_chart_version
-      onepassword_operator_deploy_connect_credentials
-      onepassword_operator_deploy_operator_token
+      All vars must be defined and non-empty:
+      onepassword_operator_deploy_kubeconfig: {{ onepassword_operator_deploy_kubeconfig | length }}
+      onepassword_operator_deploy_context: {{ onepassword_operator_deploy_context | length }}
+      onepassword_operator_deploy_chart_version: {{ onepassword_operator_deploy_chart_version | length }}
+      onepassword_operator_deploy_connect_credentials: {{ onepassword_operator_deploy_connect_credentials | length }}
+      onepassword_operator_deploy_operator_token: {{ onepassword_operator_deploy_operator_token | length }}
+
       ...must be defined for onepassword_operator_deploy.
 
 - name: Render onepassword_operator_deploy ArgoCD Application manifest

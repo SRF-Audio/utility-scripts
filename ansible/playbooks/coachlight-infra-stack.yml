@@ -86,5 +86,8 @@
     #     argocd_api_auth_password: "{{ argocd_admin_password }}"
     - role: crafty_controller_deploy
       vars:
+        crafty_controller_deploy_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
+        crafty_controller_deploy_context: "{{ kubeconfig_manager_artifacts.context_name }}"
+        crafty_controller_deploy_cluster_name: "{{ kubeconfig_manager_artifacts.cluster_name }}"
         crafty_controller_deploy_namespace: apps-crafty-controller
     - role: omada_deploy

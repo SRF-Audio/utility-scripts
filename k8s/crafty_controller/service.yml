@@ -1,0 +1,330 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crafty-controller
+  namespace: apps-crafty-controller
+  labels:
+    app: crafty-controller
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: "crafty-controller"
+    tailscale.com/tags: "tag:k8s,tag:server-games"
+spec:
+  type: ClusterIP
+  selector:
+    app: crafty-controller
+  ports:
+    - name: https-panel
+      port: 443
+      targetPort: 8443
+    - name: http-dynmap
+      port: 8123
+      targetPort: 8123
+    - name: bedrock
+      port: 19132
+      targetPort: 19132
+      protocol: UDP
+    - name: java-25500
+      port: 25500
+      targetPort: 25500
+    - name: java-25501
+      port: 25501
+      targetPort: 25501
+    - name: java-25502
+      port: 25502
+      targetPort: 25502
+    - name: java-25503
+      port: 25503
+      targetPort: 25503
+    - name: java-25504
+      port: 25504
+      targetPort: 25504
+    - name: java-25505
+      port: 25505
+      targetPort: 25505
+    - name: java-25506
+      port: 25506
+      targetPort: 25506
+    - name: java-25507
+      port: 25507
+      targetPort: 25507
+    - name: java-25508
+      port: 25508
+      targetPort: 25508
+    - name: java-25509
+      port: 25509
+      targetPort: 25509
+    - name: java-25510
+      port: 25510
+      targetPort: 25510
+    - name: java-25511
+      port: 25511
+      targetPort: 25511
+    - name: java-25512
+      port: 25512
+      targetPort: 25512
+    - name: java-25513
+      port: 25513
+      targetPort: 25513
+    - name: java-25514
+      port: 25514
+      targetPort: 25514
+    - name: java-25515
+      port: 25515
+      targetPort: 25515
+    - name: java-25516
+      port: 25516
+      targetPort: 25516
+    - name: java-25517
+      port: 25517
+      targetPort: 25517
+    - name: java-25518
+      port: 25518
+      targetPort: 25518
+    - name: java-25519
+      port: 25519
+      targetPort: 25519
+    - name: java-25520
+      port: 25520
+      targetPort: 25520
+    - name: java-25521
+      port: 25521
+      targetPort: 25521
+    - name: java-25522
+      port: 25522
+      targetPort: 25522
+    - name: java-25523
+      port: 25523
+      targetPort: 25523
+    - name: java-25524
+      port: 25524
+      targetPort: 25524
+    - name: java-25525
+      port: 25525
+      targetPort: 25525
+    - name: java-25526
+      port: 25526
+      targetPort: 25526
+    - name: java-25527
+      port: 25527
+      targetPort: 25527
+    - name: java-25528
+      port: 25528
+      targetPort: 25528
+    - name: java-25529
+      port: 25529
+      targetPort: 25529
+    - name: java-25530
+      port: 25530
+      targetPort: 25530
+    - name: java-25531
+      port: 25531
+      targetPort: 25531
+    - name: java-25532
+      port: 25532
+      targetPort: 25532
+    - name: java-25533
+      port: 25533
+      targetPort: 25533
+    - name: java-25534
+      port: 25534
+      targetPort: 25534
+    - name: java-25535
+      port: 25535
+      targetPort: 25535
+    - name: java-25536
+      port: 25536
+      targetPort: 25536
+    - name: java-25537
+      port: 25537
+      targetPort: 25537
+    - name: java-25538
+      port: 25538
+      targetPort: 25538
+    - name: java-25539
+      port: 25539
+      targetPort: 25539
+    - name: java-25540
+      port: 25540
+      targetPort: 25540
+    - name: java-25541
+      port: 25541
+      targetPort: 25541
+    - name: java-25542
+      port: 25542
+      targetPort: 25542
+    - name: java-25543
+      port: 25543
+      targetPort: 25543
+    - name: java-25544
+      port: 25544
+      targetPort: 25544
+    - name: java-25545
+      port: 25545
+      targetPort: 25545
+    - name: java-25546
+      port: 25546
+      targetPort: 25546
+    - name: java-25547
+      port: 25547
+      targetPort: 25547
+    - name: java-25548
+      port: 25548
+      targetPort: 25548
+    - name: java-25549
+      port: 25549
+      targetPort: 25549
+    - name: java-25550
+      port: 25550
+      targetPort: 25550
+    - name: java-25551
+      port: 25551
+      targetPort: 25551
+    - name: java-25552
+      port: 25552
+      targetPort: 25552
+    - name: java-25553
+      port: 25553
+      targetPort: 25553
+    - name: java-25554
+      port: 25554
+      targetPort: 25554
+    - name: java-25555
+      port: 25555
+      targetPort: 25555
+    - name: java-25556
+      port: 25556
+      targetPort: 25556
+    - name: java-25557
+      port: 25557
+      targetPort: 25557
+    - name: java-25558
+      port: 25558
+      targetPort: 25558
+    - name: java-25559
+      port: 25559
+      targetPort: 25559
+    - name: java-25560
+      port: 25560
+      targetPort: 25560
+    - name: java-25561
+      port: 25561
+      targetPort: 25561
+    - name: java-25562
+      port: 25562
+      targetPort: 25562
+    - name: java-25563
+      port: 25563
+      targetPort: 25563
+    - name: java-25564
+      port: 25564
+      targetPort: 25564
+    - name: java-25565
+      port: 25565
+      targetPort: 25565
+    - name: java-25566
+      port: 25566
+      targetPort: 25566
+    - name: java-25567
+      port: 25567
+      targetPort: 25567
+    - name: java-25568
+      port: 25568
+      targetPort: 25568
+    - name: java-25569
+      port: 25569
+      targetPort: 25569
+    - name: java-25570
+      port: 25570
+      targetPort: 25570
+    - name: java-25571
+      port: 25571
+      targetPort: 25571
+    - name: java-25572
+      port: 25572
+      targetPort: 25572
+    - name: java-25573
+      port: 25573
+      targetPort: 25573
+    - name: java-25574
+      port: 25574
+      targetPort: 25574
+    - name: java-25575
+      port: 25575
+      targetPort: 25575
+    - name: java-25576
+      port: 25576
+      targetPort: 25576
+    - name: java-25577
+      port: 25577
+      targetPort: 25577
+    - name: java-25578
+      port: 25578
+      targetPort: 25578
+    - name: java-25579
+      port: 25579
+      targetPort: 25579
+    - name: java-25580
+      port: 25580
+      targetPort: 25580
+    - name: java-25581
+      port: 25581
+      targetPort: 25581
+    - name: java-25582
+      port: 25582
+      targetPort: 25582
+    - name: java-25583
+      port: 25583
+      targetPort: 25583
+    - name: java-25584
+      port: 25584
+      targetPort: 25584
+    - name: java-25585
+      port: 25585
+      targetPort: 25585
+    - name: java-25586
+      port: 25586
+      targetPort: 25586
+    - name: java-25587
+      port: 25587
+      targetPort: 25587
+    - name: java-25588
+      port: 25588
+      targetPort: 25588
+    - name: java-25589
+      port: 25589
+      targetPort: 25589
+    - name: java-25590
+      port: 25590
+      targetPort: 25590
+    - name: java-25591
+      port: 25591
+      targetPort: 25591
+    - name: java-25592
+      port: 25592
+      targetPort: 25592
+    - name: java-25593
+      port: 25593
+      targetPort: 25593
+    - name: java-25594
+      port: 25594
+      targetPort: 25594
+    - name: java-25595
+      port: 25595
+      targetPort: 25595
+    - name: java-25596
+      port: 25596
+      targetPort: 25596
+    - name: java-25597
+      port: 25597
+      targetPort: 25597
+    - name: java-25598
+      port: 25598
+      targetPort: 25598
+    - name: java-25599
+      port: 25599
+      targetPort: 25599
+    - name: java-25600
+      port: 25600
+      targetPort: 25600

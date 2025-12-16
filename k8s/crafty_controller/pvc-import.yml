@@ -1,14 +1,15 @@
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: crafty-controller-config
-  namespace: {{ crafty_controller_deploy_namespace }}
+  name: crafty-controller-import
+  namespace: apps-crafty-controller
   labels:
     app: crafty-controller
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-path
+  storageClassName: synology-csi-nfs-delete
   resources:
     requests:
-      storage: 10Gi
+      storage: 50Gi

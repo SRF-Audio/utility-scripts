@@ -1,8 +1,9 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: crafty-controller
-  namespace: {{ crafty_controller_deploy_namespace }}
+  namespace: apps-crafty-controller
   labels:
     app: crafty-controller
 spec:
@@ -59,7 +60,7 @@ spec:
             claimName: crafty-controller-import
         - name: crafty-default-json
           secret:
-            secretName: {{ crafty_controller_deploy_default_json_secret_name }}
+            secretName: crafty-controller-default-json
             items:
               - key: default.json
                 path: default.json
