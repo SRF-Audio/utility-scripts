@@ -14,9 +14,19 @@
 - name: Set paths to ArgoCD Application manifests
   ansible.builtin.set_fact:
     homepage_deploy_secrets_manifest: >-
-      {{ [playbook_dir, '..', homepage_deploy_argocd_manifests_path, 'homepage_secrets.yml'] | join('/') }}
+      {{ [
+        playbook_dir,
+        '..',
+        homepage_deploy_argocd_manifests_path,
+        'homepage_secrets.yml'
+      ] | join('/') }}
     homepage_deploy_app_manifest: >-
-      {{ [playbook_dir, '..', homepage_deploy_argocd_manifests_path, 'homepage.yml'] | join('/') }}
+      {{ [
+        playbook_dir,
+        '..',
+        homepage_deploy_argocd_manifests_path,
+        'homepage.yml'
+      ] | join('/') }}
 
 - name: Apply Homepage secrets ArgoCD Application manifest
   ansible.builtin.include_role:
@@ -47,8 +57,12 @@
   register: homepage_deploy_secrets_app_status
   until:
     - homepage_deploy_secrets_app_status.resources | length > 0
-    - homepage_deploy_secrets_app_status.resources[0].status.sync.status == "Synced"
-    - homepage_deploy_secrets_app_status.resources[0].status.health.status == "Healthy"
+    - >-
+      homepage_deploy_secrets_app_status.resources[0].status.sync.status
+      == "Synced"
+    - >-
+      homepage_deploy_secrets_app_status.resources[0].status.health.status
+      == "Healthy"
   retries: 60
   delay: 5
 
@@ -63,8 +77,12 @@
   register: homepage_deploy_app_status
   until:
     - homepage_deploy_app_status.resources | length > 0
-    - homepage_deploy_app_status.resources[0].status.sync.status == "Synced"
-    - homepage_deploy_app_status.resources[0].status.health.status == "Healthy"
+    - >-
+      homepage_deploy_app_status.resources[0].status.sync.status
+      == "Synced"
+    - >-
+      homepage_deploy_app_status.resources[0].status.health.status
+      == "Healthy"
   retries: 60
   delay: 5
 

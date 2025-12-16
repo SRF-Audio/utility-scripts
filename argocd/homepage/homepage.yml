@@ -19,7 +19,8 @@ spec:
               annotations:
                 tailscale.com/expose: "true"
                 tailscale.com/hostname: "homepage"
-                tailscale.com/tags: "tag:k8s,tag:infra-monitoring,tag:server-games"
+                tailscale.com/tags: >-
+                  tag:k8s,tag:infra-monitoring,tag:server-games
               ports:
                 http:
                   port: 80
