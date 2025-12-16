@@ -212,15 +212,15 @@ jobs:
               targets=""
               roles="${{ needs.detect-changes.outputs.roles_changed }}"
               playbooks="${{ needs.detect-changes.outputs.playbooks_changed }}"
-              
+
               for role in $roles; do
                 targets="$targets ansible/roles/$role"
               done
-              
+
               for playbook in $playbooks; do
                 targets="$targets $playbook"
               done
-              
+
               if [ -n "$targets" ]; then
                 echo "Linting: $targets"
                 ansible-lint $targets
