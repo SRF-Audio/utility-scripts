@@ -149,5 +149,6 @@
     calling_role_name: argocd_homepage_token
     calling_role_artifacts_inputs:
       server_url: "{{ argocd_homepage_token_server_url }}"
+      widget_url: "{{ argocd_homepage_token_widget_url }}"
       username: "{{ argocd_homepage_token_username }}"
       token: "{{ argocd_homepage_token }}"
