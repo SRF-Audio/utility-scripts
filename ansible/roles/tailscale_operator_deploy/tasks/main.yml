@@ -30,11 +30,17 @@
         ] | join("/")
       }}
 
+- name: Create temporary file for rendered Application manifest
+  ansible.builtin.tempfile:
+    state: file
+    suffix: _tailscale_operator_application.yml
+  register: tailscale_operator_deploy_temp_file
+
 - name: Render tailscale_operator Application manifest to temporary location
   ansible.builtin.template:
     src: "{{ tailscale_operator_deploy_app_source }}"
-    dest: /tmp/tailscale_operator_application.yml
-    mode: "0644"
+    dest: "{{ tailscale_operator_deploy_temp_file.path }}"
+    mode: "0600"
 
 - name: Apply tailscale_operator Argo CD Application manifest
   ansible.builtin.include_role:
@@ -42,7 +48,13 @@
   vars:
     k8s_object_manager_kubeconfig: "{{ tailscale_operator_deploy_kubeconfig }}"
     k8s_object_manager_context: "{{ tailscale_operator_deploy_context }}"
-    k8s_object_manager_src: /tmp/tailscale_operator_application.yml
+    k8s_object_manager_src: "{{ tailscale_operator_deploy_temp_file.path }}"
+
+- name: Remove temporary Application manifest file
+  ansible.builtin.file:
+    path: "{{ tailscale_operator_deploy_temp_file.path }}"
+    state: absent
+  when: tailscale_operator_deploy_temp_file.path is defined
 
 - name: Persist tailscale_operator_deploy artifacts
   ansible.builtin.include_role:
