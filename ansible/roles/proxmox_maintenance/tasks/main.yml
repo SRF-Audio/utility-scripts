@@ -1,8 +1,10 @@
+---
 - name: Assert OS is Debian-family on {{ inventory_hostname }}
   ansible.builtin.assert:
     that:
       - ansible_facts.os_family == "Debian"
-    fail_msg: "proxmox_maintenance requires a Debian-family OS. Detected: {{ ansible_facts.os_family | default('unknown') }}"
+    fail_msg: >-
+      proxmox_maintenance requires a Debian-family OS. Detected: {{ ansible_facts.os_family | default('unknown') }}
 
 - name: Update apt cache and upgrade packages on {{ inventory_hostname }}
   ansible.builtin.apt:
@@ -34,14 +36,16 @@
 
 - name: Set proxmox_maintenance_rebooted fact on {{ inventory_hostname }}
   ansible.builtin.set_fact:
-    proxmox_maintenance_rebooted: "{{ proxmox_maintenance_reboot_result.rebooted | default(false) }}"
+    proxmox_maintenance_rebooted: >-
+      {{ proxmox_maintenance_reboot_result.rebooted | default(false) }}
 
 - name: Build proxmox_maintenance_artifacts on {{ inventory_hostname }}
   ansible.builtin.set_fact:
     proxmox_maintenance_artifacts:
       host: "{{ inventory_hostname }}"
       timestamp: "{{ ansible_date_time.iso8601 }}"
-      packages_upgraded: "{{ proxmox_maintenance_upgrade_result.stdout_lines | default([]) }}"
+      packages_upgraded: >-
+        {{ proxmox_maintenance_upgrade_result.stdout_lines | default([]) }}
       rebooted: "{{ proxmox_maintenance_rebooted }}"
 
 - name: Record proxmox_maintenance artifacts on {{ inventory_hostname }}

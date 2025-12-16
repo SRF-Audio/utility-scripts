@@ -1,3 +1,4 @@
+---
 # Use this as a dictionary to confirm how to use the copier role correctly.
 
 - name: Case 1- Control host downloaded something → copy it to some remote

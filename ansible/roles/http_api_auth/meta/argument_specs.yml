@@ -1,3 +1,4 @@
+---
 # roles/http_api_auth/meta/argument_specs.yml
 argument_specs:
   main:
@@ -9,7 +10,8 @@ argument_specs:
       http_api_base_url:
         type: str
         required: true
-        description: Base URL for the API including scheme and optional port, without trailing slash.
+        description: >-
+          Base URL for the API including scheme and optional port, without trailing slash.
       http_api_auth_path:
         type: str
         required: true

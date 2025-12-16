@@ -1,12 +1,18 @@
-- name: Assert exactly one of source_kubeconfig_path or source_kubeconfig_content is provided
+---
+- name: >-
+    Assert exactly one of source_kubeconfig_path or
+    source_kubeconfig_content is provided
   ansible.builtin.assert:
     that:
       - >-
-        (kubeconfig_manager_source_kubeconfig_path is defined and kubeconfig_manager_source_kubeconfig_path | length > 0)
-        != (kubeconfig_manager_source_kubeconfig_content is defined and kubeconfig_manager_source_kubeconfig_content | length > 0)
+        (kubeconfig_manager_source_kubeconfig_path is defined and
+        kubeconfig_manager_source_kubeconfig_path | length > 0) !=
+        (kubeconfig_manager_source_kubeconfig_content is defined and
+        kubeconfig_manager_source_kubeconfig_content | length > 0)
     fail_msg: >-
-      Exactly one of kubeconfig_manager_source_kubeconfig_path or kubeconfig_manager_source_kubeconfig_content
-      must be provided, but not both.
+      Exactly one of kubeconfig_manager_source_kubeconfig_path or
+      kubeconfig_manager_source_kubeconfig_content must be provided,
+      but not both.
 
 - name: Assert required parameters are non-empty
   ansible.builtin.assert:
@@ -21,26 +27,37 @@
       - kubeconfig_manager_context_user | length > 0
     fail_msg: >-
       kubeconfig_manager_cluster_name, kubeconfig_manager_cluster_server,
-      kubeconfig_manager_context_name, and kubeconfig_manager_context_user must all be non-empty.
+      kubeconfig_manager_context_name, and
+      kubeconfig_manager_context_user must all be non-empty.
 
 - name: Load source kubeconfig from file path
-  when: kubeconfig_manager_source_kubeconfig_path is defined and kubeconfig_manager_source_kubeconfig_path | length > 0
+  when: >-
+    kubeconfig_manager_source_kubeconfig_path is defined and
+    kubeconfig_manager_source_kubeconfig_path | length > 0
   block:
-    - name: Slurp source kubeconfig file {{ kubeconfig_manager_source_kubeconfig_path | default('') }}
+    - name: >-
+        Slurp source kubeconfig file {{
+        kubeconfig_manager_source_kubeconfig_path | default('') }}
       ansible.builtin.slurp:
         src: "{{ kubeconfig_manager_source_kubeconfig_path }}"
       register: kubeconfig_manager_source_slurp
 
     - name: Parse source kubeconfig from file
       ansible.builtin.set_fact:
-        kubeconfig_manager_source_config: "{{ kubeconfig_manager_source_slurp.content | b64decode | from_yaml }}"
+        kubeconfig_manager_source_config: >-
+          {{ kubeconfig_manager_source_slurp.content | b64decode | from_yaml }}
 
 - name: Parse source kubeconfig from content
   ansible.builtin.set_fact:
-    kubeconfig_manager_source_config: "{{ kubeconfig_manager_source_kubeconfig_content | from_yaml }}"
-  when: kubeconfig_manager_source_kubeconfig_content is defined and kubeconfig_manager_source_kubeconfig_content | length > 0
+    kubeconfig_manager_source_config: >-
+      {{ kubeconfig_manager_source_kubeconfig_content | from_yaml }}
+  when: >-
+    kubeconfig_manager_source_kubeconfig_content is defined and
+    kubeconfig_manager_source_kubeconfig_content | length > 0
 
-- name: Check if target kubeconfig exists {{ kubeconfig_manager_target_kubeconfig_path }}
+- name: >-
+    Check if target kubeconfig exists {{
+    kubeconfig_manager_target_kubeconfig_path }}
   ansible.builtin.stat:
     path: "{{ kubeconfig_manager_target_kubeconfig_path }}"
   register: kubeconfig_manager_target_stat
@@ -48,14 +65,17 @@
 - name: Load existing target kubeconfig
   when: kubeconfig_manager_target_stat.stat.exists
   block:
-    - name: Slurp existing target kubeconfig {{ kubeconfig_manager_target_kubeconfig_path }}
+    - name: >-
+        Slurp existing target kubeconfig {{
+        kubeconfig_manager_target_kubeconfig_path }}
       ansible.builtin.slurp:
         src: "{{ kubeconfig_manager_target_kubeconfig_path }}"
       register: kubeconfig_manager_target_slurp
 
     - name: Parse existing target kubeconfig
       ansible.builtin.set_fact:
-        kubeconfig_manager_existing_config: "{{ kubeconfig_manager_target_slurp.content | b64decode | from_yaml }}"
+        kubeconfig_manager_existing_config: >-
+          {{ kubeconfig_manager_target_slurp.content | b64decode | from_yaml }}
 
 - name: Initialize empty kubeconfig if target does not exist
   ansible.builtin.set_fact:
@@ -92,7 +112,11 @@
   ansible.builtin.set_fact:
     kubeconfig_manager_new_cluster:
       name: "{{ kubeconfig_manager_cluster_name }}"
-      cluster: "{{ kubeconfig_manager_source_cluster.cluster | default({}) | combine({'server': kubeconfig_manager_cluster_server}) }}"
+      cluster: >-
+        {{
+        kubeconfig_manager_source_cluster.cluster | default({}) |
+        combine({'server': kubeconfig_manager_cluster_server})
+        }}
 
 - name: Build new user entry
   ansible.builtin.set_fact:
@@ -132,9 +156,12 @@
 
 - name: Preserve all existing entries when not removing stale entries
   ansible.builtin.set_fact:
-    kubeconfig_manager_filtered_clusters: "{{ kubeconfig_manager_existing_config.clusters | default([]) }}"
-    kubeconfig_manager_filtered_users: "{{ kubeconfig_manager_existing_config.users | default([]) }}"
-    kubeconfig_manager_filtered_contexts: "{{ kubeconfig_manager_existing_config.contexts | default([]) }}"
+    kubeconfig_manager_filtered_clusters: >-
+      {{ kubeconfig_manager_existing_config.clusters | default([]) }}
+    kubeconfig_manager_filtered_users: >-
+      {{ kubeconfig_manager_existing_config.users | default([]) }}
+    kubeconfig_manager_filtered_contexts: >-
+      {{ kubeconfig_manager_existing_config.contexts | default([]) }}
   when: not (kubeconfig_manager_remove_stale_entries | bool)
 
 - name: Build merged kubeconfig
@@ -142,24 +169,42 @@
     kubeconfig_manager_merged_config:
       apiVersion: v1
       kind: Config
-      preferences: "{{ kubeconfig_manager_existing_config.preferences | default({}) }}"
-      clusters: "{{ kubeconfig_manager_filtered_clusters + [kubeconfig_manager_new_cluster] }}"
-      users: "{{ kubeconfig_manager_filtered_users + [kubeconfig_manager_new_user] }}"
-      contexts: "{{ kubeconfig_manager_filtered_contexts + [kubeconfig_manager_new_context] }}"
+      preferences: >-
+        {{ kubeconfig_manager_existing_config.preferences | default({}) }}
+      clusters: >-
+        {{
+        kubeconfig_manager_filtered_clusters +
+        [kubeconfig_manager_new_cluster]
+        }}
+      users: >-
+        {{
+        kubeconfig_manager_filtered_users +
+        [kubeconfig_manager_new_user]
+        }}
+      contexts: >-
+        {{
+        kubeconfig_manager_filtered_contexts +
+        [kubeconfig_manager_new_context]
+        }}
       current-context: >-
         {{
           kubeconfig_manager_context_name
           if kubeconfig_manager_set_current_context | bool
-          else (kubeconfig_manager_existing_config['current-context'] | default(''))
+          else (kubeconfig_manager_existing_config['current-context'] |
+          default(''))
         }}
 
-- name: Ensure parent directory exists {{ kubeconfig_manager_target_kubeconfig_path | dirname }}
+- name: >-
+    Ensure parent directory exists {{
+    kubeconfig_manager_target_kubeconfig_path | dirname }}
   ansible.builtin.file:
     path: "{{ kubeconfig_manager_target_kubeconfig_path | dirname }}"
     state: directory
     mode: "0700"
 
-- name: Backup existing kubeconfig {{ kubeconfig_manager_target_kubeconfig_path }}
+- name: >-
+    Backup existing kubeconfig {{
+    kubeconfig_manager_target_kubeconfig_path }}
   ansible.builtin.copy:
     src: "{{ kubeconfig_manager_target_kubeconfig_path }}"
     dest: "{{ kubeconfig_manager_target_kubeconfig_path }}.bak"
@@ -169,7 +214,9 @@
     - kubeconfig_manager_backup_existing | bool
     - kubeconfig_manager_target_stat.stat.exists
 
-- name: Write merged kubeconfig to {{ kubeconfig_manager_target_kubeconfig_path }}
+- name: >-
+    Write merged kubeconfig to {{
+    kubeconfig_manager_target_kubeconfig_path }}
   ansible.builtin.copy:
     dest: "{{ kubeconfig_manager_target_kubeconfig_path }}"
     content: "{{ kubeconfig_manager_merged_config | to_nice_yaml }}"
@@ -183,13 +230,22 @@
       cluster_server: "{{ kubeconfig_manager_cluster_server }}"
       context_name: "{{ kubeconfig_manager_context_name }}"
       user_name: "{{ kubeconfig_manager_user_name }}"
-      backup_created: "{{ kubeconfig_manager_backup_existing | bool and kubeconfig_manager_target_stat.stat.exists }}"
-      is_non_default_path: "{{ kubeconfig_manager_target_kubeconfig_path != (lookup('env', 'HOME') + '/.kube/config') }}"
+      backup_created: >-
+        {{
+        kubeconfig_manager_backup_existing | bool and
+        kubeconfig_manager_target_stat.stat.exists
+        }}
+      is_non_default_path: >-
+        {{
+        kubeconfig_manager_target_kubeconfig_path !=
+        (lookup('env', 'HOME') + '/.kube/config')
+        }}
 
 - name: Persist kubeconfig_manager artifacts
   ansible.builtin.include_role:
     name: role_artifacts
-  # noqa: var-naming[no-role-prefix] - role_artifacts expects calling_role_name and calling_role_artifacts_inputs
+  # noqa: var-naming[no-role-prefix] - role_artifacts expects
+  # calling_role_name and calling_role_artifacts_inputs
   vars:
     role_artifacts_path: "{{ kubeconfig_manager_artifacts_path }}"
     calling_role_name: kubeconfig_manager

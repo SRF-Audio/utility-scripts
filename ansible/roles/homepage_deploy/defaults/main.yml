@@ -1,3 +1,4 @@
+---
 homepage_deploy_namespace: infra-homepage
 homepage_deploy_argo_namespace: argocd
 homepage_deploy_project: coachlight-k3s-infra

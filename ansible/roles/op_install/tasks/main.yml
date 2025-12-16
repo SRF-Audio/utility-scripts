@@ -1,3 +1,4 @@
+---
 - name: Test if 1Password CLI is already installed
   ansible.builtin.include_role:
     name: cli_tester

@@ -1,3 +1,4 @@
+---
 op_item_delete_op_executable: op
 op_item_delete_vault_name: ""
 op_item_delete_artifacts_path: "{{ artifacts_base_path }}/op_item_delete"

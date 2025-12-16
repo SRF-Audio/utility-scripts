@@ -1,3 +1,4 @@
+---
 - name: Validate op_item_delete_items input
   ansible.builtin.assert:
     that:
@@ -46,7 +47,8 @@
                'item_spec': op_item_delete_pair.0,
                'item_json': (op_item_delete_pair.1.stdout | from_json)
              } ] }}
-  loop: "{{ op_item_delete_items | zip(op_item_delete_get_results.results) | list }}"
+  loop: >-
+    {{ op_item_delete_items | zip(op_item_delete_get_results.results) | list }}
   loop_control:
     loop_var: op_item_delete_pair
     label: "{{ op_item_delete_vault_name }}/{{ op_item_delete_pair.0.name }}"
@@ -60,7 +62,8 @@
                'vault_name': op_item_delete_vault_name,
                'item_spec': op_item_delete_pair.0
              } ] }}
-  loop: "{{ op_item_delete_items | zip(op_item_delete_get_results.results) | list }}"
+  loop: >-
+    {{ op_item_delete_items | zip(op_item_delete_get_results.results) | list }}
   loop_control:
     loop_var: op_item_delete_pair
     label: "{{ op_item_delete_vault_name }}/{{ op_item_delete_pair.0.name }}"
@@ -78,7 +81,8 @@
   loop: "{{ op_item_delete_existing_items | default([]) }}"
   loop_control:
     loop_var: op_item_delete_existing
-    label: "{{ op_item_delete_vault_name }}/{{ op_item_delete_existing.item_spec.name }}"
+    label: >-
+      {{ op_item_delete_vault_name }}/{{ op_item_delete_existing.item_spec.name }}
   register: op_item_delete_delete_results
   when: (op_item_delete_existing_items | default([])) | length > 0
   vars:
@@ -101,7 +105,8 @@
     }}
   loop_control:
     loop_var: op_item_delete_pair
-    label: "{{ op_item_delete_vault_name }}/{{ op_item_delete_pair.0.item_spec.name }}"
+    label: >-
+      {{ op_item_delete_vault_name }}/{{ op_item_delete_pair.0.item_spec.name }}
   when:
     - (op_item_delete_existing_items | default([])) | length > 0
     - op_item_delete_delete_results is defined

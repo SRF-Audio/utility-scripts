@@ -1,4 +1,6 @@
-- name: Loop through control host dependencies checker for {{ control_host_dependencies_system_package }}
+---
+- name: >-
+    Loop through control host dependencies checker for {{ control_host_dependencies_system_package }}
   ansible.builtin.include_role:
     name: cli_tester
   loop: "{{ control_host_dependencies_system_packages | default([]) }}"
@@ -7,14 +9,16 @@
   vars:
     cli_tester_cli_name: "{{ control_host_dependencies_system_package }}"
 
-- name: Ensure system packages are installed for control host dependencies {{ [control_host_dependencies_system_packages | length, 'packages'] | join(' ') }}
+- name: >-
+    Ensure system packages are installed for control host dependencies {{ [control_host_dependencies_system_packages | length, 'packages'] | join(' ') }}
   ansible.builtin.package:
     name: "{{ control_host_dependencies_system_packages }}"
     state: present
   become: true
   when: (control_host_dependencies_system_packages | default([])) | length > 0
 
-- name: Ensure pip dependencies are present for control host dependencies {{ [control_host_dependencies_pip_packages | length, 'packages'] | join(' ') }}
+- name: >-
+    Ensure pip dependencies are present for control host dependencies {{ [control_host_dependencies_pip_packages | length, 'packages'] | join(' ') }}
   ansible.builtin.pip:
     name: "{{ control_host_dependencies_pip_packages }}"
     state: present
@@ -36,9 +40,12 @@
 - name: Collect control host dependency artifacts
   ansible.builtin.set_fact:
     control_host_dependencies_artifacts:
-      packages_installed: "{{ control_host_dependencies_system_packages | default([]) }}"
-      pip_packages_installed: "{{ control_host_dependencies_pip_packages | default([]) }}"
-      tools_checked: "{{ control_host_dependencies_tools_to_check | default([]) }}"
+      packages_installed: >-
+        {{ control_host_dependencies_system_packages | default([]) }}
+      pip_packages_installed: >-
+        {{ control_host_dependencies_pip_packages | default([]) }}
+      tools_checked: >-
+        {{ control_host_dependencies_tools_to_check | default([]) }}
 
 - name: Publish control host dependency artifacts
   ansible.builtin.include_role:

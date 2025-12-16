@@ -1,2 +1,3 @@
+---
 op_vault_validator_artifacts_path: "{{ artifacts_base_path }}/op_vault_validator"
 op_vault_validator_vault_name: ""

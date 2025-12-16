@@ -1,3 +1,4 @@
+---
 argument_specs:
   main:
     options:
@@ -17,7 +18,9 @@ argument_specs:
         elements: dict
         required: true
         description:
-          - List of item specs to create in 1Password. For field help, use `op item create --help`.
+          - >-
+            List of item specs to create in 1Password. For field help,
+            use `op item create --help`.
         options:
           name:
             type: str
@@ -28,7 +31,10 @@ argument_specs:
             type: str
             required: true
             description:
-              - 1Password item category, for example login, server, database, password, ssh_key, api_credential, software_license.
+              - >-
+                1Password item category, for example login, server,
+                database, password, ssh_key, api_credential,
+                software_license.
           url:
             type: str
             required: false
@@ -49,19 +55,24 @@ argument_specs:
             type: str
             required: false
             description:
-              - Optional password recipe string for --generate-password, for example 20,letters,digits.
+              - >-
+                Optional password recipe string for --generate-password,
+                for example 20,letters,digits.
           ssh_generate_key:
             type: str
             required: false
             description:
-              - Optional value for --ssh-generate-key, for example ed25519 or rsa4096.
+              - >-
+                Optional value for --ssh-generate-key,
+                for example ed25519 or rsa4096.
           fields:
             type: dict
             required: false
             description: |
               Map of field assignment expressions to values.
-              Each key is the field assignment expression as expected by the `op item create` command,
-              and the value is the value to assign to that field.
+              Each key is the field assignment expression as expected by
+              the `op item create` command, and the value is the value to
+              assign to that field.
               For example:
               ```yaml
               fields:
@@ -71,7 +82,8 @@ argument_specs:
       op_item_create_artifacts_path:
         type: str
         required: true
-        description: Global base path for artifacts output, not including the role name.
+        description: >-
+          Global base path for artifacts output, not including the role name.
       op_item_create_op_service_account_token:
         type: str
         required: true

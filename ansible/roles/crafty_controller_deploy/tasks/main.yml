@@ -1,3 +1,4 @@
+---
 - name: Assert required crafty_controller_deploy inputs are defined
   ansible.builtin.assert:
     that:
@@ -115,7 +116,8 @@
       ingress_host: "{{ crafty_controller_deploy_ingress_host }}"
       tailscale_enabled: "{{ crafty_controller_deploy_tailscale_enabled }}"
       render_dir: "{{ crafty_controller_deploy_render_dir }}"
-      manifests: "{{ crafty_controller_deploy_manifest_files.files | map(attribute='path') | list }}"
+      manifests: >-
+        {{ crafty_controller_deploy_manifest_files.files | map(attribute='path') | list }}
 
 - name: Persist crafty_controller_deploy artifacts via role_artifacts
   ansible.builtin.include_role:

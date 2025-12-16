@@ -1,3 +1,4 @@
+---
 - name: Validate Tailscale installation and connectivity
   hosts: localhost
   connection: local
@@ -6,9 +7,14 @@
     - tailscale_tester
   vars:
     artifacts_base_path: "{{ playbook_dir }}/.artifacts"
-    tailscale_tester_service_account_token: "{{ lookup('env', 'OP_SERVICE_ACCOUNT_TOKEN') }}"
-    tailscale_ping_target: "{{ lookup('env', 'TAILSCALE_PING_TARGET') | default('coachlight-homelab', true) }}"
-    tailscale_tester_hostname: "{{ lookup('env', 'TAILSCALE_HOSTNAME') | default('github-actions-runner', true) }}"
+    tailscale_tester_service_account_token: >-
+      {{ lookup('env', 'OP_SERVICE_ACCOUNT_TOKEN') }}
+    tailscale_ping_target: >-
+      {{ lookup('env', 'TAILSCALE_PING_TARGET') |
+      default('coachlight-homelab', true) }}
+    tailscale_tester_hostname: >-
+      {{ lookup('env', 'TAILSCALE_HOSTNAME') |
+      default('github-actions-runner', true) }}
 
   tasks:
     - name: Assert OP_SERVICE_ACCOUNT_TOKEN is present and non-empty
@@ -30,7 +36,8 @@
         name: op_read
       vars:
         op_read_artifacts_path: "{{ artifacts_base_path }}/op_read"
-        op_read_op_service_account_token: "{{ tailscale_tester_service_account_token }}"
+        op_read_op_service_account_token: >-
+          {{ tailscale_tester_service_account_token }}
         op_read_items:
           - vault_name: "HomeLab"
             item_name: "Tailscale"
@@ -72,7 +79,8 @@
 
     - name: Parse tailscale status if available
       ansible.builtin.set_fact:
-        tailscale_tester_status_json: "{{ tailscale_tester_initial_status.stdout | from_json }}"
+        tailscale_tester_status_json: >-
+          {{ tailscale_tester_initial_status.stdout | from_json }}
       when: tailscale_tester_initial_status.rc == 0
 
     - name: Determine if tailscale up is needed
@@ -80,7 +88,8 @@
         tailscale_tester_needs_up: >-
           {{
             tailscale_tester_initial_status.rc != 0 or
-            (tailscale_tester_status_json.BackendState | default('')) != 'Running'
+            (tailscale_tester_status_json.BackendState | default(''))
+            != 'Running'
           }}
 
     - name: Run tailscale up with auth key
@@ -112,10 +121,13 @@
           - tailscale_ping_target is defined
           - tailscale_ping_target | length > 0
           - >-
-            tailscale_ping_target is match('^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$')
-            or tailscale_ping_target is match('^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$')
+            tailscale_ping_target is
+            match('^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$')
+            or tailscale_ping_target is
+            match('^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$')
         fail_msg: >-
-          TAILSCALE_PING_TARGET must be a valid hostname or IPv4 address without special characters.
+          TAILSCALE_PING_TARGET must be a valid hostname or IPv4
+          address without special characters.
 
     - name: Verify tailscale ping to {{ tailscale_ping_target }}
       ansible.builtin.command:

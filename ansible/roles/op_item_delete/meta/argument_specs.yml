@@ -1,10 +1,12 @@
+---
 argument_specs:
   main:
     options:
       op_item_delete_artifacts_path:
         type: str
         required: true
-        description: Global base path for artifacts output, not including the role name.
+        description: >-
+          Global base path for artifacts output, not including the role name.
       op_item_delete_op_executable:
         type: str
         required: false

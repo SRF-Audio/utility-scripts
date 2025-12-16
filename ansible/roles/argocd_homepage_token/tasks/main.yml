@@ -1,3 +1,4 @@
+---
 - name: Check if argocd CLI is installed
   ansible.builtin.include_role:
     name: cli_tester
@@ -20,7 +21,11 @@
     - name: Determine argocd CLI download URL
       ansible.builtin.set_fact:
         argocd_homepage_token_cli_download_url: >-
-          https://github.com/argoproj/argo-cd/releases/{{ 'latest/download' if argocd_homepage_token_cli_version == 'latest' else ('download/' + argocd_homepage_token_cli_version) }}/argocd-linux-amd64
+          https://github.com/argoproj/argo-cd/releases/{{
+          'latest/download'
+          if argocd_homepage_token_cli_version == 'latest'
+          else ('download/' + argocd_homepage_token_cli_version)
+          }}/argocd-linux-amd64
 
     - name: Download argocd CLI binary
       ansible.builtin.get_url:
@@ -49,7 +54,8 @@
       --vault {{ argocd_homepage_token_1p_vault_name }}
       --format json
   environment:
-    OP_SERVICE_ACCOUNT_TOKEN: "{{ argocd_homepage_token_op_service_account_token }}"
+    OP_SERVICE_ACCOUNT_TOKEN: >-
+      {{ argocd_homepage_token_op_service_account_token }}
   register: argocd_homepage_token_1p_check
   changed_when: false
   failed_when: false
@@ -65,7 +71,8 @@
           - vault_name: "{{ argocd_homepage_token_1p_vault_name }}"
             item_name: "{{ argocd_homepage_token_1p_item_name }}"
             field_name: token
-        op_read_op_service_account_token: "{{ argocd_homepage_token_op_service_account_token }}"
+        op_read_op_service_account_token: >-
+          {{ argocd_homepage_token_op_service_account_token }}
         op_read_artifacts_path: "{{ argocd_homepage_token_artifacts_path }}"
 
     - name: Set argocd_homepage_token from 1Password
@@ -92,17 +99,27 @@
         that:
           - argocd_homepage_token_admin_secret.resources is defined
           - argocd_homepage_token_admin_secret.resources | length > 0
-          - argocd_homepage_token_admin_secret.resources[0].data.password is defined
-        fail_msg: "argocd-initial-admin-secret not found or does not contain password field"
+          - >-
+            argocd_homepage_token_admin_secret.resources[0].data.password
+            is defined
+        fail_msg: >-
+          argocd-initial-admin-secret not found or does not contain
+          password field
 
     - name: Decode argocd admin password
       ansible.builtin.set_fact:
-        argocd_homepage_token_admin_password: "{{ argocd_homepage_token_admin_secret.resources[0].data.password | b64decode }}"
+        argocd_homepage_token_admin_password: >-
+          {{
+          argocd_homepage_token_admin_secret.resources[0].data.password |
+          b64decode
+          }}
 
     - name: Login to Argo CD API
       ansible.builtin.shell:
         cmd: >-
-          argocd login {{ argocd_homepage_token_server_url | regex_replace('^https?://', '') }}
+          argocd login {{
+          argocd_homepage_token_server_url |
+          regex_replace('^https?://', '') }}
           --username admin
           --password "${ARGOCD_PASSWORD}"
           --insecure
@@ -122,7 +139,8 @@
 
     - name: Set argocd_homepage_token from creation
       ansible.builtin.set_fact:
-        argocd_homepage_token: "{{ argocd_homepage_token_create.stdout | trim }}"
+        argocd_homepage_token: >-
+          {{ argocd_homepage_token_create.stdout | trim }}
 
     - name: Create 1Password item for argocd homepage token
       ansible.builtin.include_role:
@@ -137,8 +155,10 @@
             fields:
               username[text]: "{{ argocd_homepage_token_username }}"
               token[password]: "{{ argocd_homepage_token }}"
-        op_item_create_op_service_account_token: "{{ argocd_homepage_token_op_service_account_token }}"
-        op_item_create_artifacts_path: "{{ argocd_homepage_token_artifacts_path }}"
+        op_item_create_op_service_account_token: >-
+          {{ argocd_homepage_token_op_service_account_token }}
+        op_item_create_artifacts_path: >-
+          {{ argocd_homepage_token_artifacts_path }}
 
 - name: Persist argocd_homepage_token artifacts
   ansible.builtin.include_role:

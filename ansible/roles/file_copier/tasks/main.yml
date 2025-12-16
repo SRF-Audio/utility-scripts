@@ -1,3 +1,4 @@
+---
 - name: Assert file_copier_items is a non-empty list
   ansible.builtin.assert:
     that:
@@ -6,19 +7,23 @@
       - file_copier_items | length > 0
     fail_msg: "file_copier_items must be a non-empty list."
 
-- name: Assert each file_copier item has required fields for {{ item.src | default('unknown src') }}
+- name: >-
+    Assert each file_copier item has required fields for {{ item.src | default('unknown src') }}
   ansible.builtin.assert:
     that:
       - item.src is defined
       - item.src | length > 0
       - item.dest is defined
       - item.dest | length > 0
-    fail_msg: "Each file_copier item must include non-empty 'src' and 'dest'."
+    fail_msg: >-
+      Each file_copier item must include non-empty 'src' and 'dest'.
   loop: "{{ file_copier_items }}"
   loop_control:
     label: "{{ item | to_nice_json }}"
 # noqa: name[template]
-- name: Ensure parent directory exists for file_copier dest {{ item }} on {{ inventory_hostname }}
+- name: >-
+    Ensure parent directory exists for file_copier dest
+    {{ item }}on {{ inventory_hostname }}
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -34,7 +39,9 @@
   loop_control:
     label: "{{ item }}"
 # noqa: name[template]
-- name: Copy file_copier item on {{ inventory_hostname }} from {{ item.src }} to {{ item.dest }}
+- name: >-
+    Copy file_copier item on
+    {{ inventory_hostname }}from {{ item.src }} to {{ item.dest }}
   ansible.builtin.copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
