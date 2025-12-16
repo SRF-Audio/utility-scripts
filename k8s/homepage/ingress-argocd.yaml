@@ -1,3 +1,4 @@
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -10,8 +11,8 @@ metadata:
     gethomepage.dev/group: "GitOps"
     gethomepage.dev/icon: "argocd.png"
     gethomepage.dev/widget.type: "argocd"
-    gethomepage.dev/widget.url: "https://argocd.rohu-shark.ts.net"
-    gethomepage.dev/widget.key: "{{ argocd_homepage_token }}"
+    gethomepage.dev/widget.url: "http://argocd-server.argocd"
+    gethomepage.dev/widget.key: "{{HOMEPAGE_VAR_ARGOCD_TOKEN}}"
 spec:
   rules:
     - host: argocd.rohu-shark.ts.net

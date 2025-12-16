@@ -5,40 +5,15 @@
     definition: >-
       {{ lookup('ansible.builtin.template', 'homepage-application.yml.j2') }}
 
-- name: Apply Homepage Argo CD OnePasswordItem
+- name: Apply Homepage static manifests from k8s/homepage
   kubernetes.core.k8s:
     state: present
-    definition: >-
-      {{
-        lookup(
-          'ansible.builtin.template',
-          'homepage-argocd-onepassworditem.yml.j2'
-        )
-      }}
-
-- name: Discover Homepage ingress templates
-  ansible.builtin.find:
-    paths: "{{ homepage_deploy_ingress_templates_root }}"
-    patterns:
-      - "*.yml.j2"
-      - "*.yaml.j2"
-    file_type: file
-  register: homepage_deploy_ingress_templates
-  when:
-    - homepage_deploy_ingress_templates_root is defined
-    - homepage_deploy_ingress_templates_root | length > 0
-
-- name: Apply Homepage ingress templates
-  kubernetes.core.k8s:
-    state: present
-    definition: >-
-      {{ lookup('ansible.builtin.template', item.path) }}
-  loop: "{{ homepage_deploy_ingress_templates.files | default([]) }}"
+    src: "{{ item }}"
+  loop:
+    - "{{ playbook_dir }}/../k8s/homepage/onepassworditem-argocd-token.yaml"
+    - "{{ playbook_dir }}/../k8s/homepage/ingress-argocd.yaml"
   loop_control:
-    label: "{{ item.path }}"
-  when:
-    - homepage_deploy_ingress_templates is defined
-    - homepage_deploy_ingress_templates.files | length > 0
+    label: "{{ item | basename }}"
 
 - name: Register homepage_deploy role artifacts
   ansible.builtin.import_role:
@@ -52,7 +27,7 @@
       application_name: "{{ homepage_deploy_application_name }}"
       application_namespace: "{{ homepage_deploy_argo_namespace }}"
       homepage_deploy_namespace: "{{ homepage_deploy_namespace }}"
-      ingress_templates_root: "{{ homepage_deploy_ingress_templates_root }}"
+      static_manifests_path: "{{ playbook_dir }}/../k8s/homepage"
   when:
     - homepage_deploy_artifacts_path is defined
     - homepage_deploy_artifacts_path | length > 0

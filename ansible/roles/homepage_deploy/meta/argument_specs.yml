@@ -23,15 +23,6 @@ argument_specs:
       homepage_deploy_application_name:
         type: str
         required: false
-      homepage_deploy_ingress_templates_root:
-        type: str
-        required: false
       homepage_deploy_artifacts_path:
-        type: str
-        required: false
-      homepage_deploy_1p_vault_name:
-        type: str
-        required: false
-      homepage_deploy_1p_item_name:
         type: str
         required: false

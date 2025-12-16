@@ -9,9 +9,4 @@ homepage_deploy_chart_version: 2.1.0
 
 homepage_deploy_application_name: homepage
 
-homepage_deploy_ingress_templates_root: "{{ role_path }}/templates/ingresses"
-
 homepage_deploy_artifacts_path: "{{ artifacts_path }}"
-
-homepage_deploy_1p_vault_name: HomeLab
-homepage_deploy_1p_item_name: argocd-homepage-token
