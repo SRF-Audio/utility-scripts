@@ -1,3 +1,4 @@
+---
 - name: Install productivity packages
   ansible.builtin.dnf:
     name:

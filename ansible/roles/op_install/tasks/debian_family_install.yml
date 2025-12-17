@@ -1,3 +1,4 @@
+---
 - name: Determine dpkg architecture
   ansible.builtin.command:
     cmd: dpkg --print-architecture

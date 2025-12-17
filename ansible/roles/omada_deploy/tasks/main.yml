@@ -1,7 +1,9 @@
+---
 - name: Ensure Omada Argo CD Application is present
   kubernetes.core.k8s:
     state: present
-    definition: "{{ lookup('ansible.builtin.template', 'omada-application.yml.j2') }}"
+    definition: >-
+      {{ lookup('ansible.builtin.template', 'omada-application.yml.j2') }}
     kubeconfig: "{{ omada_deploy_kubeconfig | default(omit, true) }}"
     context: "{{ omada_deploy_context | default(omit, true) }}"
   when: omada_deploy_apply_application | default(true) | bool
@@ -32,7 +34,8 @@
     - omada_deploy_ingress_templates is defined
     - omada_deploy_ingress_templates.files | length > 0
 
-- name: Register omada_deploy role artifacts when omada_deploy_artifacts_path is defined
+- name: >-
+    Register omada_deploy role artifacts when omada_deploy_artifacts_path is defined
   ansible.builtin.import_role:
     name: role_artifacts
   vars:

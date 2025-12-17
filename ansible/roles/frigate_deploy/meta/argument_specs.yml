@@ -1,10 +1,11 @@
+---
 argument_specs:
   main:
     short_description: Deploy Frigate NVR Argo CD Application into k3s cluster
     description: >
-      Renders and applies an Argo CD Application manifest for the Frigate NVR Helm
-      chart from blakeshome-charts, integrating with Longhorn storage, Synology CSI,
-      and Tailscale ingress for secure UI exposure.
+      Renders and applies an Argo CD Application manifest for the Frigate
+      NVR Helm chart from blakeshome-charts, integrating with Longhorn
+      storage, Synology CSI, and Tailscale ingress for secure UI exposure.
     options:
       frigate_deploy_namespace:
         type: str
@@ -34,8 +35,9 @@ argument_specs:
         type: dict
         required: false
         description: >
-          Dict of Helm value overrides to merge into spec.source.helm.valuesObject.
-          This is the single source of truth for all Frigate chart customizations.
+          Dict of Helm value overrides to merge into
+          spec.source.helm.valuesObject. This is the single source of truth
+          for all Frigate chart customizations.
       frigate_deploy_hostname:
         type: str
         required: false
@@ -44,20 +46,25 @@ argument_specs:
         type: dict
         required: false
         description: >
-          Dict of Tailscale annotations to apply to the ingress for secure exposure.
+          Dict of Tailscale annotations to apply to the ingress for secure
+          exposure.
       frigate_deploy_storage_class_longhorn:
         type: str
         required: false
-        description: Storage class name for Longhorn-backed PVCs (config and database).
+        description: >-
+          Storage class name for Longhorn-backed PVCs (config and database).
       frigate_deploy_storage_class_synology:
         type: str
         required: false
         description: >
-          Optional storage class name for Synology-backed PVCs (recordings and clips).
+          Optional storage class name for Synology-backed PVCs
+          (recordings and clips).
       frigate_deploy_service_type:
         type: str
         required: false
-        description: Kubernetes service type for the Frigate service (ClusterIP, NodePort, LoadBalancer).
+        description: >-
+          Kubernetes service type for the Frigate service
+          (ClusterIP, NodePort, LoadBalancer).
       frigate_deploy_apply_application:
         type: bool
         required: false

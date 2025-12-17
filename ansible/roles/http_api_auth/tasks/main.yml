@@ -1,3 +1,4 @@
+---
 # roles/http_api_auth/tasks/main.yml
 - name: Assert required HTTP API auth inputs are defined
   ansible.builtin.assert:
@@ -8,7 +9,8 @@
       - http_api_name | length > 0
       - http_api_base_url | length > 0
       - http_api_auth_path | length > 0
-    fail_msg: "http_api_name, http_api_base_url, and http_api_auth_path must be defined for http_api_auth."
+    fail_msg: >-
+      http_api_name, http_api_base_url, and http_api_auth_path must be defined for http_api_auth.
 
 - name: Build HTTP API auth URL
   ansible.builtin.set_fact:

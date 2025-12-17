@@ -1,10 +1,12 @@
+---
 argument_specs:
   main:
     options:
       ignition_renderer_cluster_layout:
         type: dict
         required: true
-        description: Cluster layout containing control_planes and workers definitions.
+        description: >-
+          Cluster layout containing control_planes and workers definitions.
       ignition_renderer_artifacts_path:
         type: str
         required: false
@@ -20,4 +22,5 @@ argument_specs:
       ignition_renderer_butane_cli_name:
         type: str
         required: false
-        description: Name of the Butane CLI binary to use when rendering ignition.
+        description: >-
+          Name of the Butane CLI binary to use when rendering ignition.

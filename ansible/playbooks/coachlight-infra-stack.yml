@@ -1,3 +1,4 @@
+---
 - name: Deploy Coachlight HomeLab Infra Stack into k3s cluster
   hosts: local
   gather_facts: true
@@ -12,7 +13,8 @@
       ansible.builtin.import_role:
         name: kubeconfig_manager
       vars:
-        kubeconfig_manager_source_kubeconfig_path: "{{ k3s_kubeconfig_retriever_artifacts.local_output_path }}"
+        kubeconfig_manager_source_kubeconfig_path: >-
+          {{ k3s_kubeconfig_retriever_artifacts.local_output_path }}
         kubeconfig_manager_cluster_name: "{{ k3s_cluster_name }}"
         kubeconfig_manager_cluster_server: "{{ k3s_api_server_url }}"
         kubeconfig_manager_context_name: "{{ k3s_context_name }}"
@@ -22,8 +24,10 @@
       ansible.builtin.import_role:
         name: k8s_validator
       vars:
-        k8s_validator_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
-        k8s_validator_context: "{{ kubeconfig_manager_artifacts.context_name }}"
+        k8s_validator_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        k8s_validator_context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
 
     - name: Add control-plane taints to control-plane nodes
       kubernetes.core.k8s_taint:
@@ -40,9 +44,12 @@
   roles:
     - role: argocd_deploy
       vars:
-        argocd_deploy_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
-        argocd_deploy_context: "{{ kubeconfig_manager_artifacts.context_name }}"
-        argocd_deploy_cluster_name: "{{ kubeconfig_manager_artifacts.cluster_name }}"
+        argocd_deploy_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        argocd_deploy_context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
+        argocd_deploy_cluster_name: >-
+          {{ kubeconfig_manager_artifacts.cluster_name }}
     - role: onepassword_operator_deploy
       vars:
         onepassword_operator_deploy_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
@@ -52,24 +59,35 @@
         onepassword_operator_deploy_operator_token: "{{ onepassword_operator_token }}"
     - role: tailscale_operator_deploy
       vars:
-        tailscale_operator_deploy_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
-        tailscale_operator_deploy_context: "{{ kubeconfig_manager_artifacts.context_name }}"
-        tailscale_operator_deploy_cluster_name: "{{ kubeconfig_manager_artifacts.cluster_name }}"
-        tailscale_operator_deploy_oauth_client_id: "{{ tailscale_oauth_client_id }}"
-        tailscale_operator_deploy_oauth_client_secret: "{{ tailscale_oauth_client_secret }}"
+        tailscale_operator_deploy_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        tailscale_operator_deploy_context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
+        tailscale_operator_deploy_cluster_name: >-
+          {{ kubeconfig_manager_artifacts.cluster_name }}
+        tailscale_operator_deploy_oauth_client_id: >-
+          {{ tailscale_oauth_client_id }}
+        tailscale_operator_deploy_oauth_client_secret: >-
+          {{ tailscale_oauth_client_secret }}
     - role: synology_csi_deploy
       vars:
-        k8s_validator_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
-        k8s_validator_context: "{{ kubeconfig_manager_artifacts.context_name }}"
+        k8s_validator_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        k8s_validator_context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
     - role: argocd_homepage_token
     - role: homepage_deploy
       vars:
-        argocd_homepage_token: "{{ argocd_homepage_token_artifacts.token | default('') }}"
+        argocd_homepage_token: >-
+          {{ argocd_homepage_token_artifacts.token | default('') }}
     # - role: argocd_api_auth
     #   vars:
     #     argocd_api_auth_username: "{{ argocd_admin_username }}"
     #     argocd_api_auth_password: "{{ argocd_admin_password }}"
     - role: crafty_controller_deploy
       vars:
+        crafty_controller_deploy_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
+        crafty_controller_deploy_context: "{{ kubeconfig_manager_artifacts.context_name }}"
+        crafty_controller_deploy_cluster_name: "{{ kubeconfig_manager_artifacts.cluster_name }}"
         crafty_controller_deploy_namespace: apps-crafty-controller
     - role: omada_deploy

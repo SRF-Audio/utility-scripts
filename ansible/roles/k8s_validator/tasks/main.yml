@@ -1,3 +1,4 @@
+---
 - name: Assert k3s_cluster_domain is defined
   ansible.builtin.assert:
     that:
@@ -51,22 +52,28 @@
         client_key: "{{ k8s_validator_client_key | default(omit, true) }}"
         context: "{{ k8s_validator_context | default(omit, true) }}"
         host: "{{ k8s_validator_host | default(omit, true) }}"
-        impersonate_groups: "{{ k8s_validator_impersonate_groups | default(omit, true) }}"
-        impersonate_user: "{{ k8s_validator_impersonate_user | default(omit, true) }}"
-        invalidate_cache: "{{ k8s_validator_invalidate_cache | default(omit, true) }}"
+        impersonate_groups: >-
+          {{ k8s_validator_impersonate_groups | default(omit, true) }}
+        impersonate_user: >-
+          {{ k8s_validator_impersonate_user | default(omit, true) }}
+        invalidate_cache: >-
+          {{ k8s_validator_invalidate_cache | default(omit, true) }}
         kubeconfig: "{{ k8s_validator_kubeconfig | default(omit, true) }}"
         no_proxy: "{{ k8s_validator_no_proxy | default(omit, true) }}"
         password: "{{ k8s_validator_password | default(omit, true) }}"
-        persist_config: "{{ k8s_validator_persist_config | default(omit, true) }}"
+        persist_config: >-
+          {{ k8s_validator_persist_config | default(omit, true) }}
         proxy: "{{ k8s_validator_proxy | default(omit, true) }}"
         proxy_headers: "{{ k8s_validator_proxy_headers | default(omit, true) }}"
         username: "{{ k8s_validator_username | default(omit, true) }}"
-        validate_certs: "{{ k8s_validator_validate_certs | default(omit, true) }}"
+        validate_certs: >-
+          {{ k8s_validator_validate_certs | default(omit, true) }}
       register: k8s_validator_cluster_info
 
     - name: Set Kubernetes API host fact
       ansible.builtin.set_fact:
-        k8s_validator_connection_host: "{{ k8s_validator_cluster_info.connection.host | default('') }}"
+        k8s_validator_connection_host: >-
+          {{ k8s_validator_cluster_info.connection.host | default('') }}
 
     - name: Assert Kubernetes API host matches expected k3s_cluster_domain
       ansible.builtin.assert:
@@ -91,6 +98,7 @@
         calling_role_artifacts_inputs:
           k3s_cluster_name: "{{ k3s_cluster_name }}"
           effective_context: "{{ k8s_validator_effective_context }}"
-          cluster_version: "{{ k8s_validator_cluster_info.version.kubernetes | default('', true) }}"
+          cluster_version: >-
+            {{ k8s_validator_cluster_info.version.kubernetes | default('', true) }}
           is_k3s_cluster_valid: "{{ is_k3s_cluster_valid }}"
           k8s_cluster_info: "{{ k8s_validator_cluster_info }}"

@@ -1,3 +1,4 @@
+---
 - name: Ensure unzip dependency is present
   become: true
   ansible.builtin.package:

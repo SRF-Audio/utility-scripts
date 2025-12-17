@@ -1,3 +1,4 @@
+---
 - name: Install management tools
   ansible.builtin.apt:
     name: "{{ proxmox_extra_packages }}"

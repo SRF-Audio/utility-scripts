@@ -1,3 +1,4 @@
+---
 argument_specs:
   main:
     options:
@@ -5,7 +6,8 @@ argument_specs:
         type: list
         elements: dict
         required: true
-        description: List of file copy operations to perform on the current host.
+        description: >-
+          List of file copy operations to perform on the current host.
         options:
           src:
             type: str

@@ -1,3 +1,4 @@
+---
 - name: Validate op_read item inputs
   ansible.builtin.assert:
     that:
@@ -24,23 +25,33 @@
             out_file_ssh_format: true
   loop: "{{ op_read_items }}"
   loop_control:
-    label: "{{ item.vault_name }}/{{ item.item_name }}/{{ item.field_name | default('') }}"
+    label: >-
+      {{ item.vault_name }}/{{ item.item_name }}/{{
+      item.field_name | default('') }}
 
 - name: Validate out_file_path when out_file is true
   ansible.builtin.assert:
     that:
-      - not (item.out_file | default(false)) or (item.out_file_path is defined and item.out_file_path | length > 0)
-    fail_msg: out_file_path must be provided when out_file is true for an op_read item.
+      - >-
+        not (item.out_file | default(false)) or
+        (item.out_file_path is defined and
+        item.out_file_path | length > 0)
+    fail_msg: >-
+      out_file_path must be provided when out_file is true
+      for an op_read item.
   loop: "{{ op_read_items }}"
   loop_control:
-    label: "{{ item.vault_name }}/{{ item.item_name }}/{{ item.field_name | default('') }}"
+    label: >-
+      {{ item.vault_name }}/{{ item.item_name }}/{{
+      item.field_name | default('') }}
 
 - name: Read items from 1Password using op CLI
   ansible.builtin.command:
     argv: >-
       {{
         ['op', 'read','-f']
-        + (['--out-file', item.out_file_path] if item.out_file | default(false) else [])
+        + (['--out-file', item.out_file_path]
+        if item.out_file | default(false) else [])
         + [
             'op://'
             ~ item.vault_name
@@ -48,7 +59,8 @@
             ~ item.item_name
             ~ '/'
             ~ item.field_name
-            ~ ('?ssh-format=openssh' if item.out_file_ssh_format | default(false) else '')
+            ~ ('?ssh-format=openssh'
+            if item.out_file_ssh_format | default(false) else '')
           ]
       }}
   environment:
@@ -57,7 +69,10 @@
   loop: "{{ op_read_items }}"
   loop_control:
     label: >-
-      op://{{ item.vault_name }}/{{ item.item_name }}/{{ item.field_name }}{{ '?ssh-format=openssh' if item.out_file_ssh_format | default(false) else '' }}
+      op://{{ item.vault_name }}/{{ item.item_name }}/{{
+      item.field_name }}{{
+      '?ssh-format=openssh'
+      if item.out_file_ssh_format | default(false) else '' }}
   changed_when: item.out_file | default(false)
 
 - name: Initialize op_read_result_items
@@ -72,15 +87,25 @@
                'vault_name': item.0.vault_name,
                'item_name': item.0.item_name,
                'field_name': item.0.field_name,
-               'reference': 'op://' ~ item.0.vault_name ~ '/' ~ item.0.item_name ~ '/' ~ item.0.field_name ~ ( '?ssh-format=openssh' if item.0.out_file_ssh_format | default(false) else '' ),
+               'reference': >-
+                 op://{{ item.0.vault_name }}/{{ item.0.item_name }}/{{
+                 item.0.field_name }}{{
+                 '?ssh-format=openssh'
+                 if item.0.out_file_ssh_format | default(false)
+                 else '' }},
                'out_file': item.0.out_file | default(false),
                'out_file_path': item.0.out_file_path | default(omit),
-               'out_file_ssh_format': item.0.out_file_ssh_format | default(false),
-               'value': (item.1.stdout if not (item.0.out_file | default(false)) else omit)
+               'out_file_ssh_format': >-
+                 {{ item.0.out_file_ssh_format | default(false) }},
+               'value': >-
+                 {{ item.1.stdout
+                 if not (item.0.out_file | default(false))
+                 else omit }}
              } ] }}
   loop: "{{ op_read_items | zip(op_read_command_results.results) | list }}"
   loop_control:
-    label: "{{ item.0.vault_name }}/{{ item.0.item_name }}/{{ item.0.field_name }}"
+    label: >-
+      {{ item.0.vault_name }}/{{ item.0.item_name }}/{{ item.0.field_name }}
 
 - name: Pass role artifacts
   ansible.builtin.include_role:

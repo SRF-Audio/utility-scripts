@@ -1,3 +1,4 @@
+---
 argument_specs:
   main:
     options:
@@ -24,7 +25,8 @@ argument_specs:
       template_renderer_force:
         type: bool
         required: false
-        description: Whether to replace the remote file when contents are different.
+        description: >-
+          Whether to replace the remote file when contents are different.
       template_renderer_vars:
         type: dict
         required: false

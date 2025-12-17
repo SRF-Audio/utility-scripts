@@ -6,7 +6,8 @@
       - velero_deploy_context is defined
       - velero_deploy_kubeconfig | string | length > 0
       - velero_deploy_context | length > 0
-    fail_msg: "velero_deploy_kubeconfig and velero_deploy_context must be defined for velero_deploy."
+    fail_msg: >-
+      velero_deploy_kubeconfig and velero_deploy_context must be defined for velero_deploy.
 
 - name: Ensure Velero tmp directory exists
   ansible.builtin.file:
@@ -43,7 +44,8 @@
     # noqa: var-naming
     calling_role_name: "velero_deploy"
     calling_role_artifacts_inputs:
-      k3s_cluster_name: "{{ velero_deploy_cluster_name | default(k3s_cluster_name | default('', true), true) }}"
+      k3s_cluster_name: >-
+        {{ velero_deploy_cluster_name | default(k3s_cluster_name | default('', true), true) }}
       application_name: "{{ velero_deploy_application_name }}"
       argocd_namespace: "{{ velero_deploy_argo_namespace }}"
       application_result: "{{ k8s_object_manager_result }}"

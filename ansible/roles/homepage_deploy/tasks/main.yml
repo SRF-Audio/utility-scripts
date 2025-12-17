@@ -1,12 +1,15 @@
+---
 - name: Ensure Homepage Argo CD Application is present
   kubernetes.core.k8s:
     state: present
-    definition: "{{ lookup('ansible.builtin.template', 'homepage-application.yml.j2') }}"
+    definition: >-
+      {{ lookup('ansible.builtin.template', 'homepage-application.yml.j2') }}
 
 - name: Apply Homepage Argo CD secret when token is available
   kubernetes.core.k8s:
     state: present
-    definition: "{{ lookup('ansible.builtin.template', 'homepage-argocd-secret.yml.j2') }}"
+    definition: >-
+      {{ lookup('ansible.builtin.template', 'homepage-argocd-secret.yml.j2') }}
   when:
     - argocd_homepage_token is defined
     - argocd_homepage_token | length > 0
@@ -34,7 +37,8 @@
     - homepage_deploy_ingress_templates is defined
     - homepage_deploy_ingress_templates.files | length > 0
 
-- name: Register homepage_deploy role artifacts when homepage_deploy_artifacts_path is defined
+- name: >-
+    Register homepage_deploy role artifacts when homepage_deploy_artifacts_path is defined
   ansible.builtin.import_role:
     name: role_artifacts
   vars:

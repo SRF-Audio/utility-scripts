@@ -1,3 +1,4 @@
+---
 argument_specs:
   main:
     options:
@@ -12,7 +13,8 @@ argument_specs:
       proxmox_kvm_manager_api_password:
         type: str
         required: false
-        description: Proxmox API password. Either this or token-based auth must be provided.
+        description: >-
+          Proxmox API password. Either this or token-based auth must be provided.
       proxmox_kvm_manager_api_token_id:
         type: str
         required: false
@@ -32,12 +34,15 @@ argument_specs:
       proxmox_kvm_manager_state:
         type: str
         required: false
-        description: Desired VM state such as present, started, stopped, or current.
+        description: >-
+          Desired VM state such as present, started, stopped, or current.
       proxmox_kvm_manager_validate_certs:
         type: bool
         required: false
-        description: Whether to validate TLS certificates when connecting to the Proxmox API.
+        description: >-
+          Whether to validate TLS certificates when connecting to the Proxmox API.
       proxmox_kvm_manager_module_params:
         type: dict
         required: false
-        description: Additional parameters to pass directly to community.proxmox.proxmox_kvm.
+        description: >-
+          Additional parameters to pass directly to community.proxmox.proxmox_kvm.

@@ -1,3 +1,4 @@
+---
 - name: Check if oh-my-zsh is installed
   ansible.builtin.stat:
     path: "{{ ansible_env.HOME }}/.oh-my-zsh"
@@ -107,4 +108,4 @@
     path: "{{ ansible_env.HOME }}/.zshrc"
     regexp: '^\[\[ ! -f ~/.p10k.zsh \]\] \|\| source ~/.p10k.zsh'
     line: "[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh"
-    insertafter: "^ZSH_THEME=" # or wherever you like
+    insertafter: "^ZSH_THEME="  # or wherever you like

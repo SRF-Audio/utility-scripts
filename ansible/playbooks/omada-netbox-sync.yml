@@ -1,16 +1,26 @@
+---
 - name: Sync Omada Devices to NetBox
   hosts: localhost
   gather_facts: false
   vars:
     omada_netbox_sync_omada_api_base_url: "https://192.168.226.6:8043"
     omada_netbox_sync_omada_api_username: >-
-      {{ lookup('community.general.onepassword', 'ss53lvwaeb3gwi5wfa77dbh22y', field='username', vault='HomeLab') }}
+      {{ lookup('community.general.onepassword',
+                'ss53lvwaeb3gwi5wfa77dbh22y',
+                field='username',
+                vault='HomeLab') }}
     omada_netbox_sync_omada_api_password: >-
-      {{ lookup('community.general.onepassword', 'ss53lvwaeb3gwi5wfa77dbh22y', field='password', vault='HomeLab') }}
+      {{ lookup('community.general.onepassword',
+                'ss53lvwaeb3gwi5wfa77dbh22y',
+                field='password',
+                vault='HomeLab') }}
     omada_netbox_sync_omada_site: "Default"
     omada_netbox_sync_netbox_url: "https://netbox.example.com"
     omada_netbox_sync_netbox_token: >-
-      {{ lookup('community.general.onepassword', 'netbox-api-token', field='token', vault='HomeLab') }}
+      {{ lookup('community.general.onepassword',
+                'netbox-api-token',
+                field='token',
+                vault='HomeLab') }}
     omada_netbox_sync_netbox_site: "home"
     omada_netbox_sync_default_device_role: "client"
     omada_netbox_sync_device_role_mappings:
@@ -28,8 +38,13 @@
       ansible.builtin.debug:
         msg: |
           Sync Results:
-            Total clients fetched: {{ omada_netbox_sync_artifacts.total_clients_fetched }}
-            Devices created: {{ omada_netbox_sync_artifacts.devices_created }}
-            Devices updated: {{ omada_netbox_sync_artifacts.devices_updated }}
-            Devices skipped: {{ omada_netbox_sync_artifacts.devices_skipped }}
-            Devices failed: {{ omada_netbox_sync_artifacts.devices_failed }}
+            Total clients fetched: {{
+            omada_netbox_sync_artifacts.total_clients_fetched }}
+            Devices created: {{
+            omada_netbox_sync_artifacts.devices_created }}
+            Devices updated: {{
+            omada_netbox_sync_artifacts.devices_updated }}
+            Devices skipped: {{
+            omada_netbox_sync_artifacts.devices_skipped }}
+            Devices failed: {{
+            omada_netbox_sync_artifacts.devices_failed }}

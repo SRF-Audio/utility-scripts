@@ -1,3 +1,4 @@
+---
 control_host_dependencies_python_executable: pip3
 control_host_dependencies_pip_packages:
   - proxmoxer
@@ -8,19 +9,22 @@ control_host_dependencies_system_packages:
   - xz
   - gzip
 
-coreos_image_fetch_manifest_url: "https://builds.coreos.fedoraproject.org/streams/stable.json"
+coreos_image_fetch_manifest_url: >-
+  https://builds.coreos.fedoraproject.org/streams/stable.json
 coreos_image_fetch_stream: "stable"
 coreos_image_fetch_arch: "x86_64"
 coreos_image_fetch_platform: "qemu"
 coreos_image_fetch_format: "qcow2.xz"
 coreos_image_fetch_dest_dir: "{{ playbook_dir }}/.artifacts/fcos"
 coreos_image_fetch_decompress: true
-coreos_image_fetch_artifact_path: "{{ playbook_dir }}/.artifacts/coreos_image_fetch_artifacts.json"
+coreos_image_fetch_artifact_path: >-
+  {{ playbook_dir }}/.artifacts/coreos_image_fetch_artifacts.json
 ignition_renderer_output_dir: "{{ artifacts_path }}/ignitions"
 
 file_publish_default_mode: "0644"
 file_publish_destination: "{{ proxmox_cluster_storage_mount }}"
-file_publish_items: [] # Only set if you want to override the dynamic values in playbooks/k3s-cluster-setup.yml
+file_publish_items: []  # Only set if you want to override the dynamic values in
+# playbooks/k3s-cluster-setup.yml
 # Example usage:
 # file_publish_items:
 #   - src: "{{ playbook_dir }}/.artifacts/fcos/my-fcos-image.qcow2"
@@ -34,7 +38,8 @@ file_publish_targets:
   - coachlight-homelab-1
   - coachlight-homelab-2
   - coachlight-homelab-3
-file_publish_artifact_path: "{{ playbook_dir }}/.artifacts/file_publish_artifacts.json"
+file_publish_artifact_path: >-
+  {{ playbook_dir }}/.artifacts/file_publish_artifacts.json
 
 k3s_kubeconfig_path: "{{ lookup('env', 'HOME') ~ '/.kube/config' }}"
 k3s_cluster_name: coachlight-k3s-cluster

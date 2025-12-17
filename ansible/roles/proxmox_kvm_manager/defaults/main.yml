@@ -1,3 +1,4 @@
+---
 proxmox_kvm_manager_state: present
 proxmox_kvm_manager_validate_certs: false
 proxmox_kvm_manager_module_params: {}

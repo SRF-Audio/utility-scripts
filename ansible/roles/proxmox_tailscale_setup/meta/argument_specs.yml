@@ -1,14 +1,17 @@
+---
 argument_specs:
   main:
     options:
       proxmox_tailscale_setup_auth_key:
         type: str
         required: true
-        description: Tailscale auth key to bring node online. Must be no_log in tasks.
+        description: >-
+          Tailscale auth key to bring node online. Must be no_log in tasks.
       proxmox_tailscale_setup_hostname_suffix:
         type: str
         required: false
-        description: Suffix appended to inventory_hostname when calling tailscale up.
+        description: >-
+          Suffix appended to inventory_hostname when calling tailscale up.
       proxmox_tailscale_setup_advertise_tags:
         type: list
         elements: str

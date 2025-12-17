@@ -1,8 +1,9 @@
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: crafty-controller-logs
-  namespace: {{ crafty_controller_deploy_namespace }}
+  name: crafty-controller-backups
+  namespace: apps-crafty-controller
   labels:
     app: crafty-controller
 spec:
@@ -11,4 +12,4 @@ spec:
   storageClassName: synology-csi-nfs-delete
   resources:
     requests:
-      storage: 10Gi
+      storage: 20Gi

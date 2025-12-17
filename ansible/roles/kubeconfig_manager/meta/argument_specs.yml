@@ -1,19 +1,26 @@
+---
 argument_specs:
   main:
     description: |
       Idempotent Ansible role that manages kubeconfig files.
-      Takes a source kubeconfig (file path or content), sets/overrides cluster, context, and user entries,
+      Takes a source kubeconfig (file path or content), sets/overrides
+      cluster, context, and user entries,
       and writes/merges into the target kubeconfig file.
-      Supports cleanup of stale entries and integrates with role_artifacts.
+      Supports cleanup of stale entries and integrates with
+      role_artifacts.
     options:
       kubeconfig_manager_source_kubeconfig_path:
         type: str
         required: false
-        description: Path to an existing kubeconfig to use as the base. Mutually exclusive with source_kubeconfig_content.
+        description: >-
+          Path to an existing kubeconfig to use as the base. Mutually
+          exclusive with source_kubeconfig_content.
       kubeconfig_manager_source_kubeconfig_content:
         type: str
         required: false
-        description: Raw kubeconfig YAML string. Mutually exclusive with source_kubeconfig_path.
+        description: >-
+          Raw kubeconfig YAML string. Mutually exclusive with
+          source_kubeconfig_path.
       kubeconfig_manager_target_kubeconfig_path:
         type: str
         required: false
@@ -33,7 +40,9 @@ argument_specs:
       kubeconfig_manager_context_cluster:
         type: str
         required: false
-        description: Cluster reference for the context. Defaults to kubeconfig_manager_cluster_name.
+        description: >-
+          Cluster reference for the context. Defaults to
+          kubeconfig_manager_cluster_name.
       kubeconfig_manager_context_user:
         type: str
         required: true
@@ -41,20 +50,28 @@ argument_specs:
       kubeconfig_manager_user_name:
         type: str
         required: false
-        description: Name for the user entry. Defaults to kubeconfig_manager_context_user.
+        description: >-
+          Name for the user entry. Defaults to
+          kubeconfig_manager_context_user.
       kubeconfig_manager_set_current_context:
         type: bool
         required: false
-        description: Whether to set current-context to the new context name.
+        description: >-
+          Whether to set current-context to the new context name.
       kubeconfig_manager_remove_stale_entries:
         type: bool
         required: false
-        description: Whether to remove old entries with the same cluster_name, context_name, or user_name.
+        description: >-
+          Whether to remove old entries with the same cluster_name,
+          context_name, or user_name.
       kubeconfig_manager_backup_existing:
         type: bool
         required: false
-        description: Whether to backup the existing kubeconfig file before overwriting.
+        description: >-
+          Whether to backup the existing kubeconfig file before
+          overwriting.
       kubeconfig_manager_artifacts_path:
         type: str
         required: false
-        description: Base path for artifacts output, not including the role name.
+        description: >-
+          Base path for artifacts output, not including the role name.

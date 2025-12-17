@@ -1,6 +1,10 @@
+---
 - name: Set facts for NFS storage
   ansible.builtin.set_fact:
-    synology_ip: "{{ lookup('community.general.onepassword', 'oattlsmrtkwf6ppnvvo24shk24', field='ip address', vault='HomeLab') }}"
+    synology_ip: >-
+      {{ lookup('community.general.onepassword',
+      'oattlsmrtkwf6ppnvvo24shk24', field='ip address',
+      vault='HomeLab') }}
 
 - name: Check if storage exists
   ansible.builtin.command: pvesm status --storage {{ nfs.id }}
@@ -48,5 +52,7 @@
   when: inventory_hostname in groups['proxmox_primary']
   run_once: true
   register: proxmox_fcos_storage_path_add
-  failed_when: "'already defined' not in proxmox_fcos_storage_path_add.stderr and proxmox_fcos_storage_path_add.rc != 0"
+  failed_when:
+    - "'already defined' not in proxmox_fcos_storage_path_add.stderr"
+    - proxmox_fcos_storage_path_add.rc != 0
   changed_when: proxmox_fcos_storage_path_add.rc == 0

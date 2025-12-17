@@ -1,3 +1,4 @@
+---
 k8s_validator_invalidate_cache: true
 k8s_validator_persist_config: false
 k8s_validator_validate_certs: true

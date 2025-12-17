@@ -1,3 +1,4 @@
+---
 butane_install_cli_name: "butane"
 butane_install_package_name: "butane"
 butane_install_artifacts_path: "{{ artifacts_path }}"

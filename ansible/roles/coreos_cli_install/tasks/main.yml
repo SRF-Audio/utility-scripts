@@ -1,3 +1,4 @@
+---
 - name: Check for coreos-installer via cli_tester on {{ inventory_hostname }}
   ansible.builtin.include_role:
     name: cli_tester
@@ -27,10 +28,14 @@
       become: true
       when: ansible_facts['os_family'] == 'Debian'
 
-    - name: Attempt to install coreos-installer on unsupported OS family {{ ansible_facts['os_family'] }}
+    - name: >-
+        Attempt to install coreos-installer on unsupported OS family
+        {{ ansible_facts['os_family'] }}
       when: ansible_facts['os_family'] not in ['RedHat', 'Debian']
       block:
-        - name: Try installing coreos-installer via package manager on {{ inventory_hostname }}
+        - name: >-
+            Try installing coreos-installer via package manager
+            on {{ inventory_hostname }}
           ansible.builtin.package:
             name: coreos-installer
             state: present
@@ -38,12 +43,18 @@
           failed_when: false
           register: coreos_cli_install_package_attempt
 
-        - name: Fail when coreos-installer installation attempt failed on {{ inventory_hostname }}
+        - name: >-
+            Fail when coreos-installer installation attempt failed
+            on {{ inventory_hostname }}
           ansible.builtin.fail:
-            msg: "Failed to install coreos-installer via package manager on unsupported OS family {{ ansible_facts['os_family'] }}."
+            msg: >-
+              Failed to install coreos-installer via package manager
+              on unsupported OS family {{ ansible_facts['os_family'] }}.
           when: coreos_cli_install_package_attempt.rc != 0
 
-- name: Record coreos_cli_install role artifacts for {{ ansible_facts['os_family'] }}
+- name: >-
+    Record coreos_cli_install role artifacts
+    for {{ ansible_facts['os_family'] }}
   ansible.builtin.include_role:
     name: role_artifacts
   vars:

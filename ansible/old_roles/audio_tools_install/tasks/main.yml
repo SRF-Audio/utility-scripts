@@ -1,3 +1,4 @@
+---
 - name: Install core audio stack for Fedora (PipeWire + WirePlumber)
   ansible.builtin.dnf:
     name:

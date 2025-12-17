@@ -1,3 +1,4 @@
+---
 argument_specs:
   main:
     short_description: Sync Omada SDN Controller device inventory to NetBox
@@ -50,7 +51,8 @@ argument_specs:
         type: str
         required: false
         default: "unknown"
-        description: Default device role slug for devices without explicit mapping.
+        description: >-
+          Default device role slug for devices without explicit mapping.
       omada_netbox_sync_device_role_mappings:
         type: dict
         required: false
@@ -77,7 +79,8 @@ argument_specs:
         type: bool
         required: false
         default: false
-        description: When true, does not push changes to NetBox, only outputs what would be synced.
+        description: >-
+          When true, does not push changes to NetBox, only outputs what would be synced.
       omada_netbox_sync_page_size:
         type: int
         required: false

@@ -1,3 +1,4 @@
+---
 # roles/op_install/tasks/alpine_install.yml
 - name: Ensure 1Password Alpine repository is configured
   become: true

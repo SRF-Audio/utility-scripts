@@ -1,6 +1,9 @@
+---
 - name: Extract ID from /etc/os-release
   set_fact:
-    os_id: "{{ lookup('file', '/etc/os-release') | regex_search('^ID=([^\\n]+)', '\\1', multiline=True) }}"
+    os_id: >-
+      {{ lookup('file', '/etc/os-release') |
+      regex_search('^ID=([^\\n]+)', '\\1', multiline=True) }}
   when: ansible_facts['os_family'] == 'RedHat'
 
 - name: Set whether the Fedora distro is immutable

@@ -1,6 +1,8 @@
+---
 - name: Create list of additional control plane indices
   ansible.builtin.set_fact:
-    proxmox_additional_cp_indices: "{{ range(2, proxmox_k3s_control_plane_count | int + 1) | list }}"
+    proxmox_additional_cp_indices: >-
+      {{ range(2, proxmox_k3s_control_plane_count | int + 1) | list }}
   run_once: true
   delegate_to: localhost
 
@@ -12,7 +14,9 @@
   loop: "{{ proxmox_additional_cp_indices }}"
   vars:
     proxmox_vm_hostname: "k3s-cp-{{ item }}"
-    vm_ip: "{{ (proxmox_k3s_control_plane_start_ip | ipaddr('add', item - 1)) }}"
+    vm_ip: >-
+      {{ (proxmox_k3s_control_plane_start_ip |
+      ipaddr('add', item - 1)) }}
     vm_mac: "{{ '%s%02x' | format(proxmox_k3s_mac_prefix, item) }}"
   delegate_to: localhost
   run_once: true
@@ -49,7 +53,9 @@
     cores: "{{ proxmox_k3s_control_plane_cpu }}"
     agent: "enabled=1,fstrim_cloned_disks=1"
     net:
-      net0: "virtio,bridge={{ proxmox_bridge }},macaddr={{ '%s%02x' | format(proxmox_k3s_mac_prefix, item) }}"
+      net0: >-
+        virtio,bridge={{ proxmox_bridge }},
+        macaddr={{ '%s%02x' | format(proxmox_k3s_mac_prefix, item) }}
     ide:
       ide2: "{{ proxmox_storage }}:cloudinit"
     cicustom: "vendor=coreos:snippets/k3s-cp-{{ item }}.ign"
@@ -67,7 +73,9 @@
     vmid: "{{ proxmox_k3s_cp1_vmid | int + item - 1 }}"
     disk: scsi0
     storage: "{{ proxmox_storage }}"
-    import_from: "{{ proxmox_fcos_storage_path }}/images/{{ proxmox_fcos_path | basename }}"
+    import_from: >-
+      {{ proxmox_fcos_storage_path }}/images/{{
+      proxmox_fcos_path | basename }}
     state: present
     validate_certs: false
   loop: "{{ proxmox_additional_cp_indices }}"

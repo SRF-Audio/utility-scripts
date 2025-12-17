@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ crafty_controller_deploy_app_name }}
+  namespace: {{ crafty_controller_deploy_argocd_namespace }}
+spec:
+  project: {{ crafty_controller_deploy_project }}
+  source:
+    repoURL: {{ crafty_controller_deploy_repo_url }}
+    targetRevision: {{ crafty_controller_deploy_target_revision }}
+    path: {{ crafty_controller_deploy_path }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ crafty_controller_deploy_namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

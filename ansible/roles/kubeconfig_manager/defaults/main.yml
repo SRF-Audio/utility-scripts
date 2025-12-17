@@ -1,3 +1,4 @@
+---
 kubeconfig_manager_target_kubeconfig_path: "{{ lookup('env', 'HOME') + '/.kube/config' }}"
 kubeconfig_manager_context_cluster: "{{ kubeconfig_manager_cluster_name }}"
 kubeconfig_manager_user_name: "{{ kubeconfig_manager_context_user }}"

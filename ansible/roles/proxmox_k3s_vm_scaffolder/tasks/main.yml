@@ -1,6 +1,8 @@
+---
 - name: Build combined VM list for k3s cluster
   ansible.builtin.set_fact:
-    proxmox_k3s_vm_scaffolder_all_vms: "{{ proxmox_cluster_layout.control_planes + proxmox_cluster_layout.workers }}"
+    proxmox_k3s_vm_scaffolder_all_vms: >-
+      {{ proxmox_cluster_layout.control_planes + proxmox_cluster_layout.workers }}
 
 - name: Create k3s VM with FCOS disk attached as scsi0
   ansible.builtin.include_role:
@@ -8,9 +10,12 @@
   vars:
     proxmox_kvm_manager_api_host: "{{ proxmox_api_host }}"
     proxmox_kvm_manager_api_user: "{{ proxmox_api_user }}"
-    proxmox_kvm_manager_api_password: "{{ proxmox_api_password | default(omit) }}"
-    proxmox_kvm_manager_api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
-    proxmox_kvm_manager_api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+    proxmox_kvm_manager_api_password: >-
+      {{ proxmox_api_password | default(omit) }}
+    proxmox_kvm_manager_api_token_id: >-
+      {{ proxmox_api_token_id | default(omit) }}
+    proxmox_kvm_manager_api_token_secret: >-
+      {{ proxmox_api_token_secret | default(omit) }}
     proxmox_kvm_manager_node: "{{ item.proxmox_node }}"
     proxmox_kvm_manager_vmid: "{{ item.vmid }}"
     proxmox_kvm_manager_state: present
@@ -30,7 +35,8 @@
       ostype: l26
       boot: "order=scsi0"
       onboot: true
-      args: "-fw_cfg name=opt/com.coreos/config,file={{ proxmox_cluster_storage_snippets_dir }}/{{ item.name }}.ign"
+      args: >-
+        -fw_cfg name=opt/com.coreos/config,file={{ proxmox_cluster_storage_snippets_dir }}/{{ item.name }}.ign
       pool: kubernetes
       tags:
         - coachlight-homelab
@@ -46,9 +52,12 @@
   vars:
     proxmox_vm_disk_manager_api_host: "{{ proxmox_api_host }}"
     proxmox_vm_disk_manager_api_user: "{{ proxmox_api_user }}"
-    proxmox_vm_disk_manager_api_password: "{{ proxmox_api_password | default(omit) }}"
-    proxmox_vm_disk_manager_api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
-    proxmox_vm_disk_manager_api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+    proxmox_vm_disk_manager_api_password: >-
+      {{ proxmox_api_password | default(omit) }}
+    proxmox_vm_disk_manager_api_token_id: >-
+      {{ proxmox_api_token_id | default(omit) }}
+    proxmox_vm_disk_manager_api_token_secret: >-
+      {{ proxmox_api_token_secret | default(omit) }}
     proxmox_vm_disk_manager_vmid: "{{ item.vmid }}"
     proxmox_vm_disk_manager_disk: scsi0
     proxmox_vm_disk_manager_state: resized
@@ -65,9 +74,12 @@
   vars:
     proxmox_kvm_manager_api_host: "{{ proxmox_api_host }}"
     proxmox_kvm_manager_api_user: "{{ proxmox_api_user }}"
-    proxmox_kvm_manager_api_password: "{{ proxmox_api_password | default(omit) }}"
-    proxmox_kvm_manager_api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
-    proxmox_kvm_manager_api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+    proxmox_kvm_manager_api_password: >-
+      {{ proxmox_api_password | default(omit) }}
+    proxmox_kvm_manager_api_token_id: >-
+      {{ proxmox_api_token_id | default(omit) }}
+    proxmox_kvm_manager_api_token_secret: >-
+      {{ proxmox_api_token_secret | default(omit) }}
     proxmox_kvm_manager_node: "{{ item.proxmox_node }}"
     proxmox_kvm_manager_vmid: "{{ item.vmid }}"
     proxmox_kvm_manager_state: started

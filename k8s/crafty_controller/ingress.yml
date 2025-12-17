@@ -1,8 +1,9 @@
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: crafty-controller-homepage
-  namespace: {{ crafty_controller_deploy_namespace }}
+  namespace: apps-crafty-controller
   annotations:
     gethomepage.dev/enabled: "true"
     gethomepage.dev/name: "Crafty Controller"
@@ -11,7 +12,7 @@ metadata:
     gethomepage.dev/icon: "crafty"
 spec:
   rules:
-    - host: {{ crafty_controller_deploy_ingress_host }}
+    - host: crafty-controller.rohu-shark.ts.net
       http:
         paths:
           - path: /

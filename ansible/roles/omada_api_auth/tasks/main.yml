@@ -1,3 +1,4 @@
+---
 # roles/omada_api_auth/tasks/main.yml
 - name: Assert required Omada API auth inputs are defined
   ansible.builtin.assert:
@@ -8,7 +9,8 @@
       - omada_api_base_url | length > 0
       - omada_api_username | length > 0
       - omada_api_password | length > 0
-    fail_msg: "omada_api_base_url, omada_api_username, and omada_api_password must be defined for omada_api_auth."
+    fail_msg: >-
+      omada_api_base_url, omada_api_username, and omada_api_password must be defined for omada_api_auth.
 
 - name: Get Omada controller info
   ansible.builtin.uri:
@@ -41,7 +43,8 @@
     that:
       - omada_auth_result.json.errorCode is defined
       - omada_auth_result.json.errorCode == 0
-    fail_msg: "Omada API login failed. Check credentials and controller status."
+    fail_msg: >-
+      Omada API login failed. Check credentials and controller status.
 
 - name: Set Omada API token, cookies, and base path
   ansible.builtin.set_fact:

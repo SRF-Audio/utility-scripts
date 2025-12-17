@@ -1,3 +1,4 @@
+---
 - name: Install Visual Studio Code on Fedora/RHEL
   become: true
   when: ansible_facts['os_family'] == 'RedHat'
@@ -12,9 +13,9 @@
         name: vscode
         description: Visual Studio Code
         baseurl: https://packages.microsoft.com/yumrepos/vscode
-        enabled: yes
-        gpgcheck: yes
-        repo_gpgcheck: yes
+        enabled: true
+        gpgcheck: true
+        repo_gpgcheck: true
         gpgkey: https://packages.microsoft.com/keys/microsoft.asc
         state: present
 
@@ -22,7 +23,7 @@
       ansible.builtin.dnf:
         name: code
         state: present
-        update_cache: yes
+        update_cache: true
 
 - name: Install Visual Studio Code on Debian/Ubuntu
   become: true
@@ -35,7 +36,7 @@
           - gnupg
           - apt-transport-https
         state: present
-        update_cache: yes
+        update_cache: true
 
     - name: Add Microsoft APT signing key
       ansible.builtin.apt_key:
@@ -61,5 +62,5 @@
       ansible.builtin.apt:
         name: code
         state: present
-        update_cache: yes
+        update_cache: true
         cache_valid_time: 3600

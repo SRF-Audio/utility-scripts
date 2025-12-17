@@ -1,0 +1,56 @@
+- name: Determine k9s OS identifier for macOS
+  ansible.builtin.set_fact:
+    k9s_install_os_id: Darwin
+
+- name: Determine k9s architecture identifier for macOS
+  ansible.builtin.set_fact:
+    k9s_install_arch_id: >-
+      {% if ansible_architecture in ['x86_64', 'amd64'] %}
+      amd64
+      {% elif ansible_architecture in ['arm64', 'aarch64'] %}
+      arm64
+      {% else %}
+      unsupported
+      {% endif %}
+
+- name: Fail if k9s architecture is unsupported on macOS
+  ansible.builtin.fail:
+    msg: "Unsupported macOS architecture for k9s: {{ ansible_architecture }}"
+  when: k9s_install_arch_id == "unsupported"
+
+- name: Create temporary directory for k9s macOS archive
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: k9s_install
+  register: k9s_install_tempdir
+
+- name: Download k9s macOS tarball from GitHub
+  ansible.builtin.get_url:
+    url: "https://github.com/derailed/k9s/releases/download/{{ k9s_install_version }}/k9s_{{ k9s_install_os_id }}_{{ k9s_install_arch_id }}.tar.gz"
+    dest: "{{ k9s_install_tempdir.path }}/k9s_Darwin_{{ k9s_install_arch_id }}.tar.gz"
+    mode: "0644"
+  register: k9s_install_download
+  become: true
+
+- name: Extract k9s macOS archive
+  ansible.builtin.unarchive:
+    src: "{{ k9s_install_tempdir.path }}/k9s_Darwin_{{ k9s_install_arch_id }}.tar.gz"
+    dest: "{{ k9s_install_tempdir.path }}"
+    remote_src: true
+  become: true
+
+- name: Install k9s binary to /usr/local/bin on macOS
+  ansible.builtin.copy:
+    src: "{{ k9s_install_tempdir.path }}/k9s"
+    dest: /usr/local/bin/k9s
+    mode: "0755"
+    owner: root
+    group: wheel
+    remote_src: true
+  become: true
+
+- name: Remove temporary k9s macOS directory
+  ansible.builtin.file:
+    path: "{{ k9s_install_tempdir.path }}"
+    state: absent
+  become: true

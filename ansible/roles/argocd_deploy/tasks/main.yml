@@ -6,7 +6,8 @@
       - argocd_deploy_context is defined
       - argocd_deploy_kubeconfig | string | length > 0
       - argocd_deploy_context | length > 0
-    fail_msg: "argocd_deploy_kubeconfig and argocd_deploy_context must be defined for argocd_deploy."
+    fail_msg: >-
+      argocd_deploy_kubeconfig and argocd_deploy_context must be defined for argocd_deploy.
 
 - name: Create Argo CD namespace {{ argocd_deploy_namespace }}
   ansible.builtin.include_role:
@@ -25,7 +26,8 @@
     argocd_deploy_namespace_result: "{{ k8s_object_manager_result }}"
   when: argocd_deploy_namespace_include is succeeded
 
-- name: Apply Argo CD install manifest to namespace {{ argocd_deploy_namespace }}
+- name: >-
+    Apply Argo CD install manifest to namespace {{ argocd_deploy_namespace }}
   ansible.builtin.include_role:
     name: k8s_object_manager
   vars:
@@ -93,9 +95,12 @@
     # noqa: var-naming
     calling_role_name: "argocd_deploy"
     calling_role_artifacts_inputs:
-      k3s_cluster_name: "{{ argocd_deploy_cluster_name | default(k3s_cluster_name | default('', true), true) }}"
+      k3s_cluster_name: >-
+        {{ argocd_deploy_cluster_name | default(k3s_cluster_name | default('', true), true) }}
       namespace: "{{ argocd_deploy_namespace }}"
       manifest_src: "{{ argocd_deploy_manifest_src }}"
-      namespace_result: "{{ argocd_deploy_namespace_result | default({}, true) }}"
+      namespace_result: >-
+        {{ argocd_deploy_namespace_result | default({}, true) }}
       manifest_result: "{{ argocd_deploy_manifest_result | default({}, true) }}"
-      additional_manifests: "{{ argocd_deploy_additional_manifests | default([], true) }}"
+      additional_manifests: >-
+        {{ argocd_deploy_additional_manifests | default([], true) }}
