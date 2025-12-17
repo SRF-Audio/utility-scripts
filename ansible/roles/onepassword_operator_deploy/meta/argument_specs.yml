@@ -63,7 +63,7 @@ argument_specs:
       onepassword_operator_deploy_connect_credentials:
         type: str
         required: true
-        description: Path to the 1password-credentials.json file for Connect.
+        description: JSON contents of the 1password-credentials.json file for Connect.
       onepassword_operator_deploy_operator_token:
         type: str
         required: true

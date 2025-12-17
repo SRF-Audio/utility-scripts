@@ -13,7 +13,7 @@ spec:
       valuesObject:
         connect:
           create: true
-          credentials: "{{ onepassword_operator_deploy_connect_credentials }}"
+          credentials_base64: "{{ onepassword_operator_deploy_connect_credentials_normalized | to_nice_json | b64encode }}"
           serviceType: ClusterIP
           serviceAnnotations:
             tailscale.com/expose: "true"
@@ -30,8 +30,7 @@ spec:
             hosts:
               - host: "{{ onepassword_operator_deploy_tailscale_hostname }}.{{ onepassword_operator_deploy_tailnet_domain }}"
                 paths:
-                  - path: /
-                    pathType: Prefix
+                  - "/"
         operator:
           create: true
           token:
