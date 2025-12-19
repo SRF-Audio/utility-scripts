@@ -1,6 +1,8 @@
+---
 - name: Set facts for API vars
   set_fact:
-    proxmox_api_host_ip: "{{ hostvars[groups['proxmox_primary'][0]].proxmox_ip }}"
+    proxmox_api_host_ip: >-
+      {{ hostvars[groups['proxmox_primary'][0]].proxmox_ip }}
     proxmox_api_host: "{{ groups['proxmox_primary'][0] }}"
     proxmox_api_user: "{{ pve_admin_user }}"
     proxmox_api_password: "{{ pve_admin_password }}"
@@ -76,7 +78,9 @@
         cores: "{{ proxmox_k3s_control_plane_cpu }}"
         agent: "enabled=1,fstrim_cloned_disks=1"
         net:
-          net0: "virtio,bridge={{ proxmox_bridge }},macaddr={{ proxmox_k3s_mac_prefix }}01"
+          net0: >-
+            virtio,bridge={{ proxmox_bridge }},
+            macaddr={{ proxmox_k3s_mac_prefix }}01
         ide:
           ide2: "{{ proxmox_storage }}:cloudinit"
         cicustom: "vendor=coreos:snippets/k3s-cp-1.ign"
@@ -93,10 +97,9 @@
         storage: "{{ proxmox_storage }}"
         import_from: >-
           {{ proxmox_fcos_storage_path }}/images/{{
-            (proxmox_fcos_path
-            | default((hostvars['localhost']['proxmox_fcos_find'].files | default([]) | map(attribute='path') | first)))
-            | basename
-          }}
+          (proxmox_fcos_path | default((hostvars['localhost'][
+          'proxmox_fcos_find'].files | default([]) |
+          map(attribute='path') | first))) | basename }}
         state: present
         validate_certs: false
 

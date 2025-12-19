@@ -1,8 +1,9 @@
+---
 - name: Install flatpak
   ansible.builtin.dnf:
     name: flatpak
     state: present
-  become: yes
+  become: true
 
 - name: Add Fedora Flatpak remote
   community.general.flatpak_remote:
@@ -28,6 +29,3 @@
       - com.bitwig.BitwigStudio
       - com.jgraph.drawio.desktop
       - org.blender.Blender
-
-
-

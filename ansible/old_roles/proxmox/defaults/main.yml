@@ -1,3 +1,4 @@
+---
 # Fedora CoreOS (FCOS) VM variables for Proxmox
 proxmox_fcos_stream: stable
 proxmox_fcos_download_dir: ~/Downloads/fcos
@@ -45,7 +46,8 @@ proxmox_k3s_worker_config:
     memory: 8192
     disk: 240
 
-# MAC address prefix for static addressing (will be suffixed with sequential numbers)
+# MAC address prefix for static addressing
+# (will be suffixed with sequential numbers)
 proxmox_k3s_mac_prefix: "52:54:00:12:34:"
 
 # Storage and data configuration
@@ -61,8 +63,12 @@ proxmox_storage_type: scsi
 proxmox_bridge: vmbr0
 
 # K3s cluster token (should be stored in 1Password)
-proxmox_k3s_cluster_token: "{{ lookup('community.general.onepassword', 'Coachlight k3s Cluster', field='cluster token', vault='HomeLab') }}"
+proxmox_k3s_cluster_token: >-
+  {{ lookup('community.general.onepassword',
+  'Coachlight k3s Cluster', field='cluster token', vault='HomeLab') }}
 
 # Legacy variables for backward compatibility
-proxmox_k3s_worker_count: "{{ (proxmox_k3s_worker_config.worker.count + proxmox_k3s_worker_config.media_worker.count) | int }}"
+proxmox_k3s_worker_count: >-
+  {{ (proxmox_k3s_worker_config.worker.count +
+  proxmox_k3s_worker_config.media_worker.count) | int }}
 proxmox_k3s_control_plane_ip: "{{ proxmox_k3s_control_plane_start_ip }}"

@@ -22,11 +22,43 @@
 
       ...must be defined for onepassword_operator_deploy.
 
+- name: Parse onepassword_operator_deploy_connect_credentials JSON contents
+  ansible.builtin.set_fact:
+    onepassword_operator_deploy_connect_credentials_normalized: >-
+      {{ onepassword_operator_deploy_connect_credentials
+         if onepassword_operator_deploy_connect_credentials is mapping
+         else onepassword_operator_deploy_connect_credentials | from_json }}
+  no_log: true
+
+- name: Debug onepassword_operator_deploy_connect_credentials_normalized
+  ansible.builtin.debug:
+    var: onepassword_operator_deploy_connect_credentials_normalized
+  # no_log: true
+
+- name: Validate JSON structure for onepassword_operator_deploy_connect_credentials
+  ansible.builtin.assert:
+    that:
+      - onepassword_operator_deploy_connect_credentials_normalized is mapping
+    fail_msg: onepassword_operator_deploy_connect_credentials must contain valid JSON object contents.
+  # no_log: true
+
+- name: Create secure tempfile for onepassword_operator_deploy manifest
+  ansible.builtin.tempfile:
+    state: file
+    suffix: -onepassword-operator-application.yml
+  register: onepassword_operator_deploy_manifest_tempfile
+
+- name: Set permissions on onepassword_operator_deploy manifest tempfile
+  ansible.builtin.file:
+    path: "{{ onepassword_operator_deploy_manifest_tempfile.path }}"
+    mode: "0600"
+
 - name: Render onepassword_operator_deploy ArgoCD Application manifest
   ansible.builtin.template:
-    src: "{{ role_path }}/templates/application.yml.j2"
-    dest: "{{ role_path }}/templates/application.yml"
-    mode: "0644"
+    src: application.yml.j2
+    dest: "{{ onepassword_operator_deploy_manifest_tempfile.path }}"
+    mode: "0600"
+  no_log: true
 
 - name: Set static path to pass to k8s_object_manager role
   ansible.builtin.set_fact:
@@ -43,6 +75,7 @@
     k8s_object_manager_state: present
     k8s_object_manager_src: "{{ onepassword_operator_deploy_manifest }}"
   when: onepassword_operator_deploy_apply_objects | bool
+  no_log: true
 
 - name: Capture k8s_object_manager result if k8s objects were applied
   ansible.builtin.set_fact:
@@ -62,7 +95,7 @@
     kind: Application
     namespace: "{{ onepassword_operator_deploy_argocd_namespace }}"
     name: "{{ onepassword_operator_deploy_app_name }}"
-  register: onepassword_operator_app_status
+  register: onepassword_operator_deploy_app_status
   until:
     - onepassword_operator_app_status.resources is defined
     - onepassword_operator_app_status.resources | length > 0

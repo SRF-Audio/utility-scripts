@@ -1,3 +1,4 @@
+---
 # TODO: Add updating this as part of playbook
 # kubectl apply -f k3s/coredns-config.yaml
 apiVersion: v1

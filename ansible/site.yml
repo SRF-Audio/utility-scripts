@@ -98,10 +98,9 @@
                     field='credential',
                     vault='HomeLab') }}
         onepassword_connect_credentials: >-
-          {{ lookup('community.general.onepassword',
+          {{ lookup('community.general.onepassword_doc',
                     'Coachlight HomeLab Credentials File',
-                    field='1password-credentials.json',
-                    vault='HomeLab') }}
+                    vault='HomeLab')}}
         onepassword_operator_token: >-
           {{ lookup('community.general.onepassword',
                     'd3dschiayvvfyy2lgcksk6koyy',
