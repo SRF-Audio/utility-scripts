@@ -2,16 +2,5 @@
 paperless_ngx_deploy_kubeconfig: "{{ k3s_kubeconfig_path | default('', true) }}"
 paperless_ngx_deploy_context: "{{ k3s_context_name | default('', true) }}"
 paperless_ngx_deploy_cluster_name: "{{ k3s_cluster_name | default('', true) }}"
-
-paperless_ngx_deploy_app_name: paperless-ngx
-paperless_ngx_deploy_secrets_app_name: paperless-ngx-secrets
-paperless_ngx_deploy_namespace: paperless-ngx
-paperless_ngx_deploy_argocd_namespace: argocd
-paperless_ngx_deploy_project: coachlight-k3s-apps
-
-paperless_ngx_deploy_repo_url: https://github.com/SRF-Audio/utility-scripts
-paperless_ngx_deploy_target_revision: main
-paperless_ngx_deploy_path: k8s/paperless_ngx
-paperless_ngx_deploy_secrets_path: k8s/paperless_ngx_secrets
-
 paperless_ngx_deploy_apply_objects: true
+paperless_ngx_deploy_manifest_src: argocd/paperless_ngx/paperless_ngx.yml

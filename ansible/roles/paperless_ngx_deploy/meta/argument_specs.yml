@@ -2,10 +2,8 @@
 argument_specs:
   main:
     description: |
-      Deploy Paperless-NGX to a Kubernetes cluster via two ArgoCD
-      Applications: one for secrets (wave 0) and one for workloads (wave 1).
-      Points to raw manifests in k8s/paperless_ngx/ and
-      k8s/paperless_ngx_secrets/.
+      Apply ArgoCD Application manifest for Paperless-NGX from
+      argocd/paperless_ngx/paperless_ngx.yml.
     options:
       paperless_ngx_deploy_kubeconfig:
         type: raw
@@ -19,43 +17,11 @@ argument_specs:
         type: str
         required: false
         description: Logical cluster name used for artifact recording.
-      paperless_ngx_deploy_app_name:
-        type: str
-        required: false
-        description: ArgoCD Application name for main workloads.
-      paperless_ngx_deploy_secrets_app_name:
-        type: str
-        required: false
-        description: ArgoCD Application name for secrets (wave 0).
-      paperless_ngx_deploy_namespace:
-        type: str
-        required: false
-        description: Target namespace for Paperless-NGX resources.
-      paperless_ngx_deploy_argocd_namespace:
-        type: str
-        required: false
-        description: ArgoCD namespace where Applications will be created.
-      paperless_ngx_deploy_project:
-        type: str
-        required: false
-        description: ArgoCD project name.
-      paperless_ngx_deploy_repo_url:
-        type: str
-        required: false
-        description: Git repository URL containing k8s manifests.
-      paperless_ngx_deploy_target_revision:
-        type: str
-        required: false
-        description: Git branch or tag to track.
-      paperless_ngx_deploy_path:
-        type: str
-        required: false
-        description: Path within repo to main k8s manifests.
-      paperless_ngx_deploy_secrets_path:
-        type: str
-        required: false
-        description: Path within repo to secrets manifests.
       paperless_ngx_deploy_apply_objects:
         type: bool
         required: false
-        description: Whether to apply ArgoCD Applications or just render them.
+        description: Whether to apply ArgoCD Application or skip it.
+      paperless_ngx_deploy_manifest_src:
+        type: str
+        required: false
+        description: Path to ArgoCD Application manifest file.
