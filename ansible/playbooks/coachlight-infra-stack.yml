@@ -91,3 +91,4 @@
         crafty_controller_deploy_cluster_name: "{{ kubeconfig_manager_artifacts.cluster_name }}"
         crafty_controller_deploy_namespace: apps-crafty-controller
     - role: omada_deploy
+    - role: k9s_install
