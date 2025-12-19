@@ -11,3 +11,4 @@ resources:
   - tika.yml
   - webserver.yml
   - ingress.yml
+  - onepassword-item.yml
