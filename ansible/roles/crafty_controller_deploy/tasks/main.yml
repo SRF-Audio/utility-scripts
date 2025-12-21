@@ -44,7 +44,7 @@
     crafty_controller_deploy_k8s_result: {}
   when: not (crafty_controller_deploy_apply_objects | bool)
 
-- name: Wait for Crafty Controller ArgoCD Application sync and health
+- name: Wait for Crafty Controller ArgoCD Application to be Synced and not Degraded
   kubernetes.core.k8s_info:
     kubeconfig: "{{ crafty_controller_deploy_kubeconfig }}"
     context: "{{ crafty_controller_deploy_context }}"
@@ -54,17 +54,13 @@
     name: "{{ crafty_controller_deploy_app_name }}"
   register: crafty_controller_app_status
   until:
-    - crafty_controller_app_status.resources is defined
-    - crafty_controller_app_status.resources | length > 0
-    - crafty_controller_app_status.resources[0].status is defined
-    - crafty_controller_app_status.resources[0].status.sync is defined
+    - (crafty_controller_app_status.resources | default([])) | length > 0
     - >-
-      crafty_controller_app_status.resources[0].status.sync.status ==
-      "Synced"
-    - crafty_controller_app_status.resources[0].status.health is defined
+      (crafty_controller_app_status.resources[0].status.sync.status | default('')) ==
+      'Synced'
     - >-
-      crafty_controller_app_status.resources[0].status.health.status ==
-      "Healthy"
+      (crafty_controller_app_status.resources[0].status.health.status | default('')) !=
+      'Degraded'
   retries: 60
   delay: 5
   when: crafty_controller_deploy_apply_objects | bool

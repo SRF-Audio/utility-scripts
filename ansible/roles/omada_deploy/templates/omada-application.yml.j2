@@ -11,10 +11,6 @@ spec:
     targetRevision: {{ omada_deploy_helm_chart_version }}
     helm:
       valuesObject:
-        config:
-          rootless: false
-          ports:
-            manageHttps: {{ omada_deploy_manage_https_port }}
         persistence:
           data:
             enabled: true
@@ -33,13 +29,15 @@ spec:
         service:
           type: {{ omada_deploy_service_type }}
           annotations:
-{% for key, value in omada_deploy_tailscale_annotations.items() %}
+{% for key, value in (omada_deploy_tailscale_annotations | dictsort) %}
             {{ key }}: "{{ value }}"
 {% endfor %}
             tailscale.com/hostname: "{{ omada_deploy_hostname }}"
-
-        ingress:
-          enabled: false
+          ports:
+            - name: https
+              port: 443
+              targetPort: manage-https
+              protocol: TCP
 {% if omada_deploy_values_overrides | length > 0 %}
 {{ omada_deploy_values_overrides | to_nice_yaml | indent(8, first=true) }}
 {% endif %}
