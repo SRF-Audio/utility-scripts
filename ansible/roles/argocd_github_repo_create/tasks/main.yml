@@ -112,6 +112,15 @@
          b64decode }}
   no_log: true
 
+- name: Validate SSH private key is not empty
+  ansible.builtin.assert:
+    that:
+      - argocd_github_repo_create_ssh_private_key is defined
+      - argocd_github_repo_create_ssh_private_key | length > 0
+      - argocd_github_repo_create_ssh_private_key is string
+    fail_msg: >-
+      SSH private key extracted from 1Password secret is empty or invalid
+
 - name: >-
     Render Argo CD repository secret manifest to temporary location
   ansible.builtin.template:
