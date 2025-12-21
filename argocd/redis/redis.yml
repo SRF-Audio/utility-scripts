@@ -4,7 +4,7 @@ metadata:
   name: redis
   namespace: argocd
 spec:
-  project: nexgen-support
+  project: coachlight-k3s-db
   source:
     repoURL: https://charts.bitnami.com/bitnami
     chart: redis
@@ -15,7 +15,7 @@ spec:
           repository: bitnamilegacy/redis
   destination:
     server: https://kubernetes.default.svc
-    namespace: redis
+    namespace: db-redis
   syncPolicy:
     automated:
       prune: true

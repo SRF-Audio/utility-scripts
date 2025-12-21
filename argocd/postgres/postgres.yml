@@ -4,7 +4,7 @@ metadata:
   name: postgres
   namespace: argocd
 spec:
-  project: nexgen-support
+  project: coachlight-k3s-db
   source:
     repoURL: https://charts.bitnami.com/bitnami
     chart: postgres
@@ -15,7 +15,7 @@ spec:
           repository: bitnamilegacy/postgres
   destination:
     server: https://kubernetes.default.svc
-    namespace: postgres
+    namespace: db-postgres
   syncPolicy:
     automated:
       selfHeal: true
