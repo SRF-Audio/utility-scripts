@@ -1,6 +1,6 @@
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: paperless-ngx-db
   namespace: paperless-ngx
@@ -10,18 +10,18 @@ metadata:
     app.kubernetes.io/managed-by: argocd
 spec:
   replicas: 1
+  serviceName: paperless-ngx-db
   selector:
     matchLabels:
       app.kubernetes.io/name: paperless-ngx
       app.kubernetes.io/component: db
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app.kubernetes.io/name: paperless-ngx
         app.kubernetes.io/component: db
     spec:
+      terminationGracePeriodSeconds: 60
       containers:
         - name: postgres
           image: postgres:16
@@ -44,6 +44,40 @@ spec:
                 secretKeyRef:
                   name: paperless-ngx-secrets
                   key: PAPERLESS_DBPASS
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sh
+                  - -lc
+                  - pg_ctl -D "$PGDATA" -m fast -w stop
+          startupProbe:
+            exec:
+              command:
+                - sh
+                - -lc
+                - pg_isready -h 127.0.0.1 -p 5432 -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            failureThreshold: 30
+            periodSeconds: 2
+            timeoutSeconds: 2
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -lc
+                - pg_isready -h 127.0.0.1 -p 5432 -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            failureThreshold: 6
+            periodSeconds: 5
+            timeoutSeconds: 2
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -lc
+                - pg_isready -h 127.0.0.1 -p 5432 -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 2
           volumeMounts:
             - name: dbdata
               mountPath: /var/lib/postgresql/data

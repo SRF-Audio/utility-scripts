@@ -11,7 +11,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-path
+  storageClassName: synology-csi-nfs-delete
   resources:
     requests:
       storage: 1Gi
@@ -28,7 +28,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-path
+  storageClassName: synology-csi-nfs-delete
   resources:
     requests:
       storage: 5Gi
@@ -45,7 +45,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-path
+  storageClassName: synology-csi-nfs-delete
   resources:
     requests:
       storage: 1Gi

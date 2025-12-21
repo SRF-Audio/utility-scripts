@@ -16,7 +16,7 @@ metadata:
     gethomepage.dev/icon: "paperless-ngx.png"
 spec:
   rules:
-    - host: paperless
+    - host: paperless.rohu-shark.ts.net
       http:
         paths:
           - path: /

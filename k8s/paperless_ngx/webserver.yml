@@ -33,6 +33,12 @@ spec:
                 name: paperless-ngx-config
             - secretRef:
                 name: paperless-ngx-secrets
+          env:
+            - name: PAPERLESS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-ngx-secrets
+                  key: PAPERLESS_SECRET_KEY
           volumeMounts:
             - name: data
               mountPath: /usr/src/paperless/data
@@ -89,7 +95,7 @@ metadata:
   annotations:
     tailscale.com/expose: "true"
     tailscale.com/hostname: "paperless"
-    tailscale.com/tags: "tag:k8s"
+    tailscale.com/tags: "tag:k8s,tags:server-apps"
 spec:
   type: ClusterIP
   ports:

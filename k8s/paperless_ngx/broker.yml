@@ -1,6 +1,6 @@
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: paperless-ngx-broker
   namespace: paperless-ngx
@@ -10,24 +10,49 @@ metadata:
     app.kubernetes.io/managed-by: argocd
 spec:
   replicas: 1
+  serviceName: paperless-ngx-broker
   selector:
     matchLabels:
       app.kubernetes.io/name: paperless-ngx
       app.kubernetes.io/component: broker
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app.kubernetes.io/name: paperless-ngx
         app.kubernetes.io/component: broker
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
         - name: redis
           image: redis:7
           ports:
             - containerPort: 6379
               name: redis
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sh
+                  - -lc
+                  - redis-cli -h 127.0.0.1 -p 6379 shutdown nosave || true
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -lc
+                - redis-cli -h 127.0.0.1 -p 6379 ping | grep -q PONG
+            failureThreshold: 6
+            periodSeconds: 5
+            timeoutSeconds: 2
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -lc
+                - redis-cli -h 127.0.0.1 -p 6379 ping | grep -q PONG
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 2
           volumeMounts:
             - name: redisdata
               mountPath: /data
