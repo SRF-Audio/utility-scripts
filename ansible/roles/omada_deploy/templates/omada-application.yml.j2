@@ -11,6 +11,8 @@ spec:
     targetRevision: {{ omada_deploy_helm_chart_version }}
     helm:
       valuesObject:
+        config:
+          rootless: false
         persistence:
           data:
             enabled: true
@@ -33,11 +35,9 @@ spec:
             {{ key }}: "{{ value }}"
 {% endfor %}
             tailscale.com/hostname: "{{ omada_deploy_hostname }}"
-          ports:
-            - name: https
-              port: 443
-              targetPort: manage-https
-              protocol: TCP
+
+        ingress:
+          enabled: false
 {% if omada_deploy_values_overrides | length > 0 %}
 {{ omada_deploy_values_overrides | to_nice_yaml | indent(8, first=true) }}
 {% endif %}
