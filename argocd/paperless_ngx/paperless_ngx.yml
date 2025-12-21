@@ -14,7 +14,7 @@ spec:
     path: k8s/paperless_ngx
   destination:
     server: https://kubernetes.default.svc
-    namespace: paperless-ngx
+    namespace: apps-paperless-ngx
   syncPolicy:
     automated:
       prune: true

@@ -3,7 +3,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: paperless-ngx-data
-  namespace: paperless-ngx
+  namespace: apps-paperless-ngx
   labels:
     app.kubernetes.io/name: paperless-ngx
     app.kubernetes.io/component: webserver
@@ -20,7 +20,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: paperless-ngx-dbdata
-  namespace: paperless-ngx
+  namespace: apps-paperless-ngx
   labels:
     app.kubernetes.io/name: paperless-ngx
     app.kubernetes.io/component: db
@@ -37,7 +37,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: paperless-ngx-redisdata
-  namespace: paperless-ngx
+  namespace: apps-paperless-ngx
   labels:
     app.kubernetes.io/name: paperless-ngx
     app.kubernetes.io/component: broker
@@ -54,7 +54,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: paperless-ngx-media
-  namespace: paperless-ngx
+  namespace: apps-paperless-ngx
   labels:
     app.kubernetes.io/name: paperless-ngx
     app.kubernetes.io/component: webserver
@@ -71,7 +71,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: paperless-ngx-export
-  namespace: paperless-ngx
+  namespace: apps-paperless-ngx
   labels:
     app.kubernetes.io/name: paperless-ngx
     app.kubernetes.io/component: webserver
@@ -88,7 +88,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: paperless-ngx-consume
-  namespace: paperless-ngx
+  namespace: apps-paperless-ngx
   labels:
     app.kubernetes.io/name: paperless-ngx
     app.kubernetes.io/component: webserver

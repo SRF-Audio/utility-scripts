@@ -3,7 +3,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: paperless-ngx-homepage
-  namespace: paperless-ngx
+  namespace: apps-paperless-ngx
   labels:
     app.kubernetes.io/name: paperless-ngx
     app.kubernetes.io/component: webserver

@@ -1,2 +1,2 @@
 k9s_install_version: "v0.50.16"
-k9s_install_artifacts_path: "{{ artifacts_base_path }}/{{ deploy_env }}/k9s_install"
+k9s_install_artifacts_path: "{{ artifacts_path }}/k9s_install"
