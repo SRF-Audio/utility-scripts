@@ -24,11 +24,13 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
         - name: postgres
-          image: postgres:16
+          image: postgres:18.1
           ports:
             - containerPort: 5432
               name: postgres
           env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
             - name: POSTGRES_DB
               valueFrom:
                 secretKeyRef:

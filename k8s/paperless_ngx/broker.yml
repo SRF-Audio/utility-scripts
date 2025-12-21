@@ -24,7 +24,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: redis
-          image: redis:7
+          image: redis:8.4
           ports:
             - containerPort: 6379
               name: redis
