@@ -8,11 +8,36 @@ spec:
   source:
     repoURL: https://charts.bitnami.com/bitnami
     chart: redis
-    targetRevision: 20.2.1
+    targetRevision: 8.2.1
     helm:
       valuesObject:
         image:
           repository: bitnamilegacy/redis
+        master:
+          podSecurityContext:
+            enabled: true
+            fsGroup: 1001
+            fsGroupChangePolicy: "OnRootMismatch"
+          containerSecurityContext:
+            enabled: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            runAsNonRoot: true
+
+        replica:
+          podSecurityContext:
+            enabled: true
+            fsGroup: 1001
+            fsGroupChangePolicy: "OnRootMismatch"
+          containerSecurityContext:
+            enabled: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            runAsNonRoot: true
+
+        volumePermissions:
+          enabled: true
+
   destination:
     server: https://kubernetes.default.svc
     namespace: db-redis
