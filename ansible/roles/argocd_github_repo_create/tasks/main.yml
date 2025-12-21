@@ -58,10 +58,16 @@
     argocd_github_repo_create_namespace_check.resources is not defined or
     argocd_github_repo_create_namespace_check.resources | length == 0
 
+- name: Create temporary directory for manifests
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: -argocd-github-repo-create
+  register: argocd_github_repo_create_temp_dir
+
 - name: Render OnePasswordItem manifest to temporary location
   ansible.builtin.template:
     src: "{{ role_path }}/templates/onepassword-item.yml.j2"
-    dest: "{{ role_path }}/templates/onepassword-item.yml"
+    dest: "{{ argocd_github_repo_create_temp_dir.path }}/onepassword-item.yml"
     mode: "0644"
 
 - name: Apply OnePasswordItem to Argo CD namespace
@@ -71,7 +77,8 @@
     k8s_object_manager_kubeconfig: "{{ argocd_github_repo_create_kubeconfig }}"
     k8s_object_manager_context: "{{ argocd_github_repo_create_context }}"
     k8s_object_manager_state: present
-    k8s_object_manager_src: "{{ role_path }}/templates/onepassword-item.yml"
+    k8s_object_manager_src: >-
+      {{ argocd_github_repo_create_temp_dir.path }}/onepassword-item.yml
 
 - name: Wait for 1Password Operator to create secret
   kubernetes.core.k8s_info:
@@ -111,7 +118,7 @@
     src: >-
       {{ role_path }}/templates/argocd-repository-secret.yml.j2
     dest: >-
-      {{ role_path }}/templates/argocd-repository-secret.yml
+      {{ argocd_github_repo_create_temp_dir.path }}/argocd-repository-secret.yml
     mode: "0600"
   no_log: true
 
@@ -125,16 +132,13 @@
       {{ argocd_github_repo_create_context }}
     k8s_object_manager_state: present
     k8s_object_manager_src: >-
-      {{ role_path }}/templates/argocd-repository-secret.yml
+      {{ argocd_github_repo_create_temp_dir.path }}/argocd-repository-secret.yml
   no_log: true
 
-- name: Clean up rendered manifest files
+- name: Clean up temporary directory
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: "{{ argocd_github_repo_create_temp_dir.path }}"
     state: absent
-  loop:
-    - "{{ role_path }}/templates/onepassword-item.yml"
-    - "{{ role_path }}/templates/argocd-repository-secret.yml"
 
 - name: Persist argocd_github_repo_create artifacts
   ansible.builtin.include_role:
