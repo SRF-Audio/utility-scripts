@@ -19,40 +19,6 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: paperless-ngx-dbdata
-  namespace: apps-paperless-ngx
-  labels:
-    app.kubernetes.io/name: paperless-ngx
-    app.kubernetes.io/component: db
-    app.kubernetes.io/managed-by: argocd
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: synology-csi-nfs-delete
-  resources:
-    requests:
-      storage: 5Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: paperless-ngx-redisdata
-  namespace: apps-paperless-ngx
-  labels:
-    app.kubernetes.io/name: paperless-ngx
-    app.kubernetes.io/component: broker
-    app.kubernetes.io/managed-by: argocd
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: synology-csi-nfs-delete
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
   name: paperless-ngx-media
   namespace: apps-paperless-ngx
   labels:
