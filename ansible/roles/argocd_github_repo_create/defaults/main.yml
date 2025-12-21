@@ -6,7 +6,8 @@ argocd_github_repo_create_context: >-
 argocd_github_repo_create_argocd_namespace: argocd
 argocd_github_repo_create_repo_url_ssh: >-
   git@github.com:SRF-Audio/utility-scripts.git
-argocd_github_repo_create_op_item_path: vaults/HomeLab/items/Github
-argocd_github_repo_create_op_deploy_key_field: deploy-key
+argocd_github_repo_create_op_item_path: "vaults/HomeLab/items/HomeLab ArgoCD Deploy Key"
+argocd_github_repo_create_op_deploy_key_field: "private key"
 argocd_github_repo_create_op_item_name: argocd-repo-utility-scripts
 argocd_github_repo_create_repo_secret_name: repo-utility-scripts
+argocd_github_repo_create_op_secret_data_key: private-key

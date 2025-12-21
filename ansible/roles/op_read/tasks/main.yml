@@ -82,26 +82,35 @@
 - name: Build op_read_result_items
   ansible.builtin.set_fact:
     op_read_result_items: >-
-      {{ op_read_result_items
-         + [ {
-               'vault_name': item.0.vault_name,
-               'item_name': item.0.item_name,
-               'field_name': item.0.field_name,
-               'reference': >-
-                 op://{{ item.0.vault_name }}/{{ item.0.item_name }}/{{
-                 item.0.field_name }}{{
-                 '?ssh-format=openssh'
-                 if item.0.out_file_ssh_format | default(false)
-                 else '' }},
-               'out_file': item.0.out_file | default(false),
-               'out_file_path': item.0.out_file_path | default(omit),
-               'out_file_ssh_format': >-
-                 {{ item.0.out_file_ssh_format | default(false) }},
-               'value': >-
-                 {{ item.1.stdout
-                 if not (item.0.out_file | default(false))
-                 else omit }}
-             } ] }}
+      {{
+        op_read_result_items
+        + [
+          {
+            'vault_name': item.0.vault_name,
+            'item_name': item.0.item_name,
+            'field_name': item.0.field_name,
+            'reference': (
+              'op://'
+              ~ item.0.vault_name ~ '/'
+              ~ item.0.item_name ~ '/'
+              ~ item.0.field_name
+              ~ (
+                '?ssh-format=openssh'
+                if (item.0.out_file_ssh_format | default(false))
+                else ''
+              )
+            ),
+            'out_file': (item.0.out_file | default(false)),
+            'out_file_path': (item.0.out_file_path | default(omit)),
+            'out_file_ssh_format': (item.0.out_file_ssh_format | default(false)),
+            'value': (
+              item.1.stdout
+              if not (item.0.out_file | default(false))
+              else omit
+            )
+          }
+        ]
+      }}
   loop: "{{ op_read_items | zip(op_read_command_results.results) | list }}"
   loop_control:
     label: >-

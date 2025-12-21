@@ -94,22 +94,25 @@
     - argocd_github_repo_create_op_secret.resources | length > 0
     - argocd_github_repo_create_op_secret.resources[0].data is defined
     - >-
-      argocd_github_repo_create_op_secret.resources[0].data.sshPrivateKey
-      is defined
+      (argocd_github_repo_create_op_secret.resources[0].data[
+        argocd_github_repo_create_op_secret_data_key
+      ] | default('')) | length > 0
   retries: 30
   delay: 5
   failed_when: >-
     argocd_github_repo_create_op_secret.resources is not defined or
     argocd_github_repo_create_op_secret.resources | length == 0 or
     argocd_github_repo_create_op_secret.resources[0].data is not defined or
-    argocd_github_repo_create_op_secret.resources[0].data.sshPrivateKey
-    is not defined
+    (argocd_github_repo_create_op_secret.resources[0].data[
+      argocd_github_repo_create_op_secret_data_key
+    ] | default('')) | length == 0
 
 - name: Extract SSH private key from 1Password secret
   ansible.builtin.set_fact:
     argocd_github_repo_create_ssh_private_key: >-
-      {{ argocd_github_repo_create_op_secret.resources[0].data.sshPrivateKey |
-         b64decode }}
+      {{ argocd_github_repo_create_op_secret.resources[0].data[
+           argocd_github_repo_create_op_secret_data_key
+         ] | b64decode }}
   no_log: true
 
 - name: Validate SSH private key is not empty
@@ -120,6 +123,19 @@
       - argocd_github_repo_create_ssh_private_key is string
     fail_msg: >-
       SSH private key extracted from 1Password secret is empty or invalid
+
+- name: Assert expected SSH key field exists in 1Password-generated secret
+  ansible.builtin.assert:
+    that:
+      - >-
+        (argocd_github_repo_create_op_secret.resources[0].data[
+          argocd_github_repo_create_op_secret_data_key
+        ] | default('')) | length > 0
+    fail_msg: >-
+      Expected secret data key "{{ argocd_github_repo_create_op_secret_data_key }}"
+      not found. Available keys: {{
+        (argocd_github_repo_create_op_secret.resources[0].data | default({})).keys() | list
+      }}
 
 - name: >-
     Render Argo CD repository secret manifest to temporary location

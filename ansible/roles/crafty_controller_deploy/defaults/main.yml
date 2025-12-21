@@ -8,7 +8,7 @@ crafty_controller_deploy_context: >-
 crafty_controller_deploy_namespace: "apps-crafty-controller"
 crafty_controller_deploy_argocd_namespace: "argocd"
 crafty_controller_deploy_app_name: "crafty-controller"
-crafty_controller_deploy_project: "coachlight-k3s-infra"
+crafty_controller_deploy_project: "coachlight-k3s-apps"
 crafty_controller_deploy_apply_objects: true
 crafty_controller_deploy_repo_url: >-
   https://github.com/SRF-Audio/utility-scripts

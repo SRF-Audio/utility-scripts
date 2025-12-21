@@ -1,2 +1,2 @@
 ---
-op_read_artifacts_path: "{{ artifacts_base_path }}/op_read"
+op_read_artifacts_path: "{{ artifacts_base_path }}"

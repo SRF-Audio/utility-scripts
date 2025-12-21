@@ -47,3 +47,9 @@ argument_specs:
         required: false
         description: >-
           Name of the Argo CD repository Secret in Kubernetes.
+      argocd_github_repo_create_op_secret_data_key:
+        type: str
+        required: false
+        description: >-
+          Key in the generated Kubernetes Secret's .data that contains the SSH
+          private key (derived from the 1Password field label normalization).
