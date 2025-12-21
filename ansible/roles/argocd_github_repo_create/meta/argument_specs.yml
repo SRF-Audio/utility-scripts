@@ -1,0 +1,39 @@
+---
+argument_specs:
+  main:
+    description: |
+      Register a private GitHub repository in Argo CD using an SSH deploy key sourced from 1Password Operator.
+      Creates a OnePasswordItem to fetch the SSH private key and an Argo CD repository Secret for declarative repo registration.
+    options:
+      argocd_github_repo_create_kubeconfig:
+        type: raw
+        required: false
+        description: Path to kubeconfig file or configuration dict.
+      argocd_github_repo_create_context:
+        type: str
+        required: false
+        description: Kubernetes context name to use.
+      argocd_github_repo_create_argocd_namespace:
+        type: str
+        required: false
+        description: Namespace where Argo CD is deployed and where resources will be created.
+      argocd_github_repo_create_repo_url_ssh:
+        type: str
+        required: false
+        description: SSH URL of the GitHub repository to register in Argo CD.
+      argocd_github_repo_create_op_item_path:
+        type: str
+        required: false
+        description: 1Password item path containing the deploy key.
+      argocd_github_repo_create_op_deploy_key_field:
+        type: str
+        required: false
+        description: Field name in 1Password item containing the SSH private key.
+      argocd_github_repo_create_op_item_name:
+        type: str
+        required: false
+        description: Name of the OnePasswordItem resource in Kubernetes.
+      argocd_github_repo_create_repo_secret_name:
+        type: str
+        required: false
+        description: Name of the Argo CD repository Secret in Kubernetes.
