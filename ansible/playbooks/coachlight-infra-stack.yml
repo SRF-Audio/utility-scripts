@@ -97,5 +97,19 @@
         crafty_controller_deploy_cluster_name: "{{ kubeconfig_manager_artifacts.cluster_name }}"
         crafty_controller_deploy_namespace: apps-crafty-controller
     - role: omada_deploy
+    - role: k8s_object_manager
+      vars:
+        k8s_object_manager_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
+        k8s_object_manager_context: "{{ kubeconfig_manager_artifacts.context_name }}"
+        k8s_object_manager_src: "{{ playbook_dir }}/../../argocd/postgres/postgres.yml"
+        k8s_object_manager_state: present
+        k8s_object_manager_apply: true
+    - role: k8s_object_manager
+      vars:
+        k8s_object_manager_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
+        k8s_object_manager_context: "{{ kubeconfig_manager_artifacts.context_name }}"
+        k8s_object_manager_src: "{{ playbook_dir }}/../../argocd/redis/redis.yml"
+        k8s_object_manager_state: present
+        k8s_object_manager_apply: true
     - role: paperless_ngx_deploy
     - role: k9s_install
