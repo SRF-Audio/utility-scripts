@@ -33,6 +33,8 @@ spec:
                 name: paperless-ngx-config
             - secretRef:
                 name: paperless-ngx-secrets
+            - secretRef:
+                name: paperless-ngx-redis-secrets
           env:
             - name: PAPERLESS_SECRET_KEY
               valueFrom:
