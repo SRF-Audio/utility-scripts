@@ -8,11 +8,36 @@ spec:
   source:
     repoURL: https://charts.bitnami.com/bitnami
     chart: postgresql
-    targetRevision: 17.6.0
+    targetRevision: 18.1.1
     helm:
       valuesObject:
         image:
           repository: bitnamilegacy/postgresql
+        master:
+          podSecurityContext:
+            enabled: true
+            fsGroup: 1001
+            fsGroupChangePolicy: "OnRootMismatch"
+          containerSecurityContext:
+            enabled: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            runAsNonRoot: true
+
+        replica:
+          podSecurityContext:
+            enabled: true
+            fsGroup: 1001
+            fsGroupChangePolicy: "OnRootMismatch"
+          containerSecurityContext:
+            enabled: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            runAsNonRoot: true
+
+        volumePermissions:
+          enabled: true
+
   destination:
     server: https://kubernetes.default.svc
     namespace: db-postgres
