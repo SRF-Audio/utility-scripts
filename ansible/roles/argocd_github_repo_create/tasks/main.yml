@@ -15,13 +15,24 @@
       - argocd_github_repo_create_op_item_path | length > 0
       - argocd_github_repo_create_op_deploy_key_field | length > 0
     fail_msg: |
-      All required vars must be defined and non-empty for argocd_github_repo_create:
-      argocd_github_repo_create_kubeconfig: {{ argocd_github_repo_create_kubeconfig | default('UNDEFINED') }}
-      argocd_github_repo_create_context: {{ argocd_github_repo_create_context | default('UNDEFINED') }}
-      argocd_github_repo_create_argocd_namespace: {{ argocd_github_repo_create_argocd_namespace | default('UNDEFINED') }}
-      argocd_github_repo_create_repo_url_ssh: {{ argocd_github_repo_create_repo_url_ssh | default('UNDEFINED') }}
-      argocd_github_repo_create_op_item_path: {{ argocd_github_repo_create_op_item_path | default('UNDEFINED') }}
-      argocd_github_repo_create_op_deploy_key_field: {{ argocd_github_repo_create_op_deploy_key_field | default('UNDEFINED') }}
+      All required vars must be defined and non-empty for
+      argocd_github_repo_create:
+      argocd_github_repo_create_kubeconfig: >-
+        {{ argocd_github_repo_create_kubeconfig | default('UNDEFINED') }}
+      argocd_github_repo_create_context: >-
+        {{ argocd_github_repo_create_context | default('UNDEFINED') }}
+      argocd_github_repo_create_argocd_namespace: >-
+        {{ argocd_github_repo_create_argocd_namespace |
+           default('UNDEFINED') }}
+      argocd_github_repo_create_repo_url_ssh: >-
+        {{ argocd_github_repo_create_repo_url_ssh |
+           default('UNDEFINED') }}
+      argocd_github_repo_create_op_item_path: >-
+        {{ argocd_github_repo_create_op_item_path |
+           default('UNDEFINED') }}
+      argocd_github_repo_create_op_deploy_key_field: >-
+        {{ argocd_github_repo_create_op_deploy_key_field |
+           default('UNDEFINED') }}
 
 - name: Check if OnePasswordItem CRD exists
   kubernetes.core.k8s_info:
@@ -75,25 +86,32 @@
     - argocd_github_repo_create_op_secret.resources is defined
     - argocd_github_repo_create_op_secret.resources | length > 0
     - argocd_github_repo_create_op_secret.resources[0].data is defined
-    - argocd_github_repo_create_op_secret.resources[0].data.sshPrivateKey is defined
+    - >-
+      argocd_github_repo_create_op_secret.resources[0].data.sshPrivateKey
+      is defined
   retries: 30
   delay: 5
   failed_when: >-
     argocd_github_repo_create_op_secret.resources is not defined or
     argocd_github_repo_create_op_secret.resources | length == 0 or
     argocd_github_repo_create_op_secret.resources[0].data is not defined or
-    argocd_github_repo_create_op_secret.resources[0].data.sshPrivateKey is not defined
+    argocd_github_repo_create_op_secret.resources[0].data.sshPrivateKey
+    is not defined
 
 - name: Extract SSH private key from 1Password secret
   ansible.builtin.set_fact:
     argocd_github_repo_create_ssh_private_key: >-
-      {{ argocd_github_repo_create_op_secret.resources[0].data.sshPrivateKey | b64decode }}
+      {{ argocd_github_repo_create_op_secret.resources[0].data.sshPrivateKey |
+         b64decode }}
   no_log: true
 
-- name: Render Argo CD repository secret manifest to temporary location
+- name: >-
+    Render Argo CD repository secret manifest to temporary location
   ansible.builtin.template:
-    src: "{{ role_path }}/templates/argocd-repository-secret.yml.j2"
-    dest: "{{ role_path }}/templates/argocd-repository-secret.yml"
+    src: >-
+      {{ role_path }}/templates/argocd-repository-secret.yml.j2
+    dest: >-
+      {{ role_path }}/templates/argocd-repository-secret.yml
     mode: "0600"
   no_log: true
 
@@ -101,10 +119,13 @@
   ansible.builtin.include_role:
     name: k8s_object_manager
   vars:
-    k8s_object_manager_kubeconfig: "{{ argocd_github_repo_create_kubeconfig }}"
-    k8s_object_manager_context: "{{ argocd_github_repo_create_context }}"
+    k8s_object_manager_kubeconfig: >-
+      {{ argocd_github_repo_create_kubeconfig }}
+    k8s_object_manager_context: >-
+      {{ argocd_github_repo_create_context }}
     k8s_object_manager_state: present
-    k8s_object_manager_src: "{{ role_path }}/templates/argocd-repository-secret.yml"
+    k8s_object_manager_src: >-
+      {{ role_path }}/templates/argocd-repository-secret.yml
   no_log: true
 
 - name: Clean up rendered manifest files
