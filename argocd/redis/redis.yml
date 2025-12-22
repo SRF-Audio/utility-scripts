@@ -13,6 +13,10 @@ spec:
       valuesObject:
         image:
           repository: bitnamilegacy/redis
+        auth:
+          enabled: true
+          existingSecret: paperless-ngx-redis-secrets
+          existingSecretPasswordKey: redis-password
         master:
           podSecurityContext:
             enabled: true

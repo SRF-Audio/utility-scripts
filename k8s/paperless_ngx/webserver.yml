@@ -35,12 +35,6 @@ spec:
                 name: paperless-ngx-secrets
             - secretRef:
                 name: paperless-ngx-redis-secrets
-          env:
-            - name: PAPERLESS_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: paperless-ngx-secrets
-                  key: PAPERLESS_SECRET_KEY
           volumeMounts:
             - name: data
               mountPath: /usr/src/paperless/data
