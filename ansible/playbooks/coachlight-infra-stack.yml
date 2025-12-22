@@ -108,7 +108,21 @@
       vars:
         k8s_object_manager_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
         k8s_object_manager_context: "{{ kubeconfig_manager_artifacts.context_name }}"
+        k8s_object_manager_src: "{{ playbook_dir }}/../../argocd/postgres/postgres_secrets.yml"
+        k8s_object_manager_state: present
+        k8s_object_manager_apply: true
+    - role: k8s_object_manager
+      vars:
+        k8s_object_manager_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
+        k8s_object_manager_context: "{{ kubeconfig_manager_artifacts.context_name }}"
         k8s_object_manager_src: "{{ playbook_dir }}/../../argocd/redis/redis.yml"
+        k8s_object_manager_state: present
+        k8s_object_manager_apply: true
+        - role: k8s_object_manager
+      vars:
+        k8s_object_manager_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
+        k8s_object_manager_context: "{{ kubeconfig_manager_artifacts.context_name }}"
+        k8s_object_manager_src: "{{ playbook_dir }}/../../argocd/redis/redis_secrets.yml"
         k8s_object_manager_state: present
         k8s_object_manager_apply: true
     - role: paperless_ngx_deploy
