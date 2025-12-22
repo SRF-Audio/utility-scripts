@@ -21,7 +21,7 @@ spec:
           database: paperless
           existingSecret: paperless-ngx-secrets
           secretKeys:
-            userPassword: PAPERLESS_DBPASS
+            userPasswordKey: PAPERLESS_DBPASS
         master:
           podSecurityContext:
             enabled: true
