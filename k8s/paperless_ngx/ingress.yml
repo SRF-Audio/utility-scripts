@@ -25,4 +25,4 @@ spec:
               service:
                 name: paperless-ngx-webserver
                 port:
-                  number: 8000
+                  number: 80
