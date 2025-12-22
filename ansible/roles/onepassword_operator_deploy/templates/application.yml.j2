@@ -15,22 +15,8 @@ spec:
           create: true
           credentials_base64: "{{ onepassword_operator_deploy_connect_credentials_normalized | to_nice_json | b64encode }}"
           serviceType: ClusterIP
-          serviceAnnotations:
-            tailscale.com/expose: "true"
-            tailscale.com/hostname: "{{ onepassword_operator_deploy_tailscale_hostname }}"
-            tailscale.com/tags: "{{ onepassword_operator_deploy_tailscale_tags }}"
           ingress:
-            enabled: true
-            annotations:
-              gethomepage.dev/enabled: "true"
-              gethomepage.dev/name: "{{ onepassword_operator_deploy_homepage_name }}"
-              gethomepage.dev/description: "{{ onepassword_operator_deploy_homepage_description }}"
-              gethomepage.dev/group: "{{ onepassword_operator_deploy_homepage_group }}"
-              gethomepage.dev/icon: "{{ onepassword_operator_deploy_homepage_icon }}"
-            hosts:
-              - host: "{{ onepassword_operator_deploy_tailscale_hostname }}.{{ onepassword_operator_deploy_tailnet_domain }}"
-                paths:
-                  - "/"
+            enabled: false
         operator:
           create: true
           token:
