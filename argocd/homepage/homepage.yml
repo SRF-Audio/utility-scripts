@@ -28,6 +28,14 @@ spec:
 
           config:
             services:
+              - GitOps:
+                  - Argo CD:
+                      href: https://argocd.rohu-shark.ts.net
+                      widget:
+                        type: argocd
+                        url: https://argocd.rohu-shark.ts.net
+                        key: "{{HOMEPAGE_VAR_ARGOCD_TOKEN}}"
+
               - Monitoring:
                   - NextDNS:
                       href: https://my.nextdns.io
