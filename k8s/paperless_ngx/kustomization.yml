@@ -9,3 +9,4 @@ resources:
   - tika.yml
   - webserver.yml
   - ingress.yml
+  - pv-paperless-consume.yml
