@@ -62,7 +62,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: synology-csi-nfs-delete
   resources:
     requests:
       storage: 10Gi
+  volumeName: pv-paperless-ngx-consume
+  storageClassName: ""
