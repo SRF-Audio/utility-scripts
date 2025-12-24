@@ -18,3 +18,4 @@ data:
   PAPERLESS_TIKA_ENABLED: "true"
   PAPERLESS_TIKA_ENDPOINT: "http://paperless-ngx-tika:9998"
   PAPERLESS_TIKA_GOTENBERG_ENDPOINT: "http://paperless-ngx-gotenberg:3000"
+  PAPERLESS_CONSUMER_POLLING: "30"
