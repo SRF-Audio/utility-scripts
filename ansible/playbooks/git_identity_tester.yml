@@ -1,0 +1,17 @@
+---
+- name: Test git_identity role
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  vars:
+    artifacts_base_path: /tmp/artifacts
+    git_identity_user_name: Test User
+    git_identity_user_email_github: test@github.example.com
+    git_identity_user_email_gitlab: test@gitlab.example.com
+    git_identity_github_signing_pubkey_item: TestVault/TestItem
+    git_identity_op_service_account_token: "{{ lookup('env', 'OP_SERVICE_ACCOUNT_TOKEN') }}"
+    git_identity_run_validation_tests: false
+  tasks:
+    - name: Include git_identity role
+      ansible.builtin.include_role:
+        name: git_identity
