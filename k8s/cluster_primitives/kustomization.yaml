@@ -1,0 +1,17 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - storageclasses/local-path-delete.yml
+  - storageclasses/local-path-retain.yml
+  - storageclasses/nfs-synology-delete.yml
+  - storageclasses/nfs-synology-retain.yml
+  - pvs/pv-paperless-consume.yml
+  - pvs/pv-paperless-data.yml
+  - pvs/pv-paperless-export.yml
+  - pvs/pv-paperless-media.yml
+  - pvs/pv-crafty-servers.yml
+  - pvs/pv-crafty-backups.yml
+  - pvs/pv-crafty-import.yml
+  - pvs/pv-crafty-config.yml
+  - pvs/pv-crafty-logs.yml

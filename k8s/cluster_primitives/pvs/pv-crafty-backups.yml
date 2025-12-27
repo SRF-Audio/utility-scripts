@@ -1,0 +1,21 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-crafty-backups
+  labels:
+    app.kubernetes.io/name: crafty-controller
+    app.kubernetes.io/component: storage
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-synology-retain
+  volumeMode: Filesystem
+  mountOptions:
+    - nfsvers=4
+  nfs:
+    server: 192.168.226.6
+    path: /volume2/crafty/backups
