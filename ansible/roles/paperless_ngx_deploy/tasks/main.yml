@@ -105,7 +105,7 @@
   delay: 5
   when: paperless_ngx_deploy_apply_objects | bool
 
-- name: Wait for main ArgoCD Application to be synced and healthy
+- name: Wait for ArgoCD Application to be synced
   kubernetes.core.k8s_info:
     kubeconfig: "{{ paperless_ngx_deploy_kubeconfig }}"
     context: "{{ paperless_ngx_deploy_context }}"
@@ -115,15 +115,26 @@
     name: "{{ paperless_ngx_deploy_app_name }}"
   register: paperless_ngx_app_status
   until:
-    - paperless_ngx_app_status.resources is defined
-    - paperless_ngx_app_status.resources | length > 0
+    - (paperless_ngx_app_status.resources | default([])) | length > 0
     - paperless_ngx_app_status.resources[0].status is defined
     - paperless_ngx_app_status.resources[0].status.sync is defined
-    - >-
-      paperless_ngx_app_status.resources[0].status.sync.status == "Synced"
-    - paperless_ngx_app_status.resources[0].status.health is defined
-    - >-
-      paperless_ngx_app_status.resources[0].status.health.status == "Healthy"
+    - paperless_ngx_app_status.resources[0].status.sync.status == "Synced"
+  retries: 60
+  delay: 5
+  when: paperless_ngx_deploy_apply_objects | bool
+
+- name: Wait for paperless webserver Deployment rollout
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ paperless_ngx_deploy_kubeconfig }}"
+    context: "{{ paperless_ngx_deploy_context }}"
+    api_version: apps/v1
+    kind: Deployment
+    namespace: "{{ paperless_ngx_deploy_namespace }}"
+    name: paperless-ngx-webserver
+  register: paperless_ngx_web_deploy
+  until:
+    - (paperless_ngx_web_deploy.resources | default([])) | length > 0
+    - (paperless_ngx_web_deploy.resources[0].status.availableReplicas | default(0)) | int >= 1
   retries: 60
   delay: 5
   when: paperless_ngx_deploy_apply_objects | bool
