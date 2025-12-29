@@ -1,0 +1,12 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-static-retain
+  annotations:
+    storageclass.kubernetes.io/description: >-
+      Static storage class for manually created PVs with Retain reclaim policy
+provisioner: kubernetes.io/no-provisioner
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+allowVolumeExpansion: false
