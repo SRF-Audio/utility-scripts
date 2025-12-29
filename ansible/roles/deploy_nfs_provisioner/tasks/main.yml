@@ -23,6 +23,16 @@
   register: deploy_nfs_provisioner_sc_stat
   failed_when: not deploy_nfs_provisioner_sc_stat.stat.exists
 
+- name: Verify all StorageClass manifests exist
+  ansible.builtin.assert:
+    that:
+      - item.stat.exists
+    fail_msg: >-
+      StorageClass manifest file does not exist: {{ item.item }}
+  loop: "{{ deploy_nfs_provisioner_sc_stat.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
 - name: Apply ArgoCD Application manifest
   kubernetes.core.k8s:
     kubeconfig: "{{ deploy_nfs_provisioner_kubeconfig }}"
