@@ -1,0 +1,35 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nfs-provisioner
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: coachlight-k3s-infra
+  source:
+    repoURL: https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
+    chart: nfs-subdir-external-provisioner
+    targetRevision: 4.0.18
+    helm:
+      valuesObject:
+        nfs:
+          server: 192.168.226.6
+          path: /volume2/k8s
+        storageClass:
+          create: false
+          provisionerName: cluster.local/nfs-subdir-external-provisioner
+        rbac:
+          create: true
+        serviceAccount:
+          create: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: storage-nfs-provisioner
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

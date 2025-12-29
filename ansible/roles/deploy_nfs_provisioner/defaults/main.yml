@@ -1,0 +1,12 @@
+---
+deploy_nfs_provisioner_argocd_namespace: argocd
+deploy_nfs_provisioner_argocd_application_path: >-
+  {{ playbook_dir }}/../argocd/nfs_provisioner/nfs_provisioner.yml
+deploy_nfs_provisioner_argocd_app_name: nfs-provisioner
+deploy_nfs_provisioner_storageclass_paths:
+  - "{{ playbook_dir }}/../k8s/storageclasses/nfs-synology-delete.yml"
+  - "{{ playbook_dir }}/../k8s/storageclasses/nfs-synology-retain.yml"
+  - "{{ playbook_dir }}/../k8s/storageclasses/nfs-static-retain.yml"
+deploy_nfs_provisioner_wait_timeout_seconds: 300
+deploy_nfs_provisioner_wait_retries: 30
+deploy_nfs_provisioner_wait_delay: 10

@@ -1,0 +1,13 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-synology-retain
+  annotations:
+    storageclass.kubernetes.io/description: >-
+      NFS-backed storage using nfs-subdir-external-provisioner
+      with Retain reclaim policy
+provisioner: cluster.local/nfs-subdir-external-provisioner
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
