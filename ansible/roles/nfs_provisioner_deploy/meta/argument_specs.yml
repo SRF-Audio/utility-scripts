@@ -6,38 +6,38 @@ argument_specs:
       Applies a static ArgoCD Application manifest for
       nfs-subdir-external-provisioner and ensures required StorageClasses exist.
     options:
-      deploy_nfs_provisioner_kubeconfig:
+      nfs_provisioner_deploy_kubeconfig:
         type: raw
         required: true
         description: >-
           Kubeconfig path or dict used to connect to the target cluster.
-      deploy_nfs_provisioner_context:
+      nfs_provisioner_deploy_context:
         type: str
         required: true
         description: >-
           Kubernetes context name to use with the provided kubeconfig.
-      deploy_nfs_provisioner_argocd_namespace:
+      nfs_provisioner_deploy_argocd_namespace:
         type: str
         required: false
         description: Namespace where ArgoCD is deployed.
-      deploy_nfs_provisioner_argocd_application_path:
+      nfs_provisioner_deploy_argocd_application_path:
         type: str
         required: false
         description: Path to the ArgoCD Application manifest file.
-      deploy_nfs_provisioner_argocd_app_name:
+      nfs_provisioner_deploy_argocd_app_name:
         type: str
         required: false
         description: Name of the ArgoCD Application resource.
-      deploy_nfs_provisioner_storageclass_paths:
+      nfs_provisioner_deploy_storageclass_paths:
         type: list
         elements: str
         required: false
         description: List of StorageClass manifest file paths to apply.
-      deploy_nfs_provisioner_wait_retries:
+      nfs_provisioner_deploy_wait_retries:
         type: int
         required: false
         description: Number of retries for polling ArgoCD Application status.
-      deploy_nfs_provisioner_wait_delay:
+      nfs_provisioner_deploy_wait_delay:
         type: int
         required: false
         description: Delay in seconds between polling attempts.
