@@ -7,7 +7,7 @@ metadata:
   labels:
     app: crafty-controller
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: crafty-controller
@@ -21,7 +21,7 @@ spec:
           image: arcadiatechnology/crafty-4:latest
           env:
             - name: TZ
-              value: "Etc/UTC"
+              value: "America/Chicago"
           ports:
             - containerPort: 8443
               name: https-panel
