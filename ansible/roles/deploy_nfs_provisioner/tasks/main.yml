@@ -90,8 +90,8 @@
     - nfs-static-retain
   register: deploy_nfs_provisioner_sc_info
   failed_when: >-
-    (deploy_nfs_provisioner_sc_info.resources is not defined)
-    or (deploy_nfs_provisioner_sc_info.resources | length == 0)
+    deploy_nfs_provisioner_sc_info.resources is not defined
+    or deploy_nfs_provisioner_sc_info.resources | length == 0
 
 - name: Set deploy_nfs_provisioner artifacts
   ansible.builtin.set_fact:
