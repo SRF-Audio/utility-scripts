@@ -16,12 +16,11 @@
   register: deploy_nfs_provisioner_argocd_app_stat
   failed_when: not deploy_nfs_provisioner_argocd_app_stat.stat.exists
 
-- name: Assert StorageClass manifests exist
+- name: Check if StorageClass manifests exist
   ansible.builtin.stat:
     path: "{{ item }}"
   loop: "{{ deploy_nfs_provisioner_storageclass_paths }}"
   register: deploy_nfs_provisioner_sc_stat
-  failed_when: not deploy_nfs_provisioner_sc_stat.stat.exists
 
 - name: Verify all StorageClass manifests exist
   ansible.builtin.assert:
