@@ -33,11 +33,6 @@ argument_specs:
         elements: str
         required: false
         description: List of StorageClass manifest file paths to apply.
-      deploy_nfs_provisioner_wait_timeout_seconds:
-        type: int
-        required: false
-        description: >-
-          Timeout in seconds for waiting on ArgoCD Application health.
       deploy_nfs_provisioner_wait_retries:
         type: int
         required: false
