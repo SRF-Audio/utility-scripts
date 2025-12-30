@@ -10,3 +10,6 @@ provisioner: k8s-sigs.io/nfs-subdir-external-provisioner
 reclaimPolicy: Retain
 volumeBindingMode: Immediate
 allowVolumeExpansion: true
+parameters:
+  pathPattern: "${.PVC.namespace}/${.PVC.name}"
+  onDelete: "retain"
