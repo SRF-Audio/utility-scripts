@@ -5,7 +5,16 @@ metadata:
   namespace: argocd
 data:
   url: https://argocd.rohu-shark.ts.net
-
+  exec.enabled: "true"
+  resource.customizations.health.networking.k8s.io_Ingress: |
+    hs = {}
+    ann = (obj.metadata and obj.metadata.annotations) or {}
+    if ann["gethomepage.dev/enabled"] == "true" then
+      hs.status = "Healthy"
+      return hs
+    end
+    hs.status = "Progressing"
+    return hs
   # Service account for homepage
   accounts.homepage: apiKey
   dex.config: |
