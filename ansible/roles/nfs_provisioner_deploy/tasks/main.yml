@@ -69,30 +69,6 @@
   retries: "{{ nfs_provisioner_deploy_wait_retries }}"
   delay: "{{ nfs_provisioner_deploy_wait_delay }}"
 
-- name: Apply StorageClass manifests
-  kubernetes.core.k8s:
-    kubeconfig: "{{ nfs_provisioner_deploy_kubeconfig }}"
-    context: "{{ nfs_provisioner_deploy_context }}"
-    state: present
-    src: "{{ item }}"
-  loop: "{{ nfs_provisioner_deploy_storageclass_paths }}"
-
-- name: Validate StorageClasses exist
-  kubernetes.core.k8s_info:
-    kubeconfig: "{{ nfs_provisioner_deploy_kubeconfig }}"
-    context: "{{ nfs_provisioner_deploy_context }}"
-    kind: StorageClass
-    api_version: storage.k8s.io/v1
-    name: "{{ item }}"
-  loop:
-    - nfs-synology-delete
-    - nfs-synology-retain
-    - nfs-static-retain
-  register: nfs_provisioner_deploy_sc_info
-  failed_when: >-
-    nfs_provisioner_deploy_sc_info.resources is not defined
-    or nfs_provisioner_deploy_sc_info.resources | length == 0
-
 - name: Set nfs_provisioner_deploy artifacts
   ansible.builtin.set_fact:
     nfs_provisioner_deploy_artifacts:
