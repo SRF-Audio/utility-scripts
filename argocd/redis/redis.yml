@@ -7,6 +7,19 @@ metadata:
     argocd.argoproj.io/sync-wave: "1"
 spec:
   project: coachlight-k3s-db
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      name: redis-master
+      namespace: db-redis
+      jsonPointers:
+        - /spec/replicas
+    - group: apps
+      kind: StatefulSet
+      name: redis-replicas
+      namespace: db-redis
+      jsonPointers:
+        - /spec/replicas
   source:
     repoURL: https://charts.bitnami.com/bitnami
     chart: redis
