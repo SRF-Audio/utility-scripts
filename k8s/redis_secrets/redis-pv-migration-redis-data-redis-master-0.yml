@@ -1,0 +1,66 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: redis-pv-migration-redis-data-redis-master-0
+  namespace: db-redis
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+      containers:
+        - name: migrate
+          image: alpine:3.20
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              apk add --no-cache rsync coreutils findutils
+
+              SRC=/src
+              DST_ROOT=/dst/db-redis/redis-data-redis-master-0
+
+              echo "== Preflight =="
+              test -d "$SRC" || (echo "Missing $SRC" && exit 1)
+              mkdir -p "$DST_ROOT"
+
+              echo "== Source summary =="
+              find "$SRC" -xdev -type f | wc -l
+              du -sh "$SRC" || true
+
+              echo "== Destination pre-summary =="
+              find "$DST_ROOT" -xdev -type f 2>/dev/null | wc -l || true
+              du -sh "$DST_ROOT" 2>/dev/null || true
+
+              echo "== Copy =="
+              rsync -aH --numeric-ids --info=progress2 "$SRC"/ "$DST_ROOT"/
+
+              echo "== Verify counts (basic) =="
+              SRC_COUNT=$(find "$SRC" -xdev -type f | wc -l | tr -d ' ')
+              DST_COUNT=$(find "$DST_ROOT" -xdev -type f | wc -l | tr -d ' ')
+              echo "SRC files: $SRC_COUNT"
+              echo "DST files: $DST_COUNT"
+              test "$SRC_COUNT" = "$DST_COUNT" || (echo "File count mismatch" && exit 2)
+
+              echo "== Verify Redis markers =="
+              test -f "$DST_ROOT/dump.rdb" || test -f "$DST_ROOT/appendonly.aof" || (echo "Missing dump.rdb/appendonly.aof" && exit 3)
+              test -f "$DST_ROOT/nodes.conf" || echo "warn: nodes.conf not found (ok if not clustered)"
+
+              echo "== Done =="
+          volumeMounts:
+            - name: src
+              mountPath: /src
+            - name: dst
+              mountPath: /dst
+      volumes:
+        - name: src
+          persistentVolumeClaim:
+            claimName: redis-data-redis-master-0
+        - name: dst
+          nfs:
+            server: 192.168.226.6
+            path: /volume2/k3s-cluster-storage

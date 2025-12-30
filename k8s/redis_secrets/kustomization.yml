@@ -3,3 +3,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - onepassword-redis.yml
+  - redis-pv-migration-redis-data-redis-master-0.yml
+  - redis-pv-migration-redis-data-redis-replicas-0.yml
+  - redis-pv-migration-redis-data-redis-replicas-1.yml
+  - redis-pv-migration-redis-data-redis-replicas-2.yml
