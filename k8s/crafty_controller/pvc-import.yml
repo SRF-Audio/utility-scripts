@@ -8,8 +8,8 @@ metadata:
     app: crafty-controller
 spec:
   accessModes:
-    - ReadWriteOnce
-  storageClassName: synology-csi-nfs-delete
+    - ReadWriteMany
+  storageClassName: nfs-synology-delete
   resources:
     requests:
       storage: 50Gi

@@ -9,7 +9,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: synology-csi-nfs-delete
+  storageClassName: local-path-retain
   resources:
     requests:
       storage: 10Gi

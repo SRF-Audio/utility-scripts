@@ -19,6 +19,7 @@ spec:
           path: /volume2/k3s-cluster-storage
         storageClass:
           create: false
+          provisionerName: k8s-sigs.io/nfs-subdir-external-provisioner
   destination:
     server: https://kubernetes.default.svc
     namespace: infra-nfs-provisioner
