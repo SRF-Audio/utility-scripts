@@ -10,6 +10,6 @@ resources:
   - webserver.yml
   - ingress.yml
   - pv-paperless-consume.yml
-  # - migrations/job-migrate-paperless-data.yml
-  # - migrations/job-migrate-paperless-media.yml
-  # - migrations/job-migrate-paperless-export.yml
+  - migrations/job-migrate-paperless-data.yml
+  - migrations/job-migrate-paperless-media.yml
+  - migrations/job-migrate-paperless-export.yml
