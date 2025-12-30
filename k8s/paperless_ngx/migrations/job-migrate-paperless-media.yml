@@ -42,7 +42,7 @@ spec:
       volumes:
         - name: src
           persistentVolumeClaim:
-            claimName: paperless-ngx-media-old
+            claimName: paperless-ngx-media
         - name: dst
           persistentVolumeClaim:
-            claimName: paperless-ngx-media
+            claimName: paperless-ngx-media-nfs

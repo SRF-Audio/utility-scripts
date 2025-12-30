@@ -68,13 +68,13 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: paperless-ngx-data
+            claimName: paperless-ngx-data-nfs
         - name: media
           persistentVolumeClaim:
-            claimName: paperless-ngx-media
+            claimName: paperless-ngx-media-nfs
         - name: export
           persistentVolumeClaim:
-            claimName: paperless-ngx-export
+            claimName: paperless-ngx-export-nfs
         - name: consume
           persistentVolumeClaim:
             claimName: paperless-ngx-consume

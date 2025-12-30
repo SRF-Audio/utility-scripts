@@ -19,6 +19,23 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  name: paperless-ngx-data-nfs
+  namespace: apps-paperless-ngx
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: webserver
+    app.kubernetes.io/managed-by: argocd
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-synology-delete
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
   name: paperless-ngx-media
   namespace: apps-paperless-ngx
   labels:
@@ -36,6 +53,23 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  name: paperless-ngx-media-nfs
+  namespace: apps-paperless-ngx
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: webserver
+    app.kubernetes.io/managed-by: argocd
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-synology-delete
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
   name: paperless-ngx-export
   namespace: apps-paperless-ngx
   labels:
@@ -46,6 +80,23 @@ spec:
   accessModes:
     - ReadWriteMany
   storageClassName: synology-csi-nfs-delete
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-ngx-export-nfs
+  namespace: apps-paperless-ngx
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: webserver
+    app.kubernetes.io/managed-by: argocd
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-synology-delete
   resources:
     requests:
       storage: 10Gi

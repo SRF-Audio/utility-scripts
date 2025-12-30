@@ -42,7 +42,7 @@ spec:
       volumes:
         - name: src
           persistentVolumeClaim:
-            claimName: paperless-ngx-export-old
+            claimName: paperless-ngx-export
         - name: dst
           persistentVolumeClaim:
-            claimName: paperless-ngx-export
+            claimName: paperless-ngx-export-nfs
