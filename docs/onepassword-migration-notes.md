@@ -24,31 +24,7 @@ This document tracks applications that require OnePassword CRD configuration bef
 
 ---
 
-### 2. Synology CSI (`argocd/apps/platform/synology-csi.yml`)
-
-**Status**: Needs OnePassword CRDs
-
-**Current State**: Previously deployed via `synology_csi_deploy` role which templated NAS credentials into the Helm values.
-
-**Required Secrets**:
-- `synology_csi_deploy_nas_lan_ip` (NAS host IP address)
-- `k3s_synology_csi_nas_username` (NAS username)
-- `k3s_synology_csi_nas_password` (NAS password)
-- `synology_csi_deploy_nfs_storage_path` (NFS storage path on NAS)
-
-**Migration Path**:
-1. Create OnePasswordItem CRDs for NAS credentials
-2. Either:
-   - Create a `k8s/synology_csi_secrets/` directory for OnePassword CRDs, OR
-   - Since this is Helm-only, create `argocd/apps/platform/synology-csi_secrets/` directory
-3. Update `synology-csi.yml` to reference the secret
-4. Remove placeholder values from the application manifest
-
-**Sync Wave**: 20 (platform service)
-
----
-
-### 3. Homepage (`argocd/apps/platform/homepage.yml`)
+### 2. Homepage (`argocd/apps/platform/homepage.yml`)
 
 **Status**: Needs OnePassword CRDs + ArgoCD Token Management
 
@@ -115,7 +91,6 @@ See `k8s/crafty_controller/onepassworditem-crafty-default-json.yml` and `argocd/
 | Application | OnePassword CRDs | Application Updated | Tested | Notes |
 |-------------|-----------------|---------------------|--------|-------|
 | Tailscale Operator | ❌ | ❌ | ❌ | Requires OAuth credentials |
-| Synology CSI | ❌ | ❌ | ❌ | Requires NAS credentials |
 | Homepage | ❌ | ❌ | ❌ | Requires multiple API keys + ArgoCD token |
 | Crafty Controller | ✅ | ✅ | ❓ | Already using OnePassword CRDs |
 | Omada Controller | ✅ | ✅ | ❓ | No secret dependencies |

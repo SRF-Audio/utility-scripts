@@ -99,16 +99,14 @@ The refactoring implements a strict dependency-based sync wave ordering:
 | **Paperless-NGX** | ✅ Ready | Waves 10 & 30, uses existing OnePassword CRDs |
 | **Omada Controller** | ✅ Ready | Wave 30, no secrets |
 | **Tailscale Operator** | ⚠️ Needs Migration | Wave 0, requires OAuth creds via OnePassword |
-| **Synology CSI** | ⚠️ Needs Migration | Wave 20, requires NAS creds via OnePassword |
 | **Homepage** | ⚠️ Needs Migration | Wave 30, requires API tokens via OnePassword |
 
 ## Migration Notes
 
-Three applications require OnePassword CRD setup before they can be enabled:
+Two applications require OnePassword CRD setup before they can be enabled:
 
 1. **Tailscale Operator**: Needs `tailscale_oauth_client_id` and `tailscale_oauth_client_secret`
-2. **Synology CSI**: Needs NAS host, username, password, and storage path
-3. **Homepage**: Needs NextDNS API token, Proxmox API password, and ArgoCD token
+2. **Homepage**: Needs NextDNS API token, Proxmox API password, and ArgoCD token
 
 See `docs/onepassword-migration-notes.md` for detailed migration instructions.
 
