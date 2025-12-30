@@ -1,7 +1,4 @@
 ---
-# NOTE: This application currently does not have any secret requirements
-# that aren't already handled by the k8s manifests. The application can
-# be enabled once the ingress configuration is verified.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
