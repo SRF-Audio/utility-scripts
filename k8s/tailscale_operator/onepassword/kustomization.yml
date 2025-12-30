@@ -4,4 +4,3 @@ kind: Kustomization
 resources:
   - namespace.yml
   - tailscale-credentials.yml
-  - secret-transform-job.yml
