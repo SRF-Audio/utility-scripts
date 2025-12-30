@@ -6,4 +6,4 @@ resources:
   - storageclasses/local-path-retain.yml
   - storageclasses/nfs-synology-delete.yml
   - storageclasses/nfs-synology-retain.yml
-  - postgres-pv-migration-job.yml
+
