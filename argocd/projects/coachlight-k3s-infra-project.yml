@@ -1,0 +1,41 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: coachlight-k3s-infra
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: >
+    Infrastructure project for the Coachlight k3s homelab cluster. Owns
+    platform components such as Argo CD, storage, ingress, DNS, backup,
+    and networking add-ons, and may manage cluster-scoped resources. Not
+    intended for application workloads.
+
+  # For homelab simplicity; you can tighten this later
+  sourceRepos:
+    - "*"
+
+  destinations:
+    # Argo CD itself (control plane)
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+
+    # All infra components should live in infra-* namespaces, e.g.:
+    # infra-longhorn, infra-synology-csi, infra-velero, infra-tailscale,
+    # infra-1password, infra-ingress, infra-dns, etc.
+    - server: https://kubernetes.default.svc
+      namespace: infra-*
+
+    - server: https://kubernetes.default.svc
+      namespace: storage-*
+
+  orphanedResources:
+    warn: true
+
+  # Infra is allowed to manage cluster-scoped resources
+  # (CRDs, ClusterRoles, etc.)
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"

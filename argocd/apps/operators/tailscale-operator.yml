@@ -1,0 +1,33 @@
+---
+# NOTE: This application requires Tailscale OAuth credentials.
+# Currently the credentials are templated via Ansible variables:
+#   - tailscale_oauth_client_id
+#   - tailscale_oauth_client_secret
+# TODO: Migrate to OnePassword CRDs before enabling this application.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tailscale-operator
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: coachlight-k3s-infra
+  source:
+    repoURL: https://pkgs.tailscale.com/helmcharts
+    chart: tailscale-operator
+    targetRevision: "1.90.8"
+    helm:
+      valuesObject:
+        oauth:
+          clientId: ""  # TODO: Replace with OnePassword CRD reference
+          clientSecret: ""  # TODO: Replace with OnePassword CRD reference
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: infra-tailscale-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
