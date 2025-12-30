@@ -14,7 +14,7 @@ spec:
     path: k8s/cluster_primitives
   destination:
     server: https://kubernetes.default.svc
-    namespace: default
+    namespace: storage-cluster-primitives
   syncPolicy:
     automated:
       prune: true

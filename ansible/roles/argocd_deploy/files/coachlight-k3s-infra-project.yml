@@ -28,6 +28,9 @@ spec:
     - server: https://kubernetes.default.svc
       namespace: infra-*
 
+    - server: https://kubernetes.default.svc
+      namespace: storage-*
+
   orphanedResources:
     warn: true
 

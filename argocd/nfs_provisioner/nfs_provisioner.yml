@@ -16,17 +16,12 @@ spec:
       valuesObject:
         nfs:
           server: 192.168.226.6
-          path: /volume2/k8s
+          path: /volume2/k3s-cluster-storage
         storageClass:
           create: false
-          provisionerName: cluster.local/nfs-subdir-external-provisioner
-        rbac:
-          create: true
-        serviceAccount:
-          create: true
   destination:
     server: https://kubernetes.default.svc
-    namespace: storage-nfs-provisioner
+    namespace: infra-nfs-provisioner
   syncPolicy:
     automated:
       prune: true
