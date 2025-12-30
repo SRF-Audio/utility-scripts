@@ -7,7 +7,7 @@ metadata:
   labels:
     app: crafty-controller
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: crafty-controller
@@ -16,6 +16,15 @@ spec:
       labels:
         app: crafty-controller
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - k3s-wkr-5
       containers:
         - name: crafty-controller
           image: arcadiatechnology/crafty-4:latest
