@@ -1,0 +1,81 @@
+---
+# NOTE: This application requires Synology NAS credentials to be configured.
+# Currently the credentials are templated via Ansible variables:
+#   - k3s_synology_csi_nas_username
+#   - k3s_synology_csi_nas_password
+# TODO: Migrate to OnePassword CRDs before enabling this application.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: synology-csi
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  project: coachlight-k3s-infra
+  source:
+    repoURL: https://christian-schlichtherle.github.io/synology-csi-chart
+    chart: synology-csi
+    targetRevision: 0.10.1
+    helm:
+      valuesObject:
+        clientInfoSecret:
+          clients:
+            - host: ""  # TODO: Configure via OnePassword
+              https: true
+              username: ""  # TODO: Configure via OnePassword
+              password: ""  # TODO: Configure via OnePassword
+              port: 5001
+          create: true
+          name: ""
+        installCSIDriver: true
+        storageClasses:
+          # Disable all iSCSI classes
+          iscsi-delete:
+            disabled: true
+            test: false
+          iscsi-retain:
+            disabled: true
+
+          # Disable all SMB classes
+          smb-delete:
+            disabled: true
+            test: false
+          smb-retain:
+            disabled: true
+
+          # Our single active NFS storage class (Delete, default)
+          nfs-delete:
+            disabled: false
+            isDefault: true
+            reclaimPolicy: Delete
+            test: false
+            volumeBindingMode: WaitForFirstConsumer
+            mountOptions:
+              - vers=4
+            parameters:
+              protocol: "nfs"
+              dsm: ""  # TODO: Configure via OnePassword
+              location: ""  # TODO: Configure via OnePassword
+
+          # Optionally keep this around but disabled for safety
+          nfs-retain:
+            disabled: true
+
+        volumeSnapshotClasses:
+          delete:
+            disabled: true
+            deletionPolicy: Delete
+          retain:
+            disabled: true
+            deletionPolicy: Retain
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: infra-synology-csi
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -2,19 +2,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: paperless-ngx-redis-secrets
+  name: paperless-ngx
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-wave: "30"
 spec:
-  project: coachlight-k3s-db
+  project: coachlight-k3s-apps
   source:
     repoURL: https://github.com/SRF-Audio/utility-scripts
     targetRevision: main
-    path: k8s/redis_secrets
+    path: k8s/paperless_ngx
   destination:
     server: https://kubernetes.default.svc
-    namespace: db-redis
+    namespace: apps-paperless-ngx
   syncPolicy:
     automated:
       prune: true

@@ -52,93 +52,28 @@
           {{ kubeconfig_manager_artifacts.cluster_name }}
     - role: onepassword_operator_deploy
       vars:
-        onepassword_operator_deploy_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
-        onepassword_operator_deploy_context: "{{ kubeconfig_manager_artifacts.context_name }}"
-        onepassword_operator_deploy_cluster_name: "{{ kubeconfig_manager_artifacts.cluster_name }}"
-        onepassword_operator_deploy_connect_credentials: "{{ onepassword_connect_credentials }}"
-        onepassword_operator_deploy_operator_token: "{{ onepassword_operator_token }}"
+        onepassword_operator_deploy_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        onepassword_operator_deploy_context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
+        onepassword_operator_deploy_cluster_name: >-
+          {{ kubeconfig_manager_artifacts.cluster_name }}
+        onepassword_operator_deploy_connect_credentials: >-
+          {{ onepassword_connect_credentials }}
+        onepassword_operator_deploy_operator_token: >-
+          {{ onepassword_operator_token }}
     - role: argocd_github_repo_create
       vars:
         argocd_github_repo_create_kubeconfig: >-
           {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
         argocd_github_repo_create_context: >-
           {{ kubeconfig_manager_artifacts.context_name }}
-    - role: tailscale_operator_deploy
+    - role: k8s_object_manager
       vars:
-        tailscale_operator_deploy_kubeconfig: >-
+        k8s_object_manager_kubeconfig: >-
           {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
-        tailscale_operator_deploy_context: >-
+        k8s_object_manager_context: >-
           {{ kubeconfig_manager_artifacts.context_name }}
-        tailscale_operator_deploy_cluster_name: >-
-          {{ kubeconfig_manager_artifacts.cluster_name }}
-        tailscale_operator_deploy_oauth_client_id: >-
-          {{ tailscale_oauth_client_id }}
-        tailscale_operator_deploy_oauth_client_secret: >-
-          {{ tailscale_oauth_client_secret }}
-
-    - role: k8s_object_manager
-      vars:
-        k8s_object_manager_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
-        k8s_object_manager_context: "{{ kubeconfig_manager_artifacts.context_name }}"
-        k8s_object_manager_src: "{{ playbook_dir }}/../../argocd/nfs_provisioner/nfs_provisioner.yml"
+        k8s_object_manager_src: "{{ playbook_dir }}/../../argocd/root.yml"
         k8s_object_manager_state: present
         k8s_object_manager_apply: true
-    - role: k8s_object_manager
-      vars:
-        k8s_object_manager_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
-        k8s_object_manager_context: "{{ kubeconfig_manager_artifacts.context_name }}"
-        k8s_object_manager_src: "{{ playbook_dir }}/../../argocd/cluster_primitives/cluster_primitives.yml"
-        k8s_object_manager_state: present
-        k8s_object_manager_apply: true
-    - role: synology_csi_deploy
-      vars:
-        k8s_validator_kubeconfig: >-
-          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
-        k8s_validator_context: >-
-          {{ kubeconfig_manager_artifacts.context_name }}
-    - role: argocd_homepage_token
-    - role: homepage_deploy
-      vars:
-        argocd_homepage_token: >-
-          {{ argocd_homepage_token_artifacts.token | default('') }}
-    # - role: argocd_api_auth
-    #   vars:
-    #     argocd_api_auth_username: "{{ argocd_admin_username }}"
-    #     argocd_api_auth_password: "{{ argocd_admin_password }}"
-    - role: crafty_controller_deploy
-      vars:
-        crafty_controller_deploy_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
-        crafty_controller_deploy_context: "{{ kubeconfig_manager_artifacts.context_name }}"
-        crafty_controller_deploy_cluster_name: "{{ kubeconfig_manager_artifacts.cluster_name }}"
-        crafty_controller_deploy_namespace: apps-crafty-controller
-    - role: omada_deploy
-    - role: k8s_object_manager
-      vars:
-        k8s_object_manager_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
-        k8s_object_manager_context: "{{ kubeconfig_manager_artifacts.context_name }}"
-        k8s_object_manager_src: "{{ playbook_dir }}/../../argocd/postgres/postgres.yml"
-        k8s_object_manager_state: present
-        k8s_object_manager_apply: true
-    - role: k8s_object_manager
-      vars:
-        k8s_object_manager_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
-        k8s_object_manager_context: "{{ kubeconfig_manager_artifacts.context_name }}"
-        k8s_object_manager_src: "{{ playbook_dir }}/../../argocd/postgres/postgres_secrets.yml"
-        k8s_object_manager_state: present
-        k8s_object_manager_apply: true
-    - role: k8s_object_manager
-      vars:
-        k8s_object_manager_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
-        k8s_object_manager_context: "{{ kubeconfig_manager_artifacts.context_name }}"
-        k8s_object_manager_src: "{{ playbook_dir }}/../../argocd/redis/redis.yml"
-        k8s_object_manager_state: present
-        k8s_object_manager_apply: true
-    - role: k8s_object_manager
-      vars:
-        k8s_object_manager_kubeconfig: "{{ kubeconfig_manager_artifacts.target_kubeconfig_path }}"
-        k8s_object_manager_context: "{{ kubeconfig_manager_artifacts.context_name }}"
-        k8s_object_manager_src: "{{ playbook_dir }}/../../argocd/redis/redis_secrets.yml"
-        k8s_object_manager_state: present
-        k8s_object_manager_apply: true
-    - role: paperless_ngx_deploy
-    - role: k9s_install

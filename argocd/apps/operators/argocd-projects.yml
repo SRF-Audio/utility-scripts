@@ -2,19 +2,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: paperless-ngx-app-secrets
+  name: argocd-projects
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
-  project: coachlight-k3s-apps
+  project: default
   source:
     repoURL: https://github.com/SRF-Audio/utility-scripts
     targetRevision: main
-    path: k8s/paperless_ngx_secrets
+    path: argocd/projects
   destination:
     server: https://kubernetes.default.svc
-    namespace: apps-paperless-ngx
+    namespace: argocd
   syncPolicy:
     automated:
       prune: true
