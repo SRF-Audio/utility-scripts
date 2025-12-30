@@ -1,7 +1,8 @@
 ---
-# NOTE: This application uses Tailscale OAuth credentials stored in 1Password.
-# The credentials are synced via the OnePasswordItem CRD in wave 10.
-# A transformation job creates the 'operator-oauth' secret with the correct key names.
+# NOTE: This application uses Tailscale OAuth credentials stored
+# in 1Password. The credentials are synced via the OnePasswordItem
+# CRD in wave 10. A transformation job creates the 'operator-oauth'
+# secret with the correct key names.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
