@@ -42,8 +42,8 @@ spec:
             runAsUser: 1001
             runAsGroup: 1001
             runAsNonRoot: true
-          # persistence:
-          #   storageClass: nfs-synology-retain
+          persistence:
+            storageClass: nfs-synology-retain
 
         replica:
           podSecurityContext:
