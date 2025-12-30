@@ -14,7 +14,8 @@ spec:
   sourceRepos:
     - "*"
 
-  # e.g. db-influxdb, db-mongo, db-redis, etc.
+  # Applications should live in apps-* namespaces, e.g.:
+  # apps-homepage, apps-paperless-ngx, apps-crafty-controller, etc.
   destinations:
     - server: https://kubernetes.default.svc
       namespace: apps-*
@@ -22,7 +23,7 @@ spec:
   orphanedResources:
     warn: true
 
-  # DB operators often need CRDs, ClusterRoles, etc.
+  # Apps may need CRDs or ClusterRoles for operators
   clusterResourceWhitelist:
     - group: "*"
       kind: "*"
