@@ -5,6 +5,7 @@ metadata:
   labels:
     app.kubernetes.io/name: paperless-ngx
 spec:
+  storageClassName: ""
   capacity:
     storage: 10Gi
   accessModes:
