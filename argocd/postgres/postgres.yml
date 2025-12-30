@@ -7,6 +7,13 @@ metadata:
     argocd.argoproj.io/sync-wave: "1"
 spec:
   project: coachlight-k3s-db
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      name: postgres-postgresql
+      namespace: db-postgres
+      jsonPointers:
+        - /spec/replicas
   source:
     repoURL: https://charts.bitnami.com/bitnami
     chart: postgresql

@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/component: gotenberg
     app.kubernetes.io/managed-by: argocd
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app.kubernetes.io/name: paperless-ngx
