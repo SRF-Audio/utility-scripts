@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"workbench.colorTheme": "Galax Theme",
+		"workbench.iconTheme": "material-icon-theme",
+		"editor.fontLigatures": true,
+		"ansible.python.interpreterPath": "/usr/bin/python"
+	}
+}
