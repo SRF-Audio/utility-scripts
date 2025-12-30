@@ -1,8 +1,4 @@
 ---
-# NOTE: This application uses Tailscale OAuth credentials stored
-# in 1Password. The credentials are synced via the OnePasswordItem
-# CRD in wave 10. A transformation job creates the 'operator-oauth'
-# secret with the correct key names.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -18,7 +14,14 @@ spec:
     targetRevision: "1.90.8"
     helm:
       valuesObject:
-        oauth: {}
+        oauthSecretVolume:
+          secret:
+            secretName: tailscale-operator-oauth
+            items:
+              - key: tailscale_oauth_client_id
+                path: client_id
+              - key: tailscale_oauth_client_secret
+                path: client_secret
   destination:
     server: https://kubernetes.default.svc
     namespace: infra-tailscale-operator
