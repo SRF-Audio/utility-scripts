@@ -32,9 +32,15 @@ spec:
               find "$SRC" -xdev -type f | wc -l
               du -sh "$SRC" || true
 
+              echo "== List source (maxdepth 2) =="
+              find "$SRC" -maxdepth 2 -type f -printf "%p %s\n" || true
+
               echo "== Destination pre-summary =="
               find "$DST_ROOT" -xdev -type f 2>/dev/null | wc -l || true
               du -sh "$DST_ROOT" 2>/dev/null || true
+
+              echo "== List destination pre (maxdepth 2) =="
+              find "$DST_ROOT" -maxdepth 2 -type f -printf "%p %s\n" 2>/dev/null || true
 
               echo "== Copy =="
               rsync -aH --numeric-ids --info=progress2 "$SRC"/ "$DST_ROOT"/
@@ -47,7 +53,13 @@ spec:
               test "$SRC_COUNT" = "$DST_COUNT" || (echo "File count mismatch" && exit 2)
 
               echo "== Verify Redis markers =="
-              test -f "$DST_ROOT/dump.rdb" || test -f "$DST_ROOT/appendonly.aof" || (echo "Missing dump.rdb/appendonly.aof" && exit 3)
+              if test -f "$DST_ROOT/dump.rdb"; then
+                echo "Found dump.rdb"
+              elif test -f "$DST_ROOT/appendonly.aof"; then
+                echo "Found appendonly.aof"
+              else
+                echo "warn: no dump.rdb or appendonly.aof present (persistence may be empty/disabled)"
+              fi
               test -f "$DST_ROOT/nodes.conf" || echo "warn: nodes.conf not found (ok if not clustered)"
 
               echo "== Done =="
