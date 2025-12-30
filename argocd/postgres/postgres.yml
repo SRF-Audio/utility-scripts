@@ -32,7 +32,6 @@ spec:
             userPasswordKey: PAPERLESS_DBPASS
 
         primary:
-          replicaCount: 0
           persistence:
             enabled: true
             storageClass: nfs-synology-retain
