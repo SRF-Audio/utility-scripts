@@ -6,4 +6,3 @@ resources:
   - storageclasses/local-path-retain.yml
   - storageclasses/nfs-synology-delete.yml
   - storageclasses/nfs-synology-retain.yml
-  - pvs/pv-paperless-consume.yml
