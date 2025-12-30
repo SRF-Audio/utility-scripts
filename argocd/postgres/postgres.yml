@@ -33,6 +33,10 @@ spec:
 
         primary:
           replicaCount: 0
+          persistence:
+            enabled: true
+            storageClass: nfs-synology-retain
+            size: 8Gi
           podSecurityContext:
             enabled: true
             fsGroup: 1001
