@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/component: tika
     app.kubernetes.io/managed-by: argocd
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: paperless-ngx
