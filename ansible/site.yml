@@ -47,16 +47,6 @@
                     'Coachlight ProxMox Cluster',
                     field='password',
                     vault='HomeLab') }}
-        tailscale_oauth_client_id: >-
-          {{ lookup('community.general.onepassword',
-                    'Tailscale',
-                    field='tailscale_oauth_client_id',
-                    vault='HomeLab') }}
-        tailscale_oauth_client_secret: >-
-          {{ lookup('community.general.onepassword',
-                    'Tailscale',
-                    field='tailscale_oauth_client_secret',
-                    vault='HomeLab') }}
         k3s_synology_csi_nas_username: >-
           {{ lookup('community.general.onepassword',
                     'tpmiwkdnk3qafsg4u3r6l7simy',
