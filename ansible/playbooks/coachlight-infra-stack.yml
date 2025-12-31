@@ -77,3 +77,4 @@
         k8s_object_manager_src: "{{ playbook_dir }}/../../argocd/root.yml"
         k8s_object_manager_state: present
         k8s_object_manager_apply: true
+    - role: k9s_install

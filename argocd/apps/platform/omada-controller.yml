@@ -19,10 +19,10 @@ spec:
         persistence:
           data:
             enabled: true
-            storageClassName: "local-path"
+            storageClassName: "local-path-retain"
           logs:
             enabled: true
-            storageClassName: "local-path"
+            storageClassName: "local-path-retain"
 
         service:
           type: LoadBalancer
