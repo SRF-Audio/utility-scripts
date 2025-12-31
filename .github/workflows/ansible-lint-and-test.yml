@@ -24,8 +24,9 @@ jobs:
     outputs:
       roles_json: ${{ steps.normalize.outputs.roles_json }}
       playbooks_json: ${{ steps.normalize.outputs.playbooks_json }}
-      yamllint_targets_json: ${{ steps.normalize.outputs.yamllint_targets_json }}
+      targets_json: ${{ steps.normalize.outputs.targets_json }}
       has_targets: ${{ steps.normalize.outputs.has_targets }}
+      has_playbooks: ${{ steps.normalize.outputs.has_playbooks }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -44,48 +45,41 @@ jobs:
               - ansible/playbooks/**/*.yml
               - ansible/playbooks/**/*.yaml
               - ansible/site.yml
-            ansible_yaml:
-              - ansible/**/*.yml
-              - ansible/**/*.yaml
 
       - name: Normalize changed paths to targets
         id: normalize
         run: |
           set -euo pipefail
           
-          # Extract changed roles from file list
           ROLES_FILES='${{ steps.filter.outputs.roles_files }}'
           PLAYBOOKS_FILES='${{ steps.filter.outputs.playbooks_files }}'
           
-          # Get unique role directories (handle empty input)
-          ROLES_JSON=$(echo "$ROLES_FILES" | jq -r '.[]' | { grep '^ansible/roles/' || true; } | sed 's|^\(ansible/roles/[^/]*\)/.*|\1|' | sort -u | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          # Extract unique role directories using jq only
+          ROLES_JSON=$(echo "$ROLES_FILES" | jq -c '[.[] | select(startswith("ansible/roles/")) | split("/") | "ansible/roles/" + .[2]] | unique')
           
-          # Get playbook files
-          PLAYBOOKS_JSON=$(echo "$PLAYBOOKS_FILES" | jq -c 'map(select(length > 0))')
+          # Extract unique playbook files
+          PLAYBOOKS_JSON=$(echo "$PLAYBOOKS_FILES" | jq -c 'unique')
           
-          # Combine for yamllint targets (roles + playbooks)
-          YAMLLINT_TARGETS=$(echo "$ROLES_JSON" "$PLAYBOOKS_JSON" | jq -s -c 'add | unique')
+          # Combine roles + playbooks for targets
+          TARGETS_JSON=$(jq -nc --argjson r "$ROLES_JSON" --argjson p "$PLAYBOOKS_JSON" '$r + $p | unique')
           
-          # Check if we have any targets
-          ROLES_COUNT=$(echo "$ROLES_JSON" | jq 'length')
-          PLAYBOOKS_COUNT=$(echo "$PLAYBOOKS_JSON" | jq 'length')
-          if [ "$ROLES_COUNT" -gt 0 ] || [ "$PLAYBOOKS_COUNT" -gt 0 ]; then
-            HAS_TARGETS="true"
-          else
-            HAS_TARGETS="false"
-          fi
+          # Boolean flags
+          HAS_TARGETS=$(echo "$TARGETS_JSON" | jq -r 'length > 0')
+          HAS_PLAYBOOKS=$(echo "$PLAYBOOKS_JSON" | jq -r 'length > 0')
           
           {
             echo "roles_json=$ROLES_JSON"
             echo "playbooks_json=$PLAYBOOKS_JSON"
-            echo "yamllint_targets_json=$YAMLLINT_TARGETS"
+            echo "targets_json=$TARGETS_JSON"
             echo "has_targets=$HAS_TARGETS"
+            echo "has_playbooks=$HAS_PLAYBOOKS"
           } >> "$GITHUB_OUTPUT"
           
           echo "Changed roles: $ROLES_JSON"
           echo "Changed playbooks: $PLAYBOOKS_JSON"
-          echo "Yamllint targets: $YAMLLINT_TARGETS"
+          echo "Combined targets: $TARGETS_JSON"
           echo "Has targets: $HAS_TARGETS"
+          echo "Has playbooks: $HAS_PLAYBOOKS"
 
   ansible-yamllint:
     if: github.event_name != 'workflow_dispatch' && needs.detect-changes.outputs.has_targets == 'true'
@@ -119,13 +113,15 @@ jobs:
           run: |
             pip install --quiet yamllint
             echo "Running yamllint on changed Ansible YAML files..."
-            TARGETS='${{ needs.detect-changes.outputs.yamllint_targets_json }}'
-            echo "$TARGETS" | jq -r '.[]' | while read -r target; do
-              if [ -n "$target" ]; then
-                echo "Linting: $target"
-                yamllint "$target"
-              fi
-            done
+            python3 -c '
+            import json, sys, subprocess
+            targets = json.loads(sys.argv[1])
+            if targets:
+                print(f"Linting {len(targets)} target(s): {targets}")
+                subprocess.run(["yamllint"] + targets, check=True)
+            else:
+                print("No targets to lint")
+            ' '${{ needs.detect-changes.outputs.targets_json }}'
 
   ansible-lint:
     if: github.event_name != 'workflow_dispatch' && needs.detect-changes.outputs.has_targets == 'true'
@@ -160,27 +156,18 @@ jobs:
             ansible-galaxy collection install -r ansible/requirements.yml
             pip install --quiet ansible-lint
             echo "Running ansible-lint on changed roles and playbooks..."
-            ROLES='${{ needs.detect-changes.outputs.roles_json }}'
-            PLAYBOOKS='${{ needs.detect-changes.outputs.playbooks_json }}'
-            TARGETS=""
-            for role in $(echo "$ROLES" | jq -r '.[]'); do
-              if [ -n "$role" ]; then
-                TARGETS="$TARGETS $role"
-              fi
-            done
-            for playbook in $(echo "$PLAYBOOKS" | jq -r '.[]'); do
-              if [ -n "$playbook" ]; then
-                TARGETS="$TARGETS $playbook"
-              fi
-            done
-            if [ -n "$TARGETS" ]; then
-              ansible-lint $TARGETS --exclude ansible/old_roles/
-            else
-              echo "No targets to lint"
-            fi
+            python3 -c '
+            import json, sys, subprocess
+            targets = json.loads(sys.argv[1])
+            if targets:
+                print(f"Linting {len(targets)} target(s): {targets}")
+                subprocess.run(["ansible-lint"] + targets + ["--exclude", "ansible/old_roles/"], check=True)
+            else:
+                print("No targets to lint")
+            ' '${{ needs.detect-changes.outputs.targets_json }}'
 
   ansible-playbook-syntax:
-    if: github.event_name != 'workflow_dispatch' && needs.detect-changes.outputs.has_targets == 'true' && needs.detect-changes.outputs.playbooks_json != '[]'
+    if: github.event_name != 'workflow_dispatch' && needs.detect-changes.outputs.has_playbooks == 'true'
     needs: detect-changes
     runs-on: ubuntu-latest
     permissions:
