@@ -25,6 +25,9 @@ spec:
       port: 19132
       targetPort: 19132
       protocol: UDP
+    - name: java-simple-voice-chat-mod
+      port: 24454
+      targetPort: 24454
     - name: java-25500
       port: 25500
       targetPort: 25500
