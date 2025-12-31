@@ -1,0 +1,57 @@
+---
+# NOTE: This Velero deployment requires additional configuration for backup storage.
+# The backup storage location and volume snapshot location must be configured
+# based on your environment (e.g., S3, Azure, GCS, etc.).
+# TODO: Configure backupStorageLocation and volumeSnapshotLocation in values below.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: velero
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  project: coachlight-k3s-infra
+  source:
+    repoURL: https://vmware-tanzu.github.io/helm-charts
+    chart: velero
+    targetRevision: "8.7.0"
+    helm:
+      valuesObject:
+        initContainers:
+          - name: velero-plugin-for-csi
+            image: velero/velero-plugin-for-csi:v0.7.1
+            imagePullPolicy: IfNotPresent
+            volumeMounts:
+              - mountPath: /target
+                name: plugins
+
+        configuration:
+          features: EnableCSI
+          # TODO: Configure backup storage location
+          # backupStorageLocation:
+          #   - name: default
+          #     provider: aws  # or azure, gcp, etc.
+          #     bucket: my-backup-bucket
+          #     config:
+          #       region: us-east-1
+          # volumeSnapshotLocation:
+          #   - name: default
+          #     provider: aws
+          #     config:
+          #       region: us-east-1
+
+        snapshotsEnabled: true
+        deployNodeAgent: false
+        upgradeCRDs: true
+        cleanUpCRDs: false
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: infra-velero
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

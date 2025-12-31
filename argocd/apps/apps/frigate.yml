@@ -1,0 +1,55 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: frigate
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  project: coachlight-k3s-apps
+  source:
+    repoURL: https://blakeblackshear.github.io/blakeshome-charts/
+    chart: frigate
+    targetRevision: "7.8.0"
+    helm:
+      valuesObject:
+        service:
+          type: ClusterIP
+          annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/tags: "tag:k8s,tag:apps"
+            tailscale.com/hostname: "frigate"
+
+        persistence:
+          config:
+            enabled: true
+            storageClass: "longhorn"
+
+        ingress:
+          enabled: true
+          ingressClassName: tailscale
+          annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/tags: "tag:k8s,tag:apps"
+            tailscale.com/hostname: "frigate"
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/name: "Frigate"
+            gethomepage.dev/description: "NVR with realtime object detection"
+            gethomepage.dev/group: "Cameras"
+            gethomepage.dev/icon: "frigate.png"
+          hosts:
+            - host: frigate
+              paths:
+                - path: /
+                  pathType: Prefix
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: frigate
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
