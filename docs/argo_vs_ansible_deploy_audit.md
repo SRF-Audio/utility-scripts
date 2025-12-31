@@ -336,8 +336,6 @@ This document audits all `*_deploy` roles in `ansible/roles/` against ArgoCD App
 
 ## Actions Required
 
-### 1. Delete Redundant Roles
-
 ### 1. Delete Redundant Roles ✅ COMPLETED
 
 - [x] Delete `ansible/roles/crafty_controller_deploy/`

@@ -20,9 +20,11 @@ spec:
       valuesObject:
         superuser:
           email: "admin@netbox.local"
-          # TODO: Configure password via existingSecret or OnePassword
+          # TODO: Configure superuser.password field
+          # Options: existingSecret, OnePassword CRD, or templated value
 
-        # TODO: Configure secretKey via existingSecret or OnePassword
+        # TODO: Configure secretKey field (Django secret key)
+        # Options: existingSecret, OnePassword CRD, or templated value
 
         persistence:
           enabled: true
