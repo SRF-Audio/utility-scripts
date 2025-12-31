@@ -11,4 +11,3 @@ ansible/roles/tailscale_operator_deploy/templates/infra-tailscale-operator.yml
 ansible/roles/onepassword_operator_deploy/templates/application.yml
 ansible/roles/paperless_ngx_deploy/templates/application.yml
 ansible/roles/paperless_ngx_deploy/templates/secrets_application.yml
-semicolon_delimited_script
