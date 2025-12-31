@@ -11,10 +11,11 @@ This document audits all `*_deploy` roles in `ansible/roles/` against ArgoCD App
 
 | Status | Count | Roles |
 |--------|-------|-------|
-| **DELETE ROLE** | 2 | `crafty_controller_deploy`, `nfs_provisioner_deploy` |
-| **CREATE ARGO APP** | 3 | `frigate_deploy`, `netbox_deploy`, `velero_deploy` |
+| **DELETED** | 2 | `crafty_controller_deploy`, `nfs_provisioner_deploy` |
+| **ARGO APP CREATED** | 3 | `frigate_deploy`, `netbox_deploy`, `velero_deploy` |
 | **KEEP ROLE** | 4 | `homepage_deploy`, `omada_deploy`, `paperless_ngx_deploy`, `tailscale_operator_deploy` |
-| **OUT OF SCOPE** | 1 | `synology_csi_deploy` |
+| **EVALUATE FOR DELETION** | 1 | `frigate_deploy` (can likely delete now that Argo app exists) |
+| **OUT OF SCOPE** | 1 | `synology_csi_deploy` (infrastructure, not app deployment) |
 
 ---
 
@@ -212,11 +213,14 @@ This document audits all `*_deploy` roles in `ansible/roles/` against ArgoCD App
   - Storage classes for Longhorn (config) and Synology (media)
   - Tailscale service annotations and ingress
   - Dynamic values overrides
-- **Required work:**
-  1. Create `argocd/apps/apps/frigate.yml` with appropriate configuration
-  2. Determine if values should be hardcoded or if flexibility is needed (e.g., for secrets or environment-specific config)
-  3. If hardcoded, the role can be deleted after Argo app creation
-  4. The Homepage ingress is specific and may need to remain in the role or be moved to a separate Argo app
+- **Work completed:**
+  1. ✅ Created `argocd/apps/apps/frigate.yml` with default configuration
+  2. ✅ Hardcoded values based on role defaults (Longhorn storage, Tailscale)
+  3. ✅ Included Homepage ingress annotations in the Argo manifest
+- **Remaining evaluation:**
+  - The `frigate_deploy` role can likely be deleted now that the Argo app exists
+  - The role's flexibility (configurable storage, values overrides) is not needed if standard config is sufficient
+  - **Recommendation:** Evaluate if custom storage or values are needed; if not, delete the role
 
 ---
 
@@ -243,12 +247,18 @@ This document audits all `*_deploy` roles in `ansible/roles/` against ArgoCD App
 - The role templates **sensitive credentials** that cannot be in Git:
   - `netbox_deploy_superuser_password`
   - `netbox_deploy_secret_key`
-- **Required work:**
-  1. Create `argocd/apps/platform/netbox.yml` (main app)
-  2. Create `argocd/apps/platform/netbox-secrets.yml` pointing to OnePasswordItem CRDs
-  3. Create OnePasswordItem CRDs in `k8s/netbox/onepassword/` for superuser password and secret key
-  4. After OnePassword secrets are working, the role can be deleted
-  5. The Homepage ingress should be moved to a k8s manifest or remain as optional Ansible templating
+- **Work completed:**
+  1. ✅ Created `argocd/apps/platform/netbox.yml` (main app skeleton)
+  2. ✅ Created `argocd/apps/platform/netbox-secrets.yml` (placeholder)
+  3. ✅ Created OnePasswordItem structure in `k8s/netbox/onepassword/`
+- **Remaining work:**
+  - The NetBox Helm chart doesn't natively support secretKeyRef for credentials
+  - Options:
+    1. Keep `netbox_deploy` role to template secrets into the Helm values
+    2. Investigate if NetBox chart supports `existingSecret` parameter
+    3. Create a kustomize overlay that patches the Helm release with secrets
+  - The Homepage ingress annotations are included in the Argo manifest
+  - **Current recommendation:** Keep the `netbox_deploy` role until a proper secrets integration is implemented
 
 ---
 
@@ -278,11 +288,17 @@ This document audits all `*_deploy` roles in `ansible/roles/` against ArgoCD App
   - CSI plugin version
   - Backup storage provider configuration (potentially sensitive)
   - Snapshot location configuration
-- **Required work:**
-  1. Determine if storage provider credentials are sensitive (likely yes for S3/cloud storage)
-  2. If sensitive: Create `argocd/apps/platform/velero.yml` and `argocd/apps/platform/velero-secrets.yml`
-  3. If not sensitive or using workload identity: Create single `argocd/apps/platform/velero.yml`
-  4. The role may need to be kept if storage config is environment-specific and cannot be hardcoded
+- **Work completed:**
+  1. ✅ Created `argocd/apps/platform/velero.yml` with base configuration
+  2. ✅ Included CSI plugin init container
+  3. ✅ Left backup storage location as TODO (requires environment-specific config)
+- **Remaining work:**
+  - Storage provider credentials are likely sensitive (S3 keys, cloud credentials)
+  - Options:
+    1. Keep `velero_deploy` role to template backup storage configuration
+    2. Create environment-specific overlays or separate secrets manifest
+    3. Use cloud provider workload identity (no secrets needed)
+  - **Recommendation:** Keep the `velero_deploy` role until backup storage is configured, or use it for environment-specific deployments
 
 ---
 
@@ -322,35 +338,36 @@ This document audits all `*_deploy` roles in `ansible/roles/` against ArgoCD App
 
 ### 1. Delete Redundant Roles
 
-- [ ] Delete `ansible/roles/crafty_controller_deploy/`
-- [ ] Delete `ansible/roles/nfs_provisioner_deploy/`
-- [ ] Remove any playbook references (none found in initial search)
+### 1. Delete Redundant Roles ✅ COMPLETED
 
-### 2. Create Missing Argo Applications
+- [x] Delete `ansible/roles/crafty_controller_deploy/`
+- [x] Delete `ansible/roles/nfs_provisioner_deploy/`
+- [x] Remove unused variable from `ansible/site.yml`
 
-#### Frigate
-- [ ] Create `argocd/apps/apps/frigate.yml` with:
-  - Chart: blakeblackshear/frigate (or appropriate repo)
-  - Storage configuration for Longhorn and optionally Synology
+### 2. Create Missing Argo Applications ✅ COMPLETED
+
+#### Frigate ✅
+- [x] Create `argocd/apps/apps/frigate.yml` with:
+  - Chart: blakeblackshear/frigate
+  - Storage configuration for Longhorn (config volume)
   - Tailscale service and ingress configuration
-- [ ] Decide if secrets are needed (if yes, create `frigate-secrets.yml` + OnePassword CRDs)
-- [ ] Evaluate if `frigate_deploy` role can be deleted after Argo app exists
+  - Homepage ingress annotations
+- [x] No secrets needed for basic deployment
+- **Next step:** Evaluate if `frigate_deploy` role can be deleted (likely yes)
 
-#### NetBox
-- [ ] Create `argocd/apps/platform/netbox.yml` with base configuration
-- [ ] Create `argocd/apps/platform/netbox-secrets.yml` pointing to OnePassword CRDs
-- [ ] Create `k8s/netbox/onepassword/` directory with OnePasswordItem CRDs for:
-  - Superuser password
-  - Secret key
-- [ ] Test OnePassword integration before deleting role
-- [ ] Handle Homepage ingress separately or in role
+#### NetBox ✅ (Partial - scaffolding created)
+- [x] Create `argocd/apps/platform/netbox.yml` with base configuration
+- [x] Create `argocd/apps/platform/netbox-secrets.yml` (placeholder)
+- [x] Create `k8s/netbox/onepassword/` directory with OnePasswordItem structure
+- [ ] **Remaining:** Implement proper secrets integration (chart may not support secretKeyRef)
+- [ ] **Remaining:** Test deployment and secrets flow
+- **Current state:** Role should be kept until secrets integration is resolved
 
-#### Velero
-- [ ] Assess if backup storage credentials are sensitive
-- [ ] Create `argocd/apps/platform/velero.yml` (and optionally `velero-secrets.yml`)
-- [ ] If using S3/cloud storage, create OnePasswordItem CRDs for credentials
-- [ ] If using workload identity, no secrets needed
-- [ ] Evaluate if `velero_deploy` role can be deleted or must be kept for environment-specific config
+#### Velero ✅ (Partial - base created)
+- [x] Create `argocd/apps/platform/velero.yml` with CSI plugin
+- [x] Document backup storage configuration as TODO
+- [ ] **Remaining:** Configure backup storage location and credentials
+- **Current state:** Role should be kept for environment-specific backup storage config
 
 ### 3. Future Migrations (Keep Roles for Now)
 

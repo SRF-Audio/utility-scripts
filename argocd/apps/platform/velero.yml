@@ -1,8 +1,8 @@
 ---
-# NOTE: This Velero deployment requires additional configuration for backup storage.
-# The backup storage location and volume snapshot location must be configured
-# based on your environment (e.g., S3, Azure, GCS, etc.).
-# TODO: Configure backupStorageLocation and volumeSnapshotLocation in values below.
+# NOTE: Velero requires backup storage configuration.
+# The backup storage location and volume snapshot location must be
+# configured based on your environment (e.g., S3, Azure, GCS, etc.).
+# TODO: Configure backupStorageLocation and volumeSnapshotLocation.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
