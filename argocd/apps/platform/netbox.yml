@@ -1,0 +1,85 @@
+---
+# NOTE: This NetBox deployment requires OnePassword credentials to be configured.
+# The OnePasswordItem 'netbox-credentials' must exist in 1Password vault 'HomeLab'
+# with the following fields:
+#   - superuser_password: Password for the NetBox admin user
+#   - secret_key: Django secret key for NetBox
+# The credentials are managed by the netbox-secrets ArgoCD Application.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: netbox
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  project: coachlight-k3s-infra
+  source:
+    repoURL: https://netbox-community.github.io/netbox-chart
+    chart: netbox
+    targetRevision: "5.0.0-beta.145"
+    helm:
+      valuesObject:
+        superuser:
+          email: "admin@netbox.local"
+          # Password from OnePasswordItem netbox-credentials
+          passwordSecretKeyRef:
+            name: netbox-credentials
+            key: superuser_password
+
+        # Secret key from OnePasswordItem netbox-credentials
+        secretKeySecretKeyRef:
+          name: netbox-credentials
+          key: secret_key
+
+        persistence:
+          enabled: true
+          storageClass: "local-path"
+
+        postgresql:
+          enabled: true
+          primary:
+            persistence:
+              enabled: true
+              storageClass: "local-path"
+
+        redis:
+          enabled: true
+          master:
+            persistence:
+              enabled: true
+              storageClass: "local-path"
+          replica:
+            persistence:
+              enabled: true
+              storageClass: "local-path"
+
+        service:
+          annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "netbox"
+            tailscale.com/tags: "tag:k8s,tag:infra-monitoring"
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/name: "NetBox"
+            gethomepage.dev/description: "Infrastructure Resource Modeling"
+            gethomepage.dev/group: "Infrastructure"
+            gethomepage.dev/icon: "netbox.png"
+
+        ingress:
+          enabled: true
+          className: tailscale
+          hosts:
+            - host: netbox
+              paths:
+                - path: /
+                  pathType: Prefix
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: netbox
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
