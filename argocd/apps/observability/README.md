@@ -103,7 +103,9 @@ Adjust resource limits in `alloy.yml` under `resources:` section if needed.
 
 ## Security
 
-- Alloy runs as root (UID 0) to read logs from `/var/log` and `/var/lib/docker/containers`
+- Alloy runs as root (UID 0) to read logs from `/var/log`
+- Privileged mode is disabled (only root user access is needed, not full privileged mode)
+- Only `/var/log` is mounted (Docker containers mount disabled for containerd/CRI-O runtimes)
 - RBAC is configured with minimal permissions for Kubernetes discovery and log reading
 - No secrets are currently required
 - When adding authentication for Loki/Prometheus/Tempo, use Kubernetes secrets
