@@ -28,18 +28,19 @@ spec:
 
         configuration:
           features: EnableCSI
-          # TODO: Configure backup storage location
+          # TODO: Configure backup storage and snapshot locations below
+          # Example for AWS S3:
           # backupStorageLocation:
           #   - name: default
-          #     provider: aws  # or azure, gcp, etc.
-          #     bucket: my-backup-bucket
+          #     provider: aws
+          #     bucket: <YOUR_BACKUP_BUCKET>
           #     config:
-          #       region: us-east-1
+          #       region: <YOUR_REGION>
           # volumeSnapshotLocation:
           #   - name: default
           #     provider: aws
           #     config:
-          #       region: us-east-1
+          #       region: <YOUR_REGION>
 
         snapshotsEnabled: true
         deployNodeAgent: false
