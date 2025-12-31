@@ -1,0 +1,37 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: influxdb
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  project: coachlight-k3s-db
+  source:
+    repoURL: https://helm.influxdata.com/
+    chart: influxdb2
+    targetRevision: 2.1.2
+    helm:
+      valuesObject:
+        adminUser:
+          existingSecret: influxdb-auth
+
+        persistence:
+          storageClass: local-path-retain
+
+        service:
+          annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "influxdb"
+            tailscale.com/tags: "tag:k8s,tag:platform,tag:database"
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: platform-influxdb
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
