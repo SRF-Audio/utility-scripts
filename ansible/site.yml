@@ -82,11 +82,6 @@
                     'NextDNS',
                     field='homepage_api_token',
                     vault='HomeLab') }}
-        crafty_controller_deploy_sfroeber_password: >-
-          {{ lookup('community.general.onepassword',
-                    'Crafty Controller',
-                    field='password',
-                    vault='HomeLab') }}
         proxmox_tailscale_setup_auth_key: >-
           {{ lookup('community.general.onepassword',
                     'Tailscale',
