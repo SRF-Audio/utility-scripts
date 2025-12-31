@@ -24,7 +24,7 @@ spec:
           annotations:
             tailscale.com/expose: "true"
             tailscale.com/hostname: "influxdb"
-            tailscale.com/tags: "tag:k8s,tag:platform,tag:database"
+            tailscale.com/tags: "tag:k8s,tag:server-db"
 
   destination:
     server: https://kubernetes.default.svc
