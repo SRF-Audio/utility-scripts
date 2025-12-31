@@ -28,7 +28,7 @@ spec:
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: platform-influxdb
+    namespace: db-influxdb
   syncPolicy:
     automated:
       prune: true
