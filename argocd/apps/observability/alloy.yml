@@ -1,0 +1,177 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alloy
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  project: coachlight-k3s-observability
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: alloy
+    targetRevision: "0.12.0"
+    helm:
+      valuesObject:
+        alloy:
+          configMap:
+            content: |-
+              // Logging configuration
+              logging {
+                level  = "info"
+                format = "logfmt"
+              }
+
+              // Discover Kubernetes pods for log collection
+              discovery.kubernetes "pods" {
+                role = "pod"
+              }
+
+              // Relabel pods to extract namespace, pod, and container metadata
+              discovery.relabel "pods" {
+                targets = discovery.kubernetes.pods.targets
+
+                // Filter out pods in kube-system namespace (optional)
+                rule {
+                  source_labels = ["__meta_kubernetes_namespace"]
+                  regex         = "kube-system"
+                  action        = "drop"
+                }
+
+                // Set path to pod logs
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+                  target_label  = "__path__"
+                  separator     = "/"
+                  replacement   = "/var/log/pods/*$1/*.log"
+                }
+
+                // Add namespace label
+                rule {
+                  source_labels = ["__meta_kubernetes_namespace"]
+                  target_label  = "namespace"
+                }
+
+                // Add pod label
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_name"]
+                  target_label  = "pod"
+                }
+
+                // Add container label
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_container_name"]
+                  target_label  = "container"
+                }
+
+                // Add node label
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_node_name"]
+                  target_label  = "node"
+                }
+              }
+
+              // Tail logs from discovered pods
+              loki.source.kubernetes "pods" {
+                targets    = discovery.relabel.pods.output
+                forward_to = [loki.write.default.receiver]
+              }
+
+              // Write logs to Loki endpoint
+              // Update the URL when Loki is deployed
+              loki.write "default" {
+                endpoint {
+                  url = "http://loki.observability-loki.svc.cluster.local:3100/loki/api/v1/push"
+
+                  // Optional: Add basic auth or bearer token here
+                  // bearer_token = env("LOKI_BEARER_TOKEN")
+                }
+              }
+
+              // Optional: OTLP receiver for traces and metrics (disabled by default)
+              // Uncomment to enable when needed
+              /*
+              otelcol.receiver.otlp "default" {
+                grpc {
+                  endpoint = "0.0.0.0:4317"
+                }
+
+                http {
+                  endpoint = "0.0.0.0:4318"
+                }
+
+                output {
+                  metrics = [otelcol.exporter.prometheus.default.input]
+                  logs    = [otelcol.exporter.loki.default.input]
+                  traces  = [otelcol.exporter.otlp.tempo.input]
+                }
+              }
+
+              otelcol.exporter.prometheus "default" {
+                forward_to = [prometheus.remote_write.default.receiver]
+              }
+
+              otelcol.exporter.loki "default" {
+                forward_to = [loki.write.default.receiver]
+              }
+
+              otelcol.exporter.otlp "tempo" {
+                client {
+                  endpoint = "http://tempo.observability-tempo.svc.cluster.local:4317"
+                  tls {
+                    insecure = true
+                  }
+                }
+              }
+
+              prometheus.remote_write "default" {
+                endpoint {
+                  url = "http://prometheus.observability-prometheus.svc.cluster.local:9090/api/v1/write"
+                }
+              }
+              */
+
+          # Enable mounting /var/log and /var/lib/docker/containers for log collection
+          mounts:
+            varlog: true
+            dockercontainers: true
+
+          # Extra environment variables (if needed for auth tokens)
+          extraEnv: []
+
+          # Security context for reading logs
+          securityContext:
+            privileged: false
+            runAsUser: 0
+            runAsGroup: 0
+
+        # Deploy as DaemonSet to run on every node
+        controller:
+          type: daemonset
+
+        # RBAC permissions for Kubernetes discovery and log reading
+        rbac:
+          create: true
+
+        # Service account
+        serviceAccount:
+          create: true
+
+        # Resource limits (adjust as needed)
+        resources:
+          limits:
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability-alloy
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
