@@ -44,7 +44,7 @@ spec:
                   source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
                   target_label  = "__path__"
                   separator     = "/"
-                  replacement   = "/var/log/pods/*$1/*.log"
+                  replacement   = "/var/log/pods/$1/*/*.log"
                 }
 
                 // Add namespace label
@@ -132,15 +132,19 @@ spec:
               }
               */
 
-          # Enable mounting /var/log and /var/lib/docker/containers for log collection
+          # Enable mounting /var/log for log collection
+          # dockercontainers mount is optional - only needed for Docker runtime
+          # Most modern K8s clusters use containerd/CRI-O which store logs in /var/log/pods
           mounts:
             varlog: true
-            dockercontainers: true
+            dockercontainers: false
 
           # Extra environment variables (if needed for auth tokens)
           extraEnv: []
 
           # Security context for reading logs
+          # Runs as root (required to read /var/log and container logs)
+          # privileged: false is intentional - full privileged mode not needed
           securityContext:
             privileged: false
             runAsUser: 0
