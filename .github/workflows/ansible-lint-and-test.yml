@@ -4,16 +4,90 @@ on:
   pull_request:
     paths:
       - "ansible/**"
+      - "!ansible/**/*.md"
+      - "!ansible/**/README*"
       - ".github/workflows/ansible-lint-and-test.yml"
   push:
     branches:
       - main
     paths:
       - "ansible/**"
+      - "!ansible/**/*.md"
+      - "!ansible/**/README*"
       - ".github/workflows/ansible-lint-and-test.yml"
+  workflow_dispatch:
 
 jobs:
+  detect-changes:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      roles_json: ${{ steps.normalize.outputs.roles_json }}
+      playbooks_json: ${{ steps.normalize.outputs.playbooks_json }}
+      yamllint_targets_json: ${{ steps.normalize.outputs.yamllint_targets_json }}
+      has_targets: ${{ steps.normalize.outputs.has_targets }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed files
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          list-files: json
+          filters: |
+            roles:
+              - ansible/roles/**
+            playbooks:
+              - ansible/playbooks/**/*.yml
+              - ansible/playbooks/**/*.yaml
+              - ansible/site.yml
+            ansible_yaml:
+              - ansible/**/*.yml
+              - ansible/**/*.yaml
+
+      - name: Normalize changed paths to targets
+        id: normalize
+        run: |
+          set -euo pipefail
+          
+          # Extract changed roles from file list
+          ROLES_FILES='${{ steps.filter.outputs.roles_files }}'
+          PLAYBOOKS_FILES='${{ steps.filter.outputs.playbooks_files }}'
+          
+          # Get unique role directories (handle empty input)
+          ROLES_JSON=$(echo "$ROLES_FILES" | jq -r '.[]' | { grep '^ansible/roles/' || true; } | sed 's|^\(ansible/roles/[^/]*\)/.*|\1|' | sort -u | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          
+          # Get playbook files
+          PLAYBOOKS_JSON=$(echo "$PLAYBOOKS_FILES" | jq -c 'map(select(length > 0))')
+          
+          # Combine for yamllint targets (roles + playbooks)
+          YAMLLINT_TARGETS=$(echo "$ROLES_JSON" "$PLAYBOOKS_JSON" | jq -s -c 'add | unique')
+          
+          # Check if we have any targets
+          ROLES_COUNT=$(echo "$ROLES_JSON" | jq 'length')
+          PLAYBOOKS_COUNT=$(echo "$PLAYBOOKS_JSON" | jq 'length')
+          if [ "$ROLES_COUNT" -gt 0 ] || [ "$PLAYBOOKS_COUNT" -gt 0 ]; then
+            HAS_TARGETS="true"
+          else
+            HAS_TARGETS="false"
+          fi
+          
+          echo "roles_json=$ROLES_JSON" >> $GITHUB_OUTPUT
+          echo "playbooks_json=$PLAYBOOKS_JSON" >> $GITHUB_OUTPUT
+          echo "yamllint_targets_json=$YAMLLINT_TARGETS" >> $GITHUB_OUTPUT
+          echo "has_targets=$HAS_TARGETS" >> $GITHUB_OUTPUT
+          
+          echo "Changed roles: $ROLES_JSON"
+          echo "Changed playbooks: $PLAYBOOKS_JSON"
+          echo "Yamllint targets: $YAMLLINT_TARGETS"
+          echo "Has targets: $HAS_TARGETS"
+
   ansible-yamllint:
+    if: github.event_name != 'workflow_dispatch' && needs.detect-changes.outputs.has_targets == 'true'
+    needs: detect-changes
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -42,10 +116,18 @@ jobs:
             --pull=always
           run: |
             pip install --quiet yamllint
-            echo "Running yamllint on Ansible YAML files..."
-            yamllint ansible/
+            echo "Running yamllint on changed Ansible YAML files..."
+            TARGETS='${{ needs.detect-changes.outputs.yamllint_targets_json }}'
+            echo "$TARGETS" | jq -r '.[]' | while read -r target; do
+              if [ -n "$target" ]; then
+                echo "Linting: $target"
+                yamllint "$target"
+              fi
+            done
 
   ansible-lint:
+    if: github.event_name != 'workflow_dispatch' && needs.detect-changes.outputs.has_targets == 'true'
+    needs: detect-changes
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -75,10 +157,29 @@ jobs:
           run: |
             ansible-galaxy collection install -r ansible/requirements.yml
             pip install --quiet ansible-lint
-            echo "Running ansible-lint on roles and playbooks..."
-            ansible-lint ansible/playbooks/ ansible/roles/ ansible/site.yml --exclude ansible/old_roles/
+            echo "Running ansible-lint on changed roles and playbooks..."
+            ROLES='${{ needs.detect-changes.outputs.roles_json }}'
+            PLAYBOOKS='${{ needs.detect-changes.outputs.playbooks_json }}'
+            TARGETS=""
+            for role in $(echo "$ROLES" | jq -r '.[]'); do
+              if [ -n "$role" ]; then
+                TARGETS="$TARGETS $role"
+              fi
+            done
+            for playbook in $(echo "$PLAYBOOKS" | jq -r '.[]'); do
+              if [ -n "$playbook" ]; then
+                TARGETS="$TARGETS $playbook"
+              fi
+            done
+            if [ -n "$TARGETS" ]; then
+              ansible-lint $TARGETS --exclude ansible/old_roles/
+            else
+              echo "No targets to lint"
+            fi
 
   ansible-playbook-syntax:
+    if: github.event_name != 'workflow_dispatch' && needs.detect-changes.outputs.has_targets == 'true' && needs.detect-changes.outputs.playbooks_json != '[]'
+    needs: detect-changes
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -86,17 +187,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        playbook:
-          - ansible/playbooks/audio-production.yml
-          - ansible/playbooks/coachlight-infra-stack.yml
-          - ansible/playbooks/file_copier_examples.yml
-          - ansible/playbooks/k3s-cluster-setup.yml
-          - ansible/playbooks/omada-netbox-sync.yml
-          - ansible/playbooks/omada-tester.yml
-          - ansible/playbooks/op_tester.yml
-          - ansible/playbooks/proxmox.yml
-          - ansible/playbooks/workstations.yml
-          - ansible/site.yml
+        playbook: ${{ fromJSON(needs.detect-changes.outputs.playbooks_json) }}
 
     steps:
       - name: Normalize repo name to lowercase
@@ -123,3 +214,66 @@ jobs:
             ansible-galaxy collection install -r ansible/requirements.yml
             echo "Checking syntax for ${{ matrix.playbook }}..."
             ansible-playbook ${{ matrix.playbook }} --syntax-check
+
+  full-lint:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Normalize repo name to lowercase
+        id: normalize
+        run: |
+          echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Set tooling image
+        id: image
+        run: |
+          echo "IMAGE=ghcr.io/${{ steps.normalize.outputs.REPO_LOWER }}/fedora-43-homelab-tooling:latest" >> $GITHUB_OUTPUT
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run yamllint inside tooling container
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ${{ steps.image.outputs.IMAGE }}
+          options: |
+            -v ${{ github.workspace }}:/workspace
+            --pull=always
+          run: |
+            pip install --quiet yamllint
+            echo "Running yamllint on all Ansible YAML files..."
+            yamllint ansible/
+
+      - name: Run ansible-lint inside tooling container
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ${{ steps.image.outputs.IMAGE }}
+          options: |
+            -v ${{ github.workspace }}:/workspace
+            --pull=always
+          run: |
+            ansible-galaxy collection install -r ansible/requirements.yml
+            pip install --quiet ansible-lint
+            echo "Running ansible-lint on all roles and playbooks..."
+            ansible-lint ansible/playbooks/ ansible/roles/ ansible/site.yml --exclude ansible/old_roles/
+
+      - name: Run syntax check on all playbooks
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ${{ steps.image.outputs.IMAGE }}
+          options: |
+            -v ${{ github.workspace }}:/workspace
+            --pull=always
+          run: |
+            ansible-galaxy collection install -r ansible/requirements.yml
+            echo "Checking syntax for all playbooks..."
+            for playbook in ansible/playbooks/*.yml ansible/site.yml; do
+              if [ -f "$playbook" ]; then
+                echo "Checking syntax for $playbook..."
+                ansible-playbook "$playbook" --syntax-check
+              fi
+            done
