@@ -1,10 +1,8 @@
 ---
-# NOTE: This NetBox deployment requires OnePassword credentials to be configured.
-# The OnePasswordItem 'netbox-credentials' must exist in 1Password vault 'HomeLab'
-# with the following fields:
-#   - superuser_password: Password for the NetBox admin user
-#   - secret_key: Django secret key for NetBox
-# The credentials are managed by the netbox-secrets ArgoCD Application.
+# NOTE: This NetBox deployment currently requires secrets to be managed
+# outside of this manifest. The netbox_deploy Ansible role can be used
+# to template credentials until OnePassword integration is completed.
+# TODO: Migrate to OnePassword CRDs or Helm chart's existingSecret support
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -22,15 +20,9 @@ spec:
       valuesObject:
         superuser:
           email: "admin@netbox.local"
-          # Password from OnePasswordItem netbox-credentials
-          passwordSecretKeyRef:
-            name: netbox-credentials
-            key: superuser_password
+          # TODO: Configure password via existingSecret or OnePassword
 
-        # Secret key from OnePasswordItem netbox-credentials
-        secretKeySecretKeyRef:
-          name: netbox-credentials
-          key: secret_key
+        # TODO: Configure secretKey via existingSecret or OnePassword
 
         persistence:
           enabled: true
