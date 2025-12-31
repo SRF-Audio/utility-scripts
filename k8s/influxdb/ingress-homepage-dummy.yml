@@ -1,0 +1,28 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: influxdb-homepage
+  namespace: platform-influxdb
+  labels:
+    app.kubernetes.io/name: influxdb2
+    app.kubernetes.io/component: influxdb
+    app.kubernetes.io/managed-by: argocd
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: "InfluxDB"
+    gethomepage.dev/description: "Time series database"
+    gethomepage.dev/group: "Platform"
+    gethomepage.dev/icon: "influxdb.png"
+spec:
+  rules:
+    - host: influxdb.rohu-shark.ts.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: influxdb2
+                port:
+                  number: 80
