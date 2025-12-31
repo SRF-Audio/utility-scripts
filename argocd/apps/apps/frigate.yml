@@ -24,7 +24,10 @@ spec:
         persistence:
           config:
             enabled: true
-            storageClass: "longhorn"
+            storageClass: "nfs-synology-retain"
+          media:
+            enabled: true
+            storageClass: "nfs-synology-retain"
 
         ingress:
           enabled: true
