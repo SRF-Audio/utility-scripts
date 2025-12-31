@@ -31,11 +31,8 @@ spec:
 
         ingress:
           enabled: true
-          ingressClassName: tailscale
+          className: ""
           annotations:
-            tailscale.com/expose: "true"
-            tailscale.com/tags: "tag:k8s,tag:apps"
-            tailscale.com/hostname: "frigate"
             gethomepage.dev/enabled: "true"
             gethomepage.dev/name: "Frigate"
             gethomepage.dev/description: "NVR with realtime object detection"

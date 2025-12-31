@@ -78,7 +78,7 @@ spec:
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: netbox
+    namespace: infra-netbox
   syncPolicy:
     automated:
       prune: true
