@@ -75,10 +75,12 @@ jobs:
             HAS_TARGETS="false"
           fi
           
-          echo "roles_json=$ROLES_JSON" >> $GITHUB_OUTPUT
-          echo "playbooks_json=$PLAYBOOKS_JSON" >> $GITHUB_OUTPUT
-          echo "yamllint_targets_json=$YAMLLINT_TARGETS" >> $GITHUB_OUTPUT
-          echo "has_targets=$HAS_TARGETS" >> $GITHUB_OUTPUT
+          {
+            echo "roles_json=$ROLES_JSON"
+            echo "playbooks_json=$PLAYBOOKS_JSON"
+            echo "yamllint_targets_json=$YAMLLINT_TARGETS"
+            echo "has_targets=$HAS_TARGETS"
+          } >> "$GITHUB_OUTPUT"
           
           echo "Changed roles: $ROLES_JSON"
           echo "Changed playbooks: $PLAYBOOKS_JSON"
