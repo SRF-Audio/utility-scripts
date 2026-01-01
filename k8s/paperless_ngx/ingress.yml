@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: paperless-ngx-homepage
+  name: paperless-ngx
   namespace: apps-paperless-ngx
   labels:
     app.kubernetes.io/name: paperless-ngx
@@ -15,6 +15,7 @@ metadata:
     gethomepage.dev/group: "Documents"
     gethomepage.dev/icon: "paperless-ngx.png"
 spec:
+  ingressClassName: tailscale
   rules:
     - host: paperless.rohu-shark.ts.net
       http:
@@ -26,3 +27,6 @@ spec:
                 name: paperless-ngx-webserver
                 port:
                   number: 80
+  tls:
+    - hosts:
+        - paperless

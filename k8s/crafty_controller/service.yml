@@ -10,6 +10,7 @@ metadata:
     tailscale.com/expose: "true"
     tailscale.com/hostname: "crafty-controller"
     tailscale.com/tags: "tag:k8s,tag:server-games"
+    coachlight.io/tailscale-exposure: "service-nonweb"
 spec:
   type: ClusterIP
   selector:

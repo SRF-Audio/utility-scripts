@@ -4,4 +4,3 @@ kind: Kustomization
 resources:
   - namespace.yml
   - onepassworditem-influxdb-auth.yml
-  - ingress-homepage-dummy.yml

@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: crafty-controller-homepage
+  name: crafty-controller
   namespace: apps-crafty-controller
   annotations:
     gethomepage.dev/enabled: "true"
@@ -11,6 +11,7 @@ metadata:
     gethomepage.dev/description: "Minecraft server manager"
     gethomepage.dev/icon: "crafty"
 spec:
+  ingressClassName: tailscale
   rules:
     - host: crafty-controller.rohu-shark.ts.net
       http:
@@ -22,3 +23,6 @@ spec:
                 name: crafty-controller
                 port:
                   number: 443
+  tls:
+    - hosts:
+        - crafty-controller
