@@ -25,11 +25,7 @@ spec:
             storageClassName: "local-path-retain"
 
         service:
-          type: LoadBalancer
-          ports:
-            manageHttpsWeb:
-              enabled: true
-              port: 8043
+          type: ClusterIP
 
         ingress:
           enabled: false
