@@ -25,4 +25,4 @@ spec:
               service:
                 name: omada-controller
                 port:
-                  number: 8043
+                  number: 8088
