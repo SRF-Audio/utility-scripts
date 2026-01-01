@@ -49,10 +49,6 @@ spec:
 
         service:
           type: ClusterIP
-          annotations:
-            tailscale.com/expose: "true"
-            tailscale.com/tags: "tag:k8s,tag:server-apps"
-            tailscale.com/hostname: "frigate"
 
         persistence:
           config:
@@ -64,7 +60,7 @@ spec:
 
         ingress:
           enabled: true
-          className: null
+          className: tailscale
           annotations:
             gethomepage.dev/enabled: "true"
             gethomepage.dev/name: "Frigate"
@@ -72,10 +68,13 @@ spec:
             gethomepage.dev/group: "Cameras"
             gethomepage.dev/icon: "frigate.png"
           hosts:
-            - host: frigate
+            - host: frigate.rohu-shark.ts.net
               paths:
                 - path: /
-                  portName: http-auth
+                  portName: http
+          tls:
+            - hosts:
+                - frigate
 
   destination:
     server: https://kubernetes.default.svc

@@ -56,27 +56,23 @@ spec:
 
         service:
           type: ClusterIP
-          annotations:
-            tailscale.com/expose: "true"
-            tailscale.com/hostname: "netbox"
-            tailscale.com/tags: "tag:k8s,tag:infra-monitoring"
 
         ingress:
           enabled: true
-          ingressClassName: ""
+          ingressClassName: "tailscale"
           annotations:
             gethomepage.dev/enabled: "true"
-            gethomepage.dev/name: "Frigate"
-            gethomepage.dev/description: "NVR with realtime object detection"
-            gethomepage.dev/group: "Cameras"
-            gethomepage.dev/icon: "frigate.png"
+            gethomepage.dev/name: "NetBox"
+            gethomepage.dev/description: "IPAM and datacenter infrastructure management"
+            gethomepage.dev/group: "Platform"
+            gethomepage.dev/icon: "netbox.png"
           hosts:
-            - host: frigate
+            - host: netbox.rohu-shark.ts.net
               paths:
                 - path: /
-                  portName: http-auth
-                  port: 8971
-          tls: []
+          tls:
+            - hosts:
+                - netbox
 
   destination:
     server: https://kubernetes.default.svc

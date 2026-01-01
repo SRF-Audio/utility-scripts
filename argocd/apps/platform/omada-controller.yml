@@ -30,9 +30,29 @@ spec:
             tailscale.com/expose: "true"
             tailscale.com/tags: "tag:k8s,tag:infra-network"
             tailscale.com/hostname: "omada"
+            coachlight.io/tailscale-exposure: "service-nonweb"
+          ports:
+            manageHttpsWeb:
+              enabled: true
+              port: 8043
 
         ingress:
-          enabled: false
+          enabled: true
+          ingressClassName: tailscale
+          annotations:
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/name: "Omada Controller"
+            gethomepage.dev/description: "Network controller for Omada devices"
+            gethomepage.dev/group: "Platform"
+            gethomepage.dev/icon: "omada.png"
+          hosts:
+            - host: omada.rohu-shark.ts.net
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - hosts:
+                - omada
 
   destination:
     server: https://kubernetes.default.svc

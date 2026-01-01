@@ -88,10 +88,6 @@ metadata:
     app.kubernetes.io/name: paperless-ngx
     app.kubernetes.io/component: webserver
     app.kubernetes.io/managed-by: argocd
-  annotations:
-    tailscale.com/expose: "true"
-    tailscale.com/hostname: "paperless"
-    tailscale.com/tags: "tag:k8s,tag:server-apps"
 spec:
   type: ClusterIP
   ports:
