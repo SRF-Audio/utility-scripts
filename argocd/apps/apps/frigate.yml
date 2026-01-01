@@ -18,7 +18,7 @@ spec:
           type: ClusterIP
           annotations:
             tailscale.com/expose: "true"
-            tailscale.com/tags: "tag:k8s,tag:apps"
+            tailscale.com/tags: "tag:k8s,tag:server-apps"
             tailscale.com/hostname: "frigate"
 
         persistence:
@@ -46,7 +46,7 @@ spec:
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: frigate
+    namespace: apps-frigate
   syncPolicy:
     automated:
       prune: true
