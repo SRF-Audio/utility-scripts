@@ -8,7 +8,7 @@ metadata:
     app: crafty-controller
   annotations:
     tailscale.com/expose: "true"
-    tailscale.com/hostname: "crafty-controller"
+    tailscale.com/hostname: "crafty-controller-ports"
     tailscale.com/tags: "tag:k8s,tag:server-games"
     coachlight.io/tailscale-exposure: "service-nonweb"
 spec:

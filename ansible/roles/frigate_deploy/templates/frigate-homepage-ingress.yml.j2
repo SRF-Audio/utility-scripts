@@ -16,8 +16,7 @@ metadata:
 spec:
   ingressClassName: tailscale
   rules:
-    - host: "{{ frigate_deploy_hostname }}"
-      http:
+    - http:
         paths:
           - path: /
             pathType: Prefix

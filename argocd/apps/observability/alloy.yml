@@ -189,11 +189,10 @@ spec:
             gethomepage.dev/description: "Telemetry collection agent"
             gethomepage.dev/group: "Observability"
             gethomepage.dev/icon: "grafana.png"
-          hosts:
-            - alloy.rohu-shark.ts.net
+          hosts: []
           tls:
             - hosts:
-                - alloy.rohu-shark.ts.net
+                - alloy
 
   destination:
     server: https://kubernetes.default.svc
