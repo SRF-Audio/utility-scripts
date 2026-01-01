@@ -26,11 +26,6 @@ spec:
 
         service:
           type: LoadBalancer
-          annotations:
-            tailscale.com/expose: "true"
-            tailscale.com/tags: "tag:k8s,tag:infra-network"
-            tailscale.com/hostname: "omada"
-            coachlight.io/tailscale-exposure: "service-nonweb"
           ports:
             manageHttpsWeb:
               enabled: true
