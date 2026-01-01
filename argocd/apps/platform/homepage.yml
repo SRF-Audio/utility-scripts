@@ -82,6 +82,9 @@ spec:
             enabled: true
             ingressClassName: tailscale
             annotations:
+              tailscale.com/expose: "true"
+              tailscale.com/hostname: "homepage"
+              tailscale.com/tags: "tag:k8s,tag:infra-monitoring"
               gethomepage.dev/enabled: "true"
               gethomepage.dev/name: "Homepage"
               gethomepage.dev/description: "Application dashboard and service discovery"

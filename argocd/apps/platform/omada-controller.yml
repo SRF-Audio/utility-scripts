@@ -40,6 +40,9 @@ spec:
           enabled: true
           ingressClassName: tailscale
           annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "omada"
+            tailscale.com/tags: "tag:k8s,tag:infra-network"
             gethomepage.dev/enabled: "true"
             gethomepage.dev/name: "Omada Controller"
             gethomepage.dev/description: "Network controller for Omada devices"

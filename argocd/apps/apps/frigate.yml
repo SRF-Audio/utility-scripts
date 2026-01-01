@@ -62,6 +62,9 @@ spec:
           enabled: true
           className: tailscale
           annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "frigate"
+            tailscale.com/tags: "tag:k8s,tag:apps"
             gethomepage.dev/enabled: "true"
             gethomepage.dev/name: "Frigate"
             gethomepage.dev/description: "NVR with realtime object detection"

@@ -61,6 +61,9 @@ spec:
           enabled: true
           ingressClassName: "tailscale"
           annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "netbox"
+            tailscale.com/tags: "tag:k8s,tag:infra-monitoring"
             gethomepage.dev/enabled: "true"
             gethomepage.dev/name: "NetBox"
             gethomepage.dev/description: "IPAM and datacenter infrastructure management"

@@ -24,6 +24,9 @@ spec:
           enabled: true
           className: tailscale
           annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "influxdb"
+            tailscale.com/tags: "tag:k8s,tag:infra-monitoring"
             gethomepage.dev/enabled: "true"
             gethomepage.dev/name: "InfluxDB"
             gethomepage.dev/description: "Time series database"
