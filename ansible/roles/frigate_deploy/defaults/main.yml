@@ -12,7 +12,7 @@ frigate_deploy_values_overrides: {}
 frigate_deploy_hostname: frigate
 frigate_deploy_tailscale_annotations:
   tailscale.com/expose: "true"
-  tailscale.com/tags: "tag:k8s,tag:apps"
+  tailscale.com/tags: "tag:k8s,tag:server-apps"
 
 frigate_deploy_storage_class_longhorn: longhorn
 frigate_deploy_storage_class_synology: ""

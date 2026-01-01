@@ -11,7 +11,7 @@ metadata:
   annotations:
     tailscale.com/expose: "true"
     tailscale.com/hostname: "paperless"
-    tailscale.com/tags: "tag:k8s,tag:apps"
+    tailscale.com/tags: "tag:k8s,tag:server-apps"
     gethomepage.dev/enabled: "true"
     gethomepage.dev/name: "Paperless-NGX"
     gethomepage.dev/description: "Document management and archive"
