@@ -76,7 +76,7 @@ spec:
               paths:
                 - path: /
                   pathType: Prefix
-                  servicePort: http-auth
+                  servicePort: 8971
 
   destination:
     server: https://kubernetes.default.svc
