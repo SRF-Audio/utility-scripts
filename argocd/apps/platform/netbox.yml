@@ -63,18 +63,19 @@ spec:
 
         ingress:
           enabled: true
-          className: ""
+          ingressClassName: ""
           annotations:
             gethomepage.dev/enabled: "true"
-            gethomepage.dev/name: "NetBox"
-            gethomepage.dev/description: "Infrastructure Resource Modeling"
-            gethomepage.dev/group: "Infrastructure"
-            gethomepage.dev/icon: "netbox.png"
+            gethomepage.dev/name: "Frigate"
+            gethomepage.dev/description: "NVR with realtime object detection"
+            gethomepage.dev/group: "Cameras"
+            gethomepage.dev/icon: "frigate.png"
           hosts:
-            - host: netbox
+            - host: frigate
               paths:
                 - path: /
-                  pathType: Prefix
+                  portName: http-auth
+          tls: []
 
   destination:
     server: https://kubernetes.default.svc
