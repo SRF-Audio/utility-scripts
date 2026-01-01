@@ -190,10 +190,10 @@ spec:
             gethomepage.dev/group: "Observability"
             gethomepage.dev/icon: "grafana.png"
           hosts:
-            - alloy
+            - alloy.rohu-shark.ts.net
           tls:
             - hosts:
-                - alloy
+                - alloy.rohu-shark.ts.net
 
   destination:
     server: https://kubernetes.default.svc
