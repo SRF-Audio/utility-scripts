@@ -75,6 +75,7 @@ spec:
               paths:
                 - path: /
                   portName: http-auth
+                  port: 8971
           tls: []
 
   destination:
