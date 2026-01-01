@@ -76,11 +76,8 @@ spec:
               paths:
                 - path: /
                   pathType: Prefix
-                  backend:
-                    service:
-                      name: frigate
-                      port:
-                        name: http-auth
+                  servicePort: http-auth
+
   destination:
     server: https://kubernetes.default.svc
     namespace: apps-frigate
