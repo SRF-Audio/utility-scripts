@@ -5,6 +5,9 @@ metadata:
   name: crafty-controller
   namespace: apps-crafty-controller
   annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: "crafty-controller"
+    tailscale.com/tags: "tag:k8s,tag:server-games"
     gethomepage.dev/enabled: "true"
     gethomepage.dev/name: "Crafty Controller"
     gethomepage.dev/group: "Games"
