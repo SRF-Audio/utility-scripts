@@ -58,24 +58,7 @@ spec:
           type: ClusterIP
 
         ingress:
-          enabled: true
-          ingressClassName: "tailscale"
-          annotations:
-            tailscale.com/expose: "true"
-            tailscale.com/hostname: "netbox"
-            tailscale.com/tags: "tag:k8s,tag:infra-monitoring"
-            gethomepage.dev/enabled: "true"
-            gethomepage.dev/name: "NetBox"
-            gethomepage.dev/description: "IPAM and datacenter infrastructure management"
-            gethomepage.dev/group: "Platform"
-            gethomepage.dev/icon: "netbox.png"
-          hosts:
-            - host: netbox.rohu-shark.ts.net
-              paths:
-                - path: /
-          tls:
-            - hosts:
-                - netbox
+          enabled: false
 
   destination:
     server: https://kubernetes.default.svc

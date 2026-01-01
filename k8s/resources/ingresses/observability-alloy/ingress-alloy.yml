@@ -1,0 +1,28 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alloy
+  namespace: observability-alloy
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: "Alloy"
+    gethomepage.dev/description: "Telemetry collection agent"
+    gethomepage.dev/group: "Observability"
+    gethomepage.dev/icon: "grafana.png"
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - alloy.rohu-shark.ts.net
+  rules:
+    - host: alloy.rohu-shark.ts.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: alloy
+                port:
+                  number: 12345

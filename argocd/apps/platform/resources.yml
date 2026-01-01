@@ -1,0 +1,23 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: resources
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "90"
+spec:
+  project: coachlight-k3s-infra
+  source:
+    repoURL: https://github.com/SRF-Audio/utility-scripts
+    targetRevision: main
+    path: k8s/resources
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

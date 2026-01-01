@@ -1,0 +1,28 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: omada-controller
+  namespace: infra-omada-controller
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: "Omada Controller"
+    gethomepage.dev/description: "Network controller for Omada devices"
+    gethomepage.dev/group: "Platform"
+    gethomepage.dev/icon: "omada.png"
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - omada.rohu-shark.ts.net
+  rules:
+    - host: omada.rohu-shark.ts.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: omada-controller
+                port:
+                  number: 8043

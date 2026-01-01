@@ -59,25 +59,7 @@ spec:
             storageClass: "nfs-synology-retain"
 
         ingress:
-          enabled: true
-          className: tailscale
-          annotations:
-            tailscale.com/expose: "true"
-            tailscale.com/hostname: "frigate"
-            tailscale.com/tags: "tag:k8s,tag:server-apps"
-            gethomepage.dev/enabled: "true"
-            gethomepage.dev/name: "Frigate"
-            gethomepage.dev/description: "NVR with realtime object detection"
-            gethomepage.dev/group: "Cameras"
-            gethomepage.dev/icon: "frigate.png"
-          hosts:
-            - host: frigate.rohu-shark.ts.net
-              paths:
-                - path: /
-                  portName: http
-          tls:
-            - hosts:
-                - frigate
+          enabled: false
 
   destination:
     server: https://kubernetes.default.svc
