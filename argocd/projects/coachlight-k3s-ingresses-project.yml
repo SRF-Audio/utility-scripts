@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: coachlight-k3s-ingresses
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Deploy only Ingress resources across permitted namespaces (centralized ingress management).
+  sourceRepos:
+    - https://github.com/SRF-Audio/utility-scripts
+
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: apps-*
+    - server: https://kubernetes.default.svc
+      namespace: db-*
+    - server: https://kubernetes.default.svc
+      namespace: infra-*
+    - server: https://kubernetes.default.svc
+      namespace: observability-*
+
+  clusterResourceBlacklist:
+    - group: "*"
+      kind: "*"
+
+  namespaceResourceWhitelist:
+    - group: networking.k8s.io
+      kind: Ingress
