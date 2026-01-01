@@ -16,9 +16,6 @@ spec:
       valuesObject:
         config:
           rootless: false
-          ports:
-            manageHttp: 80
-            manageHttps: 443
           timezone: America/Chicago
         persistence:
           data:
