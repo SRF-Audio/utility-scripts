@@ -14,6 +14,39 @@ spec:
     targetRevision: "7.8.0"
     helm:
       valuesObject:
+        config: |
+          mqtt:
+            enabled: false
+
+          cameras:
+            amcrest_left:
+              enabled: false
+              ffmpeg:
+                inputs:
+                  - path: rtsp://USERNAME:PASSWORD@CAMERA_IP:554/cam/realmonitor?channel=1&subtype=0
+                    roles:
+                      - detect
+                      - record
+              detect:
+                enabled: false
+                width: 2688
+                height: 1520
+                fps: 25
+
+            amcrest_right:
+              enabled: false
+              ffmpeg:
+                inputs:
+                  - path: rtsp://USERNAME:PASSWORD@CAMERA_IP:554/cam/realmonitor?channel=2&subtype=0
+                    roles:
+                      - detect
+                      - record
+              detect:
+                enabled: false
+                width: 2688
+                height: 1520
+                fps: 25
+
         service:
           type: ClusterIP
           annotations:
