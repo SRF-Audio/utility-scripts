@@ -89,9 +89,7 @@ spec:
                 }
               }
 
-              // Optional: OTLP receiver for traces and metrics (disabled by default)
-              // Uncomment to enable when needed
-              /*
+              // OTLP receiver for traces and metrics
               otelcol.receiver.otlp "default" {
                 grpc {
                   endpoint = "0.0.0.0:4317"
@@ -130,7 +128,6 @@ spec:
                   url = "http://prometheus.observability-prometheus.svc.cluster.local:9090/api/v1/write"
                 }
               }
-              */
 
           # Enable mounting /var/log for log collection
           # dockercontainers mount is optional - only needed for Docker runtime
@@ -138,6 +135,17 @@ spec:
           mounts:
             varlog: true
             dockercontainers: false
+
+          # Expose OTLP receiver ports
+          extraPorts:
+            - name: "otlp-grpc"
+              port: 4317
+              targetPort: 4317
+              protocol: "TCP"
+            - name: "otlp-http"
+              port: 4318
+              targetPort: 4318
+              protocol: "TCP"
 
           # Extra environment variables (if needed for auth tokens)
           extraEnv: []
