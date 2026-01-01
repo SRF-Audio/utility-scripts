@@ -1,0 +1,28 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: influxdb
+  namespace: db-influxdb
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: "InfluxDB"
+    gethomepage.dev/description: "Time series database"
+    gethomepage.dev/group: "Platform"
+    gethomepage.dev/icon: "influxdb.png"
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - influxdb.rohu-shark.ts.net
+  rules:
+    - host: influxdb.rohu-shark.ts.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: influxdb-influxdb2
+                port:
+                  number: 80

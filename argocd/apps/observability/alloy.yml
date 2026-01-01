@@ -167,24 +167,7 @@ spec:
             memory: 128Mi
 
         ingress:
-          enabled: true
-          ingressClassName: tailscale
-          annotations:
-            gethomepage.dev/enabled: "true"
-            gethomepage.dev/name: "Alloy"
-            gethomepage.dev/description: "Telemetry collection agent"
-            gethomepage.dev/group: "Observability"
-            gethomepage.dev/icon: "grafana.png"
-          hosts:
-            - host: alloy.rohu-shark.ts.net
-              paths:
-                - path: /
-                  pathType: Prefix
-          tls:
-            - hosts:
-                - alloy.rohu-shark.ts.net
-          service:
-            port: 12345
+          enabled: false
 
   destination:
     server: https://kubernetes.default.svc
