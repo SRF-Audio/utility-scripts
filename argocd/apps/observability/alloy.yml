@@ -129,14 +129,10 @@ spec:
                 }
               }
 
-          # Enable mounting /var/log for log collection
-          # dockercontainers mount is optional - only needed for Docker runtime
-          # Most modern K8s clusters use containerd/CRI-O which store logs in /var/log/pods
           mounts:
             varlog: true
             dockercontainers: false
 
-          # Expose OTLP receiver ports
           extraPorts:
             - name: "otlp-grpc"
               port: 4317
@@ -147,30 +143,22 @@ spec:
               targetPort: 4318
               protocol: "TCP"
 
-          # Extra environment variables (if needed for auth tokens)
           extraEnv: []
 
-          # Security context for reading logs
-          # Runs as root (required to read /var/log and container logs)
-          # privileged: false is intentional - full privileged mode not needed
           securityContext:
             privileged: false
             runAsUser: 0
             runAsGroup: 0
 
-        # Deploy as DaemonSet to run on every node
         controller:
           type: daemonset
 
-        # RBAC permissions for Kubernetes discovery and log reading
         rbac:
           create: true
 
-        # Service account
         serviceAccount:
           create: true
 
-        # Resource limits (adjust as needed)
         resources:
           limits:
             memory: 512Mi
@@ -178,21 +166,25 @@ spec:
             cpu: 100m
             memory: 128Mi
 
-        # Ingress for Alloy web UI via Tailscale
         ingress:
           enabled: true
           ingressClassName: tailscale
           annotations:
-            tailscale.com/experimental-forward-cluster-traffic-via-ingress: "true"
             gethomepage.dev/enabled: "true"
             gethomepage.dev/name: "Alloy"
             gethomepage.dev/description: "Telemetry collection agent"
             gethomepage.dev/group: "Observability"
             gethomepage.dev/icon: "grafana.png"
-          hosts: []
+          hosts:
+            - host: alloy.rohu-shark.ts.net
+              paths:
+                - path: /
+                  pathType: Prefix
           tls:
             - hosts:
-                - alloy
+                - alloy.rohu-shark.ts.net
+          service:
+            port: 12345
 
   destination:
     server: https://kubernetes.default.svc
