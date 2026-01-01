@@ -12,8 +12,7 @@ metadata:
 spec:
   ingressClassName: tailscale
   rules:
-    - host: netbox
-      http:
+    - http:
         paths:
           - path: /
             pathType: Prefix

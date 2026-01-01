@@ -49,8 +49,7 @@ spec:
             gethomepage.dev/group: "Platform"
             gethomepage.dev/icon: "omada.png"
           hosts:
-            - host: omada.rohu-shark.ts.net
-              paths:
+            - paths:
                 - path: /
                   pathType: Prefix
           tls:

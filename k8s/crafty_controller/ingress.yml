@@ -16,8 +16,7 @@ metadata:
 spec:
   ingressClassName: tailscale
   rules:
-    - host: crafty-controller.rohu-shark.ts.net
-      http:
+    - http:
         paths:
           - path: /
             pathType: Prefix
