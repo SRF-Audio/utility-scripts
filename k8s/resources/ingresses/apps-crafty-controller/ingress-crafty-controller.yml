@@ -16,6 +16,9 @@ metadata:
     gethomepage.dev/url: "https://crafty-controller.rohu-shark.ts.net"
 spec:
   ingressClassName: tailscale
+  tls:
+    - hosts:
+        - crafty-controller.rohu-shark.ts.net
   rules:
     - host: "crafty-controller.rohu-shark.ts.net"
       http:
@@ -27,6 +30,3 @@ spec:
                 name: crafty-controller
                 port:
                   number: 443
-  tls:
-    - hosts:
-        - crafty-controller
