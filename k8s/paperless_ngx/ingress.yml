@@ -19,7 +19,8 @@ metadata:
 spec:
   ingressClassName: tailscale
   rules:
-    - http:
+    - host: paperless.rohu-shark.ts.net
+      http:
         paths:
           - path: /
             pathType: Prefix
@@ -30,4 +31,4 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - paperless
+        - paperless.rohu-shark.ts.net
