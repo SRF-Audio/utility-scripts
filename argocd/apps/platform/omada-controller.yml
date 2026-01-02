@@ -17,10 +17,11 @@ spec:
         config:
           rootless: false
           timezone: America/Chicago
-          manageHttp: 80
-          manageHttps: 443
-          portalHttp: 80
-          portalHttps: 443
+          ports:
+            manageHttp: 80
+            manageHttps: 443
+            portalHttp: 80
+            portalHttps: 443
         persistence:
           data:
             enabled: true
