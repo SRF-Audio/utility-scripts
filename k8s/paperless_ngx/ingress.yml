@@ -15,6 +15,7 @@ metadata:
     gethomepage.dev/description: "Document management and archive"
     gethomepage.dev/group: "Documents"
     gethomepage.dev/icon: "paperless-ngx.png"
+    gethomepage.dev/url: "paperless.rohu-shark.ts.net"
 spec:
   ingressClassName: tailscale
   rules:
