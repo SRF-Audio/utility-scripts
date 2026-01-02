@@ -13,6 +13,7 @@ metadata:
     gethomepage.dev/group: "Games"
     gethomepage.dev/description: "Minecraft server manager"
     gethomepage.dev/icon: "crafty"
+    gethomepage.dev/url: "https://crafty-controller.rohu-shark.ts.net"
 spec:
   ingressClassName: tailscale
   rules:
