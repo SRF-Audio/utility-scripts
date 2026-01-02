@@ -17,9 +17,6 @@ spec:
         config:
           rootless: false
           timezone: America/Chicago
-          ports:
-            manageHttp: 80
-            manageHttps: 443
         persistence:
           data:
             enabled: true
