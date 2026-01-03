@@ -17,20 +17,34 @@ spec:
         envFromSecrets:
           - frigate-rtsp-credentials
         config: |
+          go2rtc:
+            streams:
+              basement_main: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.168.231.2:554/cam/realmonitor?channel=1&subtype=0
+              basement_sub: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.168.231.2:554/cam/realmonitor?channel=1&subtype=1
+
+
           mqtt:
             enabled: false
+
+          record:
+            enabled: true
+            retain:
+              days: 2
+              mode: all
+            events:
+              retain:
+                default: 14
+                mode: active_objects
 
           cameras:
             amcrest_basement_entrance:
               enabled: true
               ffmpeg:
                 inputs:
-                  - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.168.231.2:554/cam/realmonitor?channel=1&subtype=1
-                    roles:
-                      - detect
-                  - path: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.168.231.2:554/cam/realmonitor?channel=1&subtype=0
-                    roles:
-                      - record
+                  - path: rtsp://127.0.0.1:8554/basement_sub
+                    roles: [detect]
+                  - path: rtsp://127.0.0.1:8554/basement_main
+                    roles: [record]
 
         service:
           type: ClusterIP
