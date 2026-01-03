@@ -29,7 +29,7 @@ spec:
             storageClassName: local-path-retain
 
         service:
-          type: ClusterIP
+          type: LoadBalancer
 
         ingress:
           enabled: false
