@@ -1,0 +1,78 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mqtt-broker
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  project: coachlight-k3s-infra
+  source:
+    repoURL: https://bjw-s.github.io/helm-charts
+    chart: app-template
+    targetRevision: 3.7.0
+    helm:
+      valuesObject:
+        controllers:
+          mosquitto:
+            replicas: 1
+            containers:
+              app:
+                image:
+                  repository: eclipse-mosquitto
+                  tag: 2.0.20
+                ports:
+                  - name: mqtt
+                    containerPort: 1883
+                    protocol: TCP
+                resources:
+                  requests:
+                    cpu: 10m
+                    memory: 32Mi
+                  limits:
+                    memory: 128Mi
+
+        service:
+          mosquitto:
+            controller: mosquitto
+            type: ClusterIP
+            ports:
+              mqtt:
+                port: 1883
+                targetPort: 1883
+                protocol: TCP
+
+        persistence:
+          data:
+            enabled: true
+            storageClass: nfs-synology-retain
+            size: 1Gi
+            accessMode: ReadWriteOnce
+            globalMounts:
+              - path: /mosquitto/data
+          config:
+            enabled: true
+            type: configMap
+            name: mosquitto-config
+            globalMounts:
+              - path: /mosquitto/config/mosquitto.conf
+                subPath: mosquitto.conf
+                readOnly: true
+          secret:
+            enabled: true
+            type: secret
+            name: mosquitto-auth
+            globalMounts:
+              - path: /mosquitto/secret
+                readOnly: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: infra-mqtt
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
