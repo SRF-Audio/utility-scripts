@@ -14,38 +14,58 @@ spec:
     targetRevision: "7.8.0"
     helm:
       valuesObject:
+        envFromSecrets:
+          - frigate-rtsp-credentials
         config: |
+          go2rtc:
+            streams:
+              basement_main: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.168.231.2:554/cam/realmonitor?channel=1&subtype=0
+              basement_sub: rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@192.168.231.2:554/cam/realmonitor?channel=1&subtype=1
+
+          detectors:
+            cpu1:
+              type: cpu
+              num_threads: 2
+
           mqtt:
             enabled: false
 
-          cameras:
-            amcrest_left:
-              enabled: false
-              ffmpeg:
-                inputs:
-                  - path: rtsp://USERNAME:PASSWORD@CAMERA_IP:554/cam/realmonitor?channel=1&subtype=0
-                    roles:
-                      - detect
-                      - record
-              detect:
-                enabled: false
-                width: 2688
-                height: 1520
-                fps: 25
+          record:
+            enabled: true
+            retain:
+              days: 2
+              mode: all
+            events:
+              retain:
+                default: 14
+                mode: active_objects
+          objects:
+            track:
+              - person
+              - dog
+              - cat
+              - bird
+            filters:
+              dog:
+                min_score: 0.5
+              cat:
+                min_score: 0.5
+              bird:
+                min_score: 0.4
 
-            amcrest_right:
-              enabled: false
+          cameras:
+            amcrest_basement_entrance:
+              enabled: true
+              detect:
+                width: 1024
+                height: 452
+                fps: 10
               ffmpeg:
                 inputs:
-                  - path: rtsp://USERNAME:PASSWORD@CAMERA_IP:554/cam/realmonitor?channel=2&subtype=0
-                    roles:
-                      - detect
-                      - record
-              detect:
-                enabled: false
-                width: 2688
-                height: 1520
-                fps: 25
+                  - path: rtsp://127.0.0.1:8554/basement_sub
+                    roles: [detect]
+                  - path: rtsp://127.0.0.1:8554/basement_main
+                    roles: [record]
 
         service:
           type: ClusterIP
