@@ -9,30 +9,85 @@ metadata:
 spec:
   project: coachlight-k3s-infra
   source:
-    repoURL: https://sintef.github.io/mosquitto-helm-chart
-    chart: mosquitto
-    targetRevision: 0.1.1
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 4.5.0
     helm:
       valuesObject:
-        mqttOverWebsocket: false
-        auth:
-          usersExistingSecret: mosquitto-auth
-          users:
-            - username: admin
-              # Password field is ignored when usersExistingSecret is set
-              # The actual password comes from the mosquitto-auth secret
-              password: ""
-              acl:
-                - topic: "#"
-                  access: readwrite
-        resources:
-          requests:
-            cpu: 10m
-            memory: 32Mi
-          limits:
-            cpu: 100m
-            memory: 128Mi
+        controllers:
+          main:
+            strategy: Recreate
+            initContainers:
+              init-config:
+                image:
+                  repository: eclipse-mosquitto
+                  tag: 2.0.22
+                command:
+                  - /bin/sh
+                  - -ec
+                args:
+                  - |
+                    mkdir -p /config
+                    cp -f /config-src/mosquitto.conf /config/mosquitto.conf
+                    cp -f /config-src/acl.conf /config/acl.conf
+                    cp -f /secret-src/passwords.conf /config/passwords.conf
+                    chown -R 1883:1883 /config
+                    chmod 0700 /config/passwords.conf /config/acl.conf
+            containers:
+              main:
+                image:
+                  repository: eclipse-mosquitto
+                  tag: 2.0.22
+                args:
+                  - -c
+                  - /config/mosquitto.conf
+                resources:
+                  requests:
+                    cpu: 10m
+                    memory: 32Mi
+                  limits:
+                    cpu: 100m
+                    memory: 128Mi
+            pod:
+              securityContext:
+                runAsUser: 1883
+                runAsGroup: 1883
+                fsGroup: 1883
 
+        service:
+          main:
+            controller: main
+            ports:
+              mqtt:
+                port: 1883
+
+        persistence:
+          data:
+            enabled: true
+            type: persistentVolumeClaim
+            storageClass: nfs-synology-retain
+            size: 1Gi
+            globalMounts:
+              - path: /mosquitto/data
+          config-src:
+            enabled: true
+            type: configMap
+            name: mosquitto-config
+            globalMounts:
+              - path: /config-src
+                readOnly: true
+          secret-src:
+            enabled: true
+            type: secret
+            name: mosquitto-auth
+            globalMounts:
+              - path: /secret-src
+                readOnly: true
+          config:
+            enabled: true
+            type: emptyDir
+            globalMounts:
+              - path: /config
   destination:
     server: https://kubernetes.default.svc
     namespace: infra-mqtt
