@@ -4,3 +4,4 @@ kind: Kustomization
 resources:
   - namespace.yml
   - onepassword/mosquitto-auth.yml
+  - mosquitto-config.yml
