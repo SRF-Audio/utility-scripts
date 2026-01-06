@@ -33,6 +33,17 @@ Credentials are automatically injected into the pgAdmin pod via the 1Password Op
 
 After logging in to pgAdmin, you'll need to register the PostgreSQL server to manage it:
 
+### Verify PostgreSQL Service Name
+
+First, verify the PostgreSQL service name and namespace:
+
+```bash
+kubectl -n db-postgres get svc
+# Look for: postgres-postgresql
+```
+
+### Add Server in pgAdmin
+
 1. Click **"Add New Server"** in the pgAdmin dashboard
 2. In the **General** tab:
    - **Name**: `Coachlight Postgres` (or any descriptive name)
@@ -45,6 +56,8 @@ After logging in to pgAdmin, you'll need to register the PostgreSQL server to ma
 4. (Optional) In the **Advanced** tab:
    - **DB restriction**: Leave blank to see all databases
 5. Click **Save**
+
+> **Note**: The hostname `postgres-postgresql.db-postgres.svc.cluster.local` assumes the PostgreSQL service is named `postgres-postgresql` in the `db-postgres` namespace. Verify the actual service name if connection fails.
 
 ## Usage Guidelines
 
@@ -102,16 +115,28 @@ kubectl -n infra-pgadmin describe onepassworditem pgadmin-credentials
 
 ### Cannot connect to PostgreSQL
 
+Verify PostgreSQL service name and availability:
+
+```bash
+# List all services in db-postgres namespace
+kubectl -n db-postgres get svc
+
+# Check specific service (default name: postgres-postgresql)
+kubectl -n db-postgres get svc postgres-postgresql
+kubectl -n db-postgres describe svc postgres-postgresql
+```
+
 Verify network connectivity from pgAdmin pod:
 
 ```bash
-kubectl -n infra-pgadmin exec -it <pod-name> -- ping postgres-postgresql.db-postgres.svc.cluster.local
-```
+# Get pod name
+POD=$(kubectl -n infra-pgadmin get pod -l app.kubernetes.io/name=pgadmin4 -o jsonpath='{.items[0].metadata.name}')
 
-Check PostgreSQL service:
+# Test DNS resolution
+kubectl -n infra-pgadmin exec -it $POD -- nslookup postgres-postgresql.db-postgres.svc.cluster.local
 
-```bash
-kubectl -n db-postgres get svc postgres-postgresql
+# Test connectivity
+kubectl -n infra-pgadmin exec -it $POD -- nc -zv postgres-postgresql.db-postgres.svc.cluster.local 5432
 ```
 
 ### pgAdmin not accessible via Tailscale

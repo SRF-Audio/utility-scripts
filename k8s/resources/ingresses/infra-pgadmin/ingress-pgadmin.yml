@@ -1,4 +1,6 @@
 ---
+# Internal-only pgAdmin access via Tailscale
+# Service name follows Helm chart naming: <release-name>-<chart-name>
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
