@@ -19,8 +19,6 @@ spec:
           usersExistingSecret: mosquitto-auth
           users:
             - username: admin
-              # Password field is ignored when usersExistingSecret is set
-              # The actual password comes from the mosquitto-auth secret
               password: ""
               acl:
                 - topic: "#"
