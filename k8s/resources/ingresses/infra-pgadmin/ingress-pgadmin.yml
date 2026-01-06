@@ -1,0 +1,28 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pgadmin
+  namespace: infra-pgadmin
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: "pgAdmin"
+    gethomepage.dev/description: "PostgreSQL administration tool"
+    gethomepage.dev/group: "Platform"
+    gethomepage.dev/icon: "pgadmin.png"
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - pgadmin.rohu-shark.ts.net
+  rules:
+    - host: pgadmin.rohu-shark.ts.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pgadmin-pgadmin4
+                port:
+                  number: 80
