@@ -6,6 +6,7 @@ metadata:
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "20"
+    # Deploys after pgadmin-secrets (wave 10) to ensure OnePasswordItem is created first
 spec:
   project: coachlight-k3s-infra
   source:
