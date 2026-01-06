@@ -1,4 +1,9 @@
 ---
+# This OnePasswordItem creates a Secret named "mosquitto-auth" in the
+# infra-mqtt namespace. The 1Password item must have a field named
+# "passwords.conf" containing the mosquitto password file content
+# (username:hash format, one per line).
+# Generate hashes using: mosquitto_passwd -c /tmp/mosquitto_passwd username
 apiVersion: onepassword.com/v1
 kind: OnePasswordItem
 metadata:
