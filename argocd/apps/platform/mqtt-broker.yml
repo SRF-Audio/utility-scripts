@@ -57,9 +57,11 @@ spec:
         service:
           main:
             controller: main
+            type: LoadBalancer
             ports:
               mqtt:
                 port: 1883
+
 
         persistence:
           data:
