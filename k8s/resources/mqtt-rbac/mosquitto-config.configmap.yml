@@ -1,0 +1,27 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mosquitto-config
+  namespace: infra-mqtt
+data:
+  mosquitto.conf: |
+    listener 1883
+    allow_anonymous false
+    persistence true
+    persistence_location /mosquitto/data
+
+    password_file /config/passwords.conf
+    acl_file /config/acl.conf
+  acl.conf: |
+    # Frigate - write access to its own topics
+    user frigate
+    topic write frigate/#
+
+    # Home Assistant - read access to frigate topics
+    user homeassistant
+    topic read frigate/#
+
+    # Admin - full access for debugging
+    user admin
+    topic readwrite #
