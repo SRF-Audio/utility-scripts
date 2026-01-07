@@ -62,12 +62,12 @@ spec:
               mqtt:
                 port: 1883
 
-
         persistence:
           data:
             enabled: true
             type: persistentVolumeClaim
             storageClass: nfs-synology-retain
+            accessMode: ReadWriteOnce
             size: 1Gi
             globalMounts:
               - path: /mosquitto/data
