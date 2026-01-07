@@ -14,9 +14,9 @@ data:
     password_file /config/passwords.conf
     acl_file /config/acl.conf
   acl.conf: |
-    # Frigate - write access to its own topics
+    # Frigate - full access to its own topics
     user frigate
-    topic write frigate/#
+    topic readwrite frigate/#
 
     # Home Assistant - read access to frigate topics
     user homeassistant
