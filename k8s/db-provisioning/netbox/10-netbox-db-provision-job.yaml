@@ -61,15 +61,16 @@ spec:
               DO $$
               BEGIN
                 IF NOT EXISTS (
-                  SELECT FROM pg_database WHERE datname = 'netbox'
+                  SELECT FROM pg_database WHERE datname = :'netbox_db_name'
                 ) THEN
                   EXECUTE format(
-                    'CREATE DATABASE netbox WITH OWNER = %I',
+                    'CREATE DATABASE %I WITH OWNER = %I',
+                    :'netbox_db_name',
                     :'netbox_user'
                   );
-                  RAISE NOTICE 'Database netbox created';
+                  RAISE NOTICE 'Database % created', :'netbox_db_name';
                 ELSE
-                  RAISE NOTICE 'Database netbox already exists';
+                  RAISE NOTICE 'Database % already exists', :'netbox_db_name';
                 END IF;
               END
               $$;
@@ -77,9 +78,9 @@ spec:
               -- Ensure ownership and grants
               DO $$
               BEGIN
-                EXECUTE format('ALTER DATABASE netbox OWNER TO %I', :'netbox_user');
-                EXECUTE format('GRANT CONNECT ON DATABASE netbox TO %I', :'netbox_user');
-                EXECUTE format('GRANT ALL PRIVILEGES ON DATABASE netbox TO %I', :'netbox_user');
+                EXECUTE format('ALTER DATABASE %I OWNER TO %I', :'netbox_db_name', :'netbox_user');
+                EXECUTE format('GRANT CONNECT ON DATABASE %I TO %I', :'netbox_db_name', :'netbox_user');
+                EXECUTE format('GRANT ALL PRIVILEGES ON DATABASE %I TO %I', :'netbox_db_name', :'netbox_user');
               END
               $$;
               EOF
@@ -90,6 +91,7 @@ spec:
                 -p 5432 \
                 -U "$POSTGRES_ADMIN_USER" \
                 -d postgres \
+                --set=netbox_db_name=netbox \
                 --set=netbox_user="$NETBOX_DB_USER" \
                 --set=netbox_password="$NETBOX_DB_PASSWORD" \
                 -f /tmp/provision.sql
