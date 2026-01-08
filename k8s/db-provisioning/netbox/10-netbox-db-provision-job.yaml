@@ -29,26 +29,33 @@ spec:
               # Set PGPASSWORD for admin connection
               export PGPASSWORD="$POSTGRES_ADMIN_PASSWORD"
 
-              # Create SQL script with idempotent operations
+              # Create SQL script with idempotent operations using psql variables
               cat > /tmp/provision.sql << 'EOF'
               -- Create role if it doesn't exist
               DO $$
               BEGIN
                 IF NOT EXISTS (
                   SELECT FROM pg_catalog.pg_roles
-                  WHERE rolname = '${NETBOX_DB_USER}'
+                  WHERE rolname = :'netbox_user'
                 ) THEN
-                  CREATE ROLE ${NETBOX_DB_USER} WITH LOGIN;
-                  RAISE NOTICE 'Role ${NETBOX_DB_USER} created';
+                  EXECUTE format('CREATE ROLE %I WITH LOGIN', :'netbox_user');
+                  RAISE NOTICE 'Role % created', :'netbox_user';
                 ELSE
-                  RAISE NOTICE 'Role ${NETBOX_DB_USER} already exists';
+                  RAISE NOTICE 'Role % already exists', :'netbox_user';
                 END IF;
               END
               $$;
 
               -- Set/update password (rotation-friendly)
-              ALTER ROLE ${NETBOX_DB_USER}
-                WITH LOGIN PASSWORD '${NETBOX_DB_PASSWORD}';
+              DO $$
+              BEGIN
+                EXECUTE format(
+                  'ALTER ROLE %I WITH LOGIN PASSWORD %L',
+                  :'netbox_user',
+                  :'netbox_password'
+                );
+              END
+              $$;
 
               -- Create database if it doesn't exist
               DO $$
@@ -56,7 +63,10 @@ spec:
                 IF NOT EXISTS (
                   SELECT FROM pg_database WHERE datname = 'netbox'
                 ) THEN
-                  CREATE DATABASE netbox WITH OWNER = ${NETBOX_DB_USER};
+                  EXECUTE format(
+                    'CREATE DATABASE netbox WITH OWNER = %I',
+                    :'netbox_user'
+                  );
                   RAISE NOTICE 'Database netbox created';
                 ELSE
                   RAISE NOTICE 'Database netbox already exists';
@@ -65,21 +75,24 @@ spec:
               $$;
 
               -- Ensure ownership and grants
-              ALTER DATABASE netbox OWNER TO ${NETBOX_DB_USER};
-              GRANT CONNECT ON DATABASE netbox TO ${NETBOX_DB_USER};
-              GRANT ALL PRIVILEGES ON DATABASE netbox TO ${NETBOX_DB_USER};
+              DO $$
+              BEGIN
+                EXECUTE format('ALTER DATABASE netbox OWNER TO %I', :'netbox_user');
+                EXECUTE format('GRANT CONNECT ON DATABASE netbox TO %I', :'netbox_user');
+                EXECUTE format('GRANT ALL PRIVILEGES ON DATABASE netbox TO %I', :'netbox_user');
+              END
+              $$;
               EOF
 
-              # Replace environment variables in SQL script
-              envsubst < /tmp/provision.sql > /tmp/provision_final.sql
-
-              # Execute SQL with error handling
+              # Execute SQL with psql variables (safe from SQL injection)
               psql -v ON_ERROR_STOP=1 \
                 -h postgres-postgresql.db-postgres.svc.cluster.local \
                 -p 5432 \
                 -U "$POSTGRES_ADMIN_USER" \
                 -d postgres \
-                -f /tmp/provision_final.sql
+                --set=netbox_user="$NETBOX_DB_USER" \
+                --set=netbox_password="$NETBOX_DB_PASSWORD" \
+                -f /tmp/provision.sql
 
               echo "NetBox database provisioning completed successfully."
           env:
