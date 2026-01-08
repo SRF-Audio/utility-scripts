@@ -1,55 +1,60 @@
----
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: pgadmin
-  namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "20"
-    # Deploys after pgadmin-secrets (wave 10) to ensure OnePasswordItem is created first
-spec:
-  project: coachlight-k3s-infra
-  source:
-    repoURL: https://helm.runix.net
-    chart: pgadmin4
-    targetRevision: 1.50.0
-    helm:
-      valuesObject:
-        envVarsFromSecrets:
-          - pgadmin-credentials
-        
-        persistentVolume:
-          enabled: true
-          storageClass: nfs-synology-retain
-          size: 2Gi
-        
-        service:
-          type: ClusterIP
-          port: 80
-        
-        ingress:
-          enabled: false
-        
-        resources:
-          requests:
-            cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: 500m
-            memory: 512Mi
-        
-        containerSecurityContext:
-          runAsNonRoot: true
-          runAsUser: 5050
-          runAsGroup: 5050
-          allowPrivilegeEscalation: false
-  
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: infra-pgadmin
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
+# ---
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: pgadmin
+#   namespace: argocd
+#   annotations:
+#     argocd.argoproj.io/sync-wave: "20"
+#     # Deploys after pgadmin-secrets (wave 10) to ensure OnePasswordItem is created first
+# spec:
+#   project: coachlight-k3s-infra
+#   source:
+#     repoURL: https://helm.runix.net
+#     chart: pgadmin4
+#     targetRevision: 1.50.0
+#   helm:
+#     valuesObject:
+#       env:
+#         email: "stephen.froeber@gmail.com"
+#         password:
+#           valueFrom:
+#             secretKeyRef:
+#               name: pgadmin-credentials
+#               key: PGADMIN_DEFAULT_PASSWORD
+
+#         persistentVolume:
+#           enabled: true
+#           storageClass: nfs-synology-retain
+#           size: 2Gi
+
+#         service:
+#           type: ClusterIP
+#           port: 80
+
+#         ingress:
+#           enabled: false
+
+#         resources:
+#           requests:
+#             cpu: 50m
+#             memory: 128Mi
+#           limits:
+#             cpu: 500m
+#             memory: 512Mi
+
+#         containerSecurityContext:
+#           runAsNonRoot: true
+#           runAsUser: 5050
+#           runAsGroup: 5050
+#           allowPrivilegeEscalation: false
+
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: infra-pgadmin
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+#     syncOptions:
+#       - CreateNamespace=true
