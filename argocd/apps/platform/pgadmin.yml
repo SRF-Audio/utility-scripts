@@ -15,12 +15,17 @@ spec:
   helm:
     valuesObject:
       env:
-        email: "stephen.froeber@gmail.com"
-        password:
-          valueFrom:
-            secretKeyRef:
-              name: pgadmin-credentials
-              key: PGADMIN_DEFAULT_PASSWORD
+        variables:
+          - name: PGADMIN_DEFAULT_EMAIL
+            valueFrom:
+              secretKeyRef:
+                name: pgadmin-credentials
+                key: PGADMIN_DEFAULT_EMAIL
+          - name: PGADMIN_DEFAULT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: pgadmin-credentials
+                key: PGADMIN_DEFAULT_PASSWORD
 
         persistentVolume:
           enabled: true
