@@ -42,6 +42,8 @@ spec:
             memory: 2Gi
 
         buckets:
+          # policy: none means no public access
+          # Access is controlled via user-specific policies
           - name: loki
             policy: none
             purge: false
