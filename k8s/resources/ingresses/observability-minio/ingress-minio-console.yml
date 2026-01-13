@@ -1,0 +1,28 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minio-console
+  namespace: observability-minio
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: "MinIO Console"
+    gethomepage.dev/description: "Object storage admin console"
+    gethomepage.dev/group: "Observability"
+    gethomepage.dev/icon: "minio.png"
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - minio.rohu-shark.ts.net
+  rules:
+    - host: minio.rohu-shark.ts.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: minio-console
+                port:
+                  number: 9001
