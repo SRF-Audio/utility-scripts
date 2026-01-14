@@ -1,35 +1,35 @@
----
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: influxdb
-  namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "20"
-spec:
-  project: coachlight-k3s-db
-  source:
-    repoURL: https://helm.influxdata.com/
-    chart: influxdb2
-    targetRevision: 2.1.2
-    helm:
-      valuesObject:
-        adminUser:
-          user: sfroeber
-          existingSecret: influxdb-auth
+# ---
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: influxdb
+#   namespace: argocd
+#   annotations:
+#     argocd.argoproj.io/sync-wave: "20"
+# spec:
+#   project: coachlight-k3s-db
+#   source:
+#     repoURL: https://helm.influxdata.com/
+#     chart: influxdb2
+#     targetRevision: 2.1.2
+#     helm:
+#       valuesObject:
+#         adminUser:
+#           user: sfroeber
+#           existingSecret: influxdb-auth
 
-        persistence:
-          storageClass: local-path-retain
+#         persistence:
+#           storageClass: local-path-retain
 
-        ingress:
-          enabled: false
+#         ingress:
+#           enabled: false
 
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: db-influxdb
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: db-influxdb
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+#     syncOptions:
+#       - CreateNamespace=true
