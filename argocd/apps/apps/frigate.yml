@@ -68,7 +68,7 @@ spec:
                     roles: [record]
 
         service:
-          type: ClusterIP
+          type: LoadBalancer
 
         persistence:
           config:
