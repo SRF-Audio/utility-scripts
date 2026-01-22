@@ -32,7 +32,7 @@ spec:
           sitename: "Leantime"
           leanSessionSecure: "true"
           language: "en-US"
-          defaultTimezone: "America/Los_Angeles"
+          defaultTimezone: "America/Chicago"
           session:
             # Session password for cookie encryption
             # NOTE: Chart doesn't support existingSecret for app secrets
