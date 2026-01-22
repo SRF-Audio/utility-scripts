@@ -27,6 +27,51 @@ helm install leantime -f values.yaml ./leantime/helm
 
 # Configuring
 
+## Session Password Configuration
+
+The Leantime Helm chart supports two methods for configuring the session password:
+
+### Option 1: Using an Existing Secret (Recommended for Production)
+
+For production deployments and GitOps workflows, use an external secret manager (e.g., 1Password Operator, Sealed Secrets, External Secrets Operator):
+
+```yaml
+app:
+  session:
+    existingSecret:
+      name: leantime-app
+      key: session-password
+    password: ""  # Must be empty when using existingSecret
+```
+
+The referenced Secret must exist in the same namespace and contain the session password:
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: leantime-app
+type: Opaque
+data:
+  session-password: <base64-encoded-password>
+```
+
+### Option 2: Using Direct Password (Local Testing Only)
+
+For local testing only. **DO NOT commit production secrets to Git:**
+
+```yaml
+app:
+  session:
+    existingSecret:
+      name: ""
+    password: "your-strong-password-here"
+```
+
+When `existingSecret.name` is empty, the chart will generate a Secret containing the password.
+
+## Configuration Parameters
+
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | app.defaultTimezone | string | `"America/Los_Angeles"` | Sets the default Timezone |
@@ -57,8 +102,10 @@ helm install leantime -f values.yaml ./leantime/helm
 | app.s3.region | string | `""` | S3 region |
 | app.s3.secret | string | `""` | S3 secret |
 | app.s3.usePathStyleEndpoint | string | `"false"` | Sets wether or not use path-style endpoint |
+| app.session.existingSecret.key | string | `"session-password"` | Key within the Secret that contains the session password value |
+| app.session.existingSecret.name | string | `""` | Name of existing Secret containing the session password (leave empty to use password field) |
 | app.session.expiration | int | `28800` | Session expiration |
-| app.session.password | string | `"changeme"` | Salting sessions. Replace with a strong password |
+| app.session.password | string | `"changeme"` | Direct session password value (only for local testing - DO NOT commit production secrets). Required when existingSecret.name is empty. Use existingSecret for production deployments. |
 | app.sitename | string | `"Leantime"` | Sets the name for the instance |
 | autoscaling.enabled | bool | `false` |  |
 | autoscaling.maxReplicas | int | `100` |  |
