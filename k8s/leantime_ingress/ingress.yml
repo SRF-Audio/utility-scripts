@@ -1,0 +1,28 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: leantime
+  namespace: apps-leantime
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: "Leantime"
+    gethomepage.dev/description: "Project management for lean teams"
+    gethomepage.dev/group: "Apps"
+    gethomepage.dev/icon: "leantime.png"
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - leantime.rohu-shark.ts.net
+  rules:
+    - host: leantime.rohu-shark.ts.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: leantime
+                port:
+                  number: 80
