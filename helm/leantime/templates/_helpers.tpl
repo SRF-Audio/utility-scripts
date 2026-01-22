@@ -60,3 +60,25 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Get the name of the Secret containing the session password
+*/}}
+{{- define "leantime.sessionSecretName" -}}
+{{- if .Values.app.session.existingSecret.name -}}
+{{- .Values.app.session.existingSecret.name -}}
+{{- else -}}
+{{- include "leantime.fullname" . -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Get the key within the Secret that contains the session password
+*/}}
+{{- define "leantime.sessionSecretKey" -}}
+{{- if .Values.app.session.existingSecret.key -}}
+{{- .Values.app.session.existingSecret.key -}}
+{{- else -}}
+session-password
+{{- end -}}
+{{- end -}}

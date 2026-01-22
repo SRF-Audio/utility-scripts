@@ -1,3 +1,6 @@
+{{- if and (not .Values.app.session.existingSecret.name) (not .Values.app.session.password) -}}
+{{- fail "Either app.session.existingSecret.name must be set, or app.session.password must be provided." -}}
+{{- end -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -74,7 +77,10 @@ spec:
             value: {{ .Values.app.s3.folderName }}
           {{- end }}
           - name: LEAN_SESSION_PASSWORD
-            value: {{ .Values.app.session.password }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "leantime.sessionSecretName" . }}
+                key: {{ include "leantime.sessionSecretKey" . }}
           - name: LEAN_SESSION_EXPIRATION
             value: {{ .Values.app.session.expiration | quote }}
           {{- if .Values.app.email.enabled }}
