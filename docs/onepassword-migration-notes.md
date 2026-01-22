@@ -99,3 +99,70 @@ See `k8s/crafty_controller/onepassworditem-crafty-default-json.yml` and `argocd/
 | Cluster Primitives | ✅ | ✅ | ❓ | No secret dependencies |
 | PostgreSQL | ✅ | ✅ | ❓ | Already using OnePassword CRDs |
 | Redis | ✅ | ✅ | ❓ | Already using OnePassword CRDs |
+| Leantime | ✅ | ✅ | ❌ | Requires 1Password items setup (see below) |
+
+---
+
+### 6. Leantime (`argocd/apps/apps/leantime.yml`)
+
+**Status**: OnePassword CRDs created, requires 1Password vault setup
+
+**Current State**: New deployment using GitOps-first approach:
+- ArgoCD Application points directly at upstream Leantime Git repository
+- Helm chart rendered from `https://github.com/Leantime/leantime.git` at tag `v3.6.0`
+- Exposed only on Tailnet via Tailscale Ingress
+- Homepage discovery via ingress annotations
+
+**Required 1Password Items**:
+
+The Leantime OnePassword operator requires two items in the `HomeLab` vault:
+
+1. **`Leantime Database`** (referenced by `leantime-db` secret)
+   - Must contain the following fields that will be mapped to secret keys:
+     - `mariadb-root-password`: Root password for MariaDB
+     - `mariadb-password`: Password for the `leantime` database user
+   - Used by the MariaDB subchart via `mariadb.auth.existingSecret`
+
+2. **`Leantime App Secrets`** (referenced by `leantime-app` secret)
+   - Reserved for future use if the upstream chart adds support for existingSecret on app-level secrets
+   - Currently not used (session password is in Helm values due to chart limitations)
+
+**Deployment Structure**:
+- `argocd/apps/apps/leantime-secrets.yml` (sync-wave 10) → deploys OnePasswordItem CRDs
+- `argocd/apps/apps/leantime.yml` (sync-wave 20) → deploys Helm chart from upstream Git
+- `argocd/apps/apps/leantime-ingress.yml` (sync-wave 30) → deploys Tailscale ingress with Homepage annotations
+
+**Chart Limitations**:
+- The Leantime Helm chart does not support `existingSecret` for app-level secrets (session password, SMTP, etc.)
+- Session password is currently set in `valuesObject` as a generated secure random value
+- Database credentials use the MariaDB subchart's `existingSecret` feature successfully
+
+**Migration Path**: N/A (new deployment)
+
+**Sync Waves**: 
+- Secrets: 10
+- Application: 20  
+- Ingress: 30
+
+**1Password Setup Instructions**:
+
+Before syncing the Leantime applications, create these items in 1Password:
+
+```bash
+# In 1Password web UI or CLI:
+# Vault: HomeLab
+# Item 1: "Leantime Database"
+#   - Add field: mariadb-root-password = <generate secure password>
+#   - Add field: mariadb-password = <generate secure password>
+#
+# Item 2: "Leantime App Secrets" 
+#   - Can be empty for now (reserved for future use)
+```
+
+**Verification**:
+After ArgoCD syncs the `leantime-secrets` application:
+```bash
+kubectl get secrets -n apps-leantime
+# Should show: leantime-db, leantime-app
+```
+
