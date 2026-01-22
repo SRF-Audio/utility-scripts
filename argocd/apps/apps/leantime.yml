@@ -16,18 +16,18 @@ spec:
       valuesObject:
         image:
           tag: "3.6.0"
-        
+
         persistence:
           enabled: true
           storageClass: "nfs-synology-retain"
           size: 10Gi
-        
+
         service:
           type: ClusterIP
-        
+
         ingress:
           enabled: false
-        
+
         app:
           sitename: "Leantime"
           leanSessionSecure: "true"
@@ -41,7 +41,7 @@ spec:
             expiration: 28800
           email:
             enabled: false
-        
+
         # Configure MariaDB subchart to use 1Password-managed secret
         mariadb:
           enabled: true
@@ -51,11 +51,11 @@ spec:
             # Use secret created by 1Password Operator
             # The secret must have keys: mariadb-root-password, mariadb-password
             existingSecret: "leantime-db"
-  
+
   destination:
     server: https://kubernetes.default.svc
     namespace: apps-leantime
-  
+
   syncPolicy:
     automated:
       prune: true
