@@ -9,9 +9,9 @@ metadata:
 spec:
   project: coachlight-k3s-apps
   source:
-    repoURL: https://github.com/Leantime/leantime.git
+    repoURL: https://github.com/SRF-Audio/utility-scripts
     targetRevision: v3.6.0
-    path: helm
+    path: helm/leantime
     helm:
       valuesObject:
         image:
