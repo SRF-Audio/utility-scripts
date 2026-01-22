@@ -76,9 +76,5 @@ Get the name of the Secret containing the session password
 Get the key within the Secret that contains the session password
 */}}
 {{- define "leantime.sessionSecretKey" -}}
-{{- if .Values.app.session.existingSecret.key -}}
-{{- .Values.app.session.existingSecret.key -}}
-{{- else -}}
-session-password
-{{- end -}}
+{{- .Values.app.session.existingSecret.key | default "session-password" -}}
 {{- end -}}
