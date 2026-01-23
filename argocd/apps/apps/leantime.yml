@@ -1,68 +1,68 @@
----
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: leantime
-  namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "20"
-spec:
-  project: coachlight-k3s-apps
-  source:
-    repoURL: https://github.com/SRF-Audio/utility-scripts
-    targetRevision: main
-    path: helm/leantime
-    helm:
-      valuesObject:
-        image:
-          tag: "3.6.0"
+# ---
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: leantime
+#   namespace: argocd
+#   annotations:
+#     argocd.argoproj.io/sync-wave: "20"
+# spec:
+#   project: coachlight-k3s-apps
+#   source:
+#     repoURL: https://github.com/SRF-Audio/utility-scripts
+#     targetRevision: main
+#     path: helm/leantime
+#     helm:
+#       valuesObject:
+#         image:
+#           tag: "3.6.0"
 
-        persistence:
-          enabled: true
-          storageClass: "nfs-synology-retain"
-          size: 10Gi
+#         persistence:
+#           enabled: true
+#           storageClass: "nfs-synology-retain"
+#           size: 10Gi
 
-        service:
-          type: ClusterIP
+#         service:
+#           type: ClusterIP
 
-        ingress:
-          enabled: false
+#         ingress:
+#           enabled: false
 
-        app:
-          sitename: "Leantime"
-          leanSessionSecure: "true"
-          language: "en-US"
-          defaultTimezone: "America/Chicago"
-          session:
-            # Session password for cookie encryption
-            # NOTE: Chart doesn't support existingSecret for app secrets
-            # This is a generated secure random value
-            password: "X9Qgjckpu/yd1cVOLF7zGQOeEK/x/xR/7O0VKDArPwE="
-            expiration: 28800
-          email:
-            enabled: false
+#         app:
+#           sitename: "Leantime"
+#           leanSessionSecure: "true"
+#           language: "en-US"
+#           defaultTimezone: "America/Chicago"
+#           session:
+#             # Session password for cookie encryption
+#             # NOTE: Chart doesn't support existingSecret for app secrets
+#             # This is a generated secure random value
+#             password: "X9Qgjckpu/yd1cVOLF7zGQOeEK/x/xR/7O0VKDArPwE="
+#             expiration: 28800
+#           email:
+#             enabled: false
 
-        # Configure MariaDB subchart to use 1Password-managed secret
-        mariadb:
-          enabled: true
-          image:
-            registry: docker.io
-            repository: bitnamilegacy/mariadb
-            tag: 10.6.12-debian-11-r9
-          auth:
-            database: "leantime"
-            username: "leantime"
-            # Use secret created by 1Password Operator
-            # The secret must have keys: mariadb-root-password, mariadb-password
-            existingSecret: "leantime-db"
+#         # Configure MariaDB subchart to use 1Password-managed secret
+#         mariadb:
+#           enabled: true
+#           image:
+#             registry: docker.io
+#             repository: bitnamilegacy/mariadb
+#             tag: 10.6.12-debian-11-r9
+#           auth:
+#             database: "leantime"
+#             username: "leantime"
+#             # Use secret created by 1Password Operator
+#             # The secret must have keys: mariadb-root-password, mariadb-password
+#             existingSecret: "leantime-db"
 
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: apps-leantime
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: apps-leantime
 
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+#     syncOptions:
+#       - CreateNamespace=true
