@@ -45,6 +45,10 @@ spec:
         # Configure MariaDB subchart to use 1Password-managed secret
         mariadb:
           enabled: true
+          image:
+            registry: docker.io
+            repository: bitnamilegacy/mariadb
+            tag: 10.6.12-debian-11-r9
           auth:
             database: "leantime"
             username: "leantime"
