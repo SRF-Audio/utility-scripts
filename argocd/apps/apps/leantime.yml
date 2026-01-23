@@ -15,7 +15,7 @@ spec:
     helm:
       valuesObject:
         image:
-          tag: "v3.6.0"
+          tag: "3.6.0"
 
         persistence:
           enabled: true
