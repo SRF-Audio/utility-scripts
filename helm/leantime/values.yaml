@@ -61,13 +61,13 @@ app:
     # Use this for GitOps workflows with secrets managed by external operators (e.g., 1Password Operator).
     existingSecret:
       # -- Name of existing Secret containing the session password (leave empty to use password field)
-      name: ""
+      name: "leantime-app"
       # -- Key within the Secret that contains the session password value
       key: "session-password"
     # Direct session password value (only for local testing - DO NOT commit production secrets).
     # Required when existingSecret.name is empty. Use existingSecret for production deployments.
     # -- Session password for cookie encryption
-    password: "changeme"
+    password: ""
     # -- Session expiration
     expiration: 28800
   email:
