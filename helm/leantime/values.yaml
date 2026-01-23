@@ -112,6 +112,11 @@ app:
 
 mariadb:
   enabled: true
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/mariadb
+    tag: 10.6.12-debian-11-r9
+
   auth:
     # -- Database root password
     rootPassword: "changeme"
