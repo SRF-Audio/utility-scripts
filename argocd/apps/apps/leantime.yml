@@ -46,9 +46,9 @@ spec:
         mariadb:
           enabled: true
           image:
-          registry: docker.io
-          repository: bitnamilegacy/mariadb
-          tag: 10.6.12-debian-11-r9
+            registry: docker.io
+            repository: bitnamilegacy/mariadb
+            tag: 10.6.12-debian-11-r9
           auth:
             database: "leantime"
             username: "leantime"
