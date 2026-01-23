@@ -10,7 +10,7 @@ spec:
   project: coachlight-k3s-apps
   source:
     repoURL: https://github.com/SRF-Audio/utility-scripts
-    targetRevision: v3.6.0
+    targetRevision: 3.6.0
     path: helm/leantime
     helm:
       valuesObject:
