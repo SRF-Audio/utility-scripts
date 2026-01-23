@@ -126,6 +126,8 @@ mariadb:
     username: "leantime"
     # -- Database password
     password: "changeme"
+    # -- Name of an existing secret providing `mariadb-password` (and optionally `mariadb-root-password`)
+    existingSecret: ""
 
 serviceAccount:
   # Specifies whether a service account should be created

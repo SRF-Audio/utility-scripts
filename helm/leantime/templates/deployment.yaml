@@ -49,7 +49,14 @@ spec:
           - name: LEAN_DB_USER
             value: {{ .Values.mariadb.auth.username }}
           - name: LEAN_DB_PASSWORD
+            {{- if .Values.mariadb.auth.existingSecret }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.mariadb.auth.existingSecret }}
+                key: mariadb-password
+            {{- else }}
             value: {{ .Values.mariadb.auth.password }}
+            {{- end }}
           - name: LEAN_DB_DATABASE
             value: {{ .Values.mariadb.auth.database }}
           - name: LEAN_SITENAME
