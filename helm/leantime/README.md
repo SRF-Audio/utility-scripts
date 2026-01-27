@@ -79,6 +79,8 @@ When `existingSecret.name` is empty, the chart will generate a Secret containing
 | app.email.return | string | `"leantime@cluster.local"` | Sets the email address to use for notifications and registrations |
 | app.email.smtp.autoTLS | bool | `true` | Set autoTLS? |
 | app.email.smtp.hosts | string | `""` | SMTP host |
+| app.email.smtp.existingSecret.key | string | `"smtp-password"` | Key within the secret that stores the SMTP password |
+| app.email.smtp.existingSecret.name | string | `""` | Name of an existing secret containing the SMTP password (optional) |
 | app.email.smtp.password | string | `""` | SMTP password |
 | app.email.smtp.port | int | `587` | SMTP port |
 | app.email.smtp.secure | string | `"STARTLS"` | Sets the SMTP security protocol (usually one of: TLS, SSL, STARTTLS) |

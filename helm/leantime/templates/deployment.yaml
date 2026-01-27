@@ -100,7 +100,14 @@ spec:
           - name: LEAN_EMAIL_SMTP_USERNAME
             value: {{ .Values.app.email.smtp.username }}
           - name: LEAN_EMAIL_SMTP_PASSWORD
+            {{- if .Values.app.email.smtp.existingSecret.name }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.app.email.smtp.existingSecret.name }}
+                key: {{ .Values.app.email.smtp.existingSecret.key }}
+            {{- else }}
             value: {{ .Values.app.email.smtp.password }}
+            {{- end }}
           - name: LEAN_EMAIL_SMTP_AUTO_TLS
             value: {{ .Values.app.email.smtp.autoTLS | quote }}
           - name: LEAN_EMAIL_SMTP_SECURE

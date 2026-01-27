@@ -76,6 +76,11 @@ app:
     # -- Sets the email address to use for notifications and registrations
     return: "leantime@cluster.local"
     smtp:
+      existingSecret:
+        # -- Name of an existing secret containing the SMTP password (optional)
+        name: ""
+        # -- Key within the secret that stores the SMTP password
+        key: "smtp-password"
       # -- SMTP host
       hosts: ""
       # -- SMTP username

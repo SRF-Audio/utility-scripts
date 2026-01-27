@@ -40,7 +40,17 @@ spec:
             password: "X9Qgjckpu/yd1cVOLF7zGQOeEK/x/xR/7O0VKDArPwE="
             expiration: 28800
           email:
-            enabled: false
+            enabled: true
+            return: "stephen.froeber@gmail.com"
+            smtp:
+              hosts: "smtp.gmail.com"
+              port: 587
+              secure: "STARTTLS"
+              username: "stephen.froeber@gmail.com"
+              existingSecret:
+                name: "leantime-app"
+                key: "smtp-password"
+              # password field left empty when using existingSecret
 
         # Configure MariaDB subchart to use 1Password-managed secret
         mariadb:
