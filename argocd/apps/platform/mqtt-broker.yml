@@ -40,6 +40,8 @@ spec:
                 image:
                   repository: eclipse-mosquitto
                   tag: 2.0.22
+                command:
+                  - /usr/sbin/mosquitto
                 args:
                   - -c
                   - /config/mosquitto.conf
