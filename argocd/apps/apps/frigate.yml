@@ -30,7 +30,7 @@ spec:
 
           mqtt:
             enabled: true
-            host: 192.168.226.100
+            host: mqtt-broker.infra-mqtt.svc.cluster.local
             port: 1883
             user: ${FRIGATE_MQTT_USER}
             password: ${FRIGATE_MQTT_PASSWORD}
