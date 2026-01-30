@@ -2,16 +2,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: mqtt-rbac
+  name: mqtt-prereqs
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "15"
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   project: coachlight-k3s-infra
   source:
     repoURL: https://github.com/SRF-Audio/utility-scripts
     targetRevision: main
-    path: k8s/resources/mqtt-rbac
+    path: k8s/infra-mqtt/prereqs
   destination:
     server: https://kubernetes.default.svc
     namespace: infra-mqtt
