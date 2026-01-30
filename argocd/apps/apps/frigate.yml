@@ -51,13 +51,20 @@ spec:
               - dog
               - cat
               - bird
-          filters:
-            dog:
-              min_score: 0.4
-            cat:
-              min_score: 0.4
-            bird:
-              min_score: 0.35
+            filters:
+              person:
+                min_score: 0.5
+                threshold: 0.7
+              dog:
+                min_score: 0.4
+                threshold: 0.65
+              cat:
+                min_score: 0.4
+                threshold: 0.65
+              bird:
+                min_score: 0.35
+                threshold: 0.6
+
 
 
 
