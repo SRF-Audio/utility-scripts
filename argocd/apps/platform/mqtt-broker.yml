@@ -35,8 +35,6 @@ spec:
                     cp -f /config-src/mosquitto.conf /config/mosquitto.conf
                     cp -f /config-src/acl.conf /config/acl.conf
                     cp -f /secret-src/passwords.conf /config/passwords.conf
-                    chown -R 1883:1883 /config
-                    chmod 0700 /config/passwords.conf /config/acl.conf
             containers:
               main:
                 image:
