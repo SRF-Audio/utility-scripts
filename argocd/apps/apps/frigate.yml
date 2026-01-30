@@ -16,6 +16,7 @@ spec:
       valuesObject:
         envFromSecrets:
           - frigate-rtsp-credentials
+          - frigate-mqtt-credentials
         config: |
           go2rtc:
             streams:
@@ -28,7 +29,12 @@ spec:
               num_threads: 2
 
           mqtt:
-            enabled: false
+            enabled: true
+            host: 192.168.226.94
+            port: 1883
+            user: ${FRIGATE_MQTT_USER}
+            password: ${FRIGATE_MQTT_PASSWORD}
+            topic_prefix: frigate
 
           record:
             enabled: true

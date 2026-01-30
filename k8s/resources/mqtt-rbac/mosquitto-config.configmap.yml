@@ -10,6 +10,8 @@ data:
     allow_anonymous false
     persistence true
     persistence_location /mosquitto/data
+    log_dest stdout
+    log_type all
 
     password_file /config/passwords.conf
     acl_file /config/acl.conf
