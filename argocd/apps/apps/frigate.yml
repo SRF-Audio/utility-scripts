@@ -32,7 +32,7 @@ spec:
             enabled: true
             host: mqtt-broker.infra-mqtt.svc.cluster.local
             port: 1883
-            user: "{FRIGATE_MQTT_USER}""
+            user: "{FRIGATE_MQTT_USER}"
             password: "{FRIGATE_MQTT_PASSWORD}"
             topic_prefix: frigate
 
