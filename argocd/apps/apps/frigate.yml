@@ -51,13 +51,17 @@ spec:
               - dog
               - cat
               - bird
-            filters:
-              dog:
-                min_score: 0.5
-              cat:
-                min_score: 0.5
-              bird:
-                min_score: 0.4
+          filters:
+            dog:
+              min_score: 0.4
+              threshold: 0.65
+            cat:
+              min_score: 0.4
+              threshold: 0.65
+            bird:
+              min_score: 0.35
+              threshold: 0.6
+
 
           cameras:
             amcrest_basement_entrance:
@@ -72,6 +76,10 @@ spec:
                     roles: [detect]
                   - path: rtsp://127.0.0.1:8554/basement_main
                     roles: [record]
+              motion:
+                improve_contrast: true
+                threshold: 20
+                contour_area: 10
 
         service:
           type: LoadBalancer
