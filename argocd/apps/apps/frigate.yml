@@ -32,8 +32,8 @@ spec:
             enabled: true
             host: 192.168.226.94
             port: 1883
-            user: ${FRIGATE_MQTT_USER}
-            password: ${FRIGATE_MQTT_PASSWORD}
+            user: {FRIGATE_MQTT_USER}
+            password: {FRIGATE_MQTT_PASSWORD}
             topic_prefix: frigate
 
           record:
