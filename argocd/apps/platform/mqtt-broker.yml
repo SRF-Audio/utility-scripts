@@ -29,6 +29,9 @@ spec:
                   capabilities:
                     drop:
                       - ALL
+                    add:
+                      - CHOWN
+                      - FOWNER
                 command:
                   - /bin/sh
                   - -ec
