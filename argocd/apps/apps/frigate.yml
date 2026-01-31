@@ -84,7 +84,7 @@ spec:
               motion:
                 improve_contrast: true
                 threshold: 20
-                contour_area: 10
+                contour_area: 25
 
         service:
           type: LoadBalancer
