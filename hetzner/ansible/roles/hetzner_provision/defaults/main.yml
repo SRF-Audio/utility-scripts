@@ -1,7 +1,7 @@
 ---
 hetzner_provision_server_name: hetzner-node
 hetzner_provision_server_type: cax31
-hetzner_provision_image: fedora-41
+hetzner_provision_image: fedora-43
 hetzner_provision_location: nbg1
 hetzner_provision_firewall_name: hetzner-node-fw
 hetzner_provision_volume_name: hetzner-node-vol

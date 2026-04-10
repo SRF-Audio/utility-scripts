@@ -133,7 +133,7 @@ None blocking. All known issues have been resolved or have an accepted approach.
 
 - **Implemented: Phase 1 IaC** — Three new Ansible roles in `hetzner/ansible/roles/`:
   - `hetzner_provision` — creates SSH key resource, Cloud Firewall (TCP 22 + UDP 41641 only),
-    CAX31 server with Fedora 41 (ARM64), 500 GB volume, and updates the inventory file with
+    CAX31 server with Fedora 43 (ARM64), 500 GB volume, and updates the inventory file with
     the real IP.
   - `hetzner_harden` — writes `/etc/ssh/sshd_config.d/99-harden.conf` drop-in (no password
     auth, key-only). Asserts `authorized_keys` is non-empty before hardening to prevent lockout.
