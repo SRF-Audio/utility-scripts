@@ -1,0 +1,21 @@
+---
+# Hetzner bootstrap entry point — zero to hero.
+# Usage (run from hetzner/ansible/): ansible-playbook -i inventory/hetzner.yml site.yml
+#
+# Required 1Password items (HomeLab vault):
+#   "Hetzner"                    — field "api_token"     (Hetzner Cloud API token)
+#   "Tailscale"                  — field "hetzner nodes" (auth key with tag:k8s, tag:server-apps)
+#   "coachlight-homelab SSH key" — field "public_key"    (same key item used by homelab)
+#   "Coachlight HomeLab Credentials File" — (1Password Connect credentials doc)
+#   "Github"                     — fields "argocd-client-id", "argocd-client-secret"
+#   d3dschiayvvfyy2lgcksk6koyy   — field "credential"   (1Password Operator token)
+#
+# SSH connections use ~/.ssh/coachlight-homelab.pem (same as homelab).
+
+- name: Provision Hetzner Cloud infrastructure
+  import_playbook: playbooks/hetzner-provision.yml
+  tags: provision
+
+- name: Bootstrap Hetzner k3s and ArgoCD stack
+  import_playbook: playbooks/hetzner-bootstrap.yml
+  tags: bootstrap

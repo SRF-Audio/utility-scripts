@@ -1,0 +1,35 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: hetzner-infra
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: >
+    Infrastructure project for the Hetzner single-node k3s cluster. Owns
+    platform components: ArgoCD, storage, Tailscale operator, and networking.
+    Mirrors coachlight-k3s-infra from the homelab cluster.
+
+  sourceRepos:
+    - "*"
+
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+    - server: https://kubernetes.default.svc
+      namespace: infra-*
+    - server: https://kubernetes.default.svc
+      namespace: storage-*
+    - server: https://kubernetes.default.svc
+      namespace: kube-system
+
+  orphanedResources:
+    warn: true
+
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"

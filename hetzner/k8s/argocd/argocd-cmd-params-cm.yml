@@ -1,0 +1,15 @@
+---
+# Enables ArgoCD insecure mode so the server serves HTTP on port 80.
+# Required for Tailscale Operator ingress, which terminates TLS itself.
+# The homelab uses a direct HTTPS ingress (port 443); Hetzner uses Tailscale
+# Operator IngressClass which handles TLS termination upstream.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cmd-params-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-cmd-params-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  server.insecure: "true"

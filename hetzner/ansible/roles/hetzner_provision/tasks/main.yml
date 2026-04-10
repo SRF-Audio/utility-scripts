@@ -1,0 +1,116 @@
+---
+- name: Upload SSH public key to Hetzner Cloud
+  hetzner.hcloud.ssh_key:
+    api_token: "{{ hetzner_provision_api_token }}"
+    name: "{{ hetzner_provision_ssh_key_name }}"
+    public_key: "{{ hetzner_provision_ssh_public_key }}"
+    state: present
+  no_log: true
+
+- name: Create Hetzner Cloud Firewall {{ hetzner_provision_firewall_name }}
+  hetzner.hcloud.firewall:
+    api_token: "{{ hetzner_provision_api_token }}"
+    name: "{{ hetzner_provision_firewall_name }}"
+    rules:
+      - description: Allow SSH
+        direction: in
+        protocol: tcp
+        port: "22"
+        source_ips:
+          - 0.0.0.0/0
+          - ::/0
+      - description: Allow Tailscale
+        direction: in
+        protocol: udp
+        port: "41641"
+        source_ips:
+          - 0.0.0.0/0
+          - ::/0
+    state: present
+  no_log: true
+  register: hetzner_provision_firewall_result
+
+- name: Create Hetzner Cloud server {{ hetzner_provision_server_name }}
+  hetzner.hcloud.server:
+    api_token: "{{ hetzner_provision_api_token }}"
+    name: "{{ hetzner_provision_server_name }}"
+    server_type: "{{ hetzner_provision_server_type }}"
+    image: "{{ hetzner_provision_image }}"
+    location: "{{ hetzner_provision_location }}"
+    ssh_keys:
+      - "{{ hetzner_provision_ssh_key_name }}"
+    firewalls:
+      - "{{ hetzner_provision_firewall_name }}"
+    state: present
+  no_log: true
+  register: hetzner_provision_server_result
+
+- name: Create Hetzner Cloud block volume {{ hetzner_provision_volume_name }}
+  hetzner.hcloud.volume:
+    api_token: "{{ hetzner_provision_api_token }}"
+    name: "{{ hetzner_provision_volume_name }}"
+    size: "{{ hetzner_provision_volume_size_gb }}"
+    location: "{{ hetzner_provision_location }}"
+    state: present
+  no_log: true
+  register: hetzner_provision_volume_result
+
+- name: Attach volume {{ hetzner_provision_volume_name }} to server {{ hetzner_provision_server_name }}
+  hetzner.hcloud.volume_attachment:
+    api_token: "{{ hetzner_provision_api_token }}"
+    volume: "{{ hetzner_provision_volume_name }}"
+    server: "{{ hetzner_provision_server_name }}"
+    automount: false
+    state: present
+  no_log: true
+
+- name: Store provisioned server facts
+  ansible.builtin.set_fact:
+    hetzner_provision_tmp_server_ip: >-
+      {{ hetzner_provision_server_result.hcloud_server.ipv4_address }}
+    hetzner_provision_tmp_volume_id: >-
+      {{ hetzner_provision_volume_result.hcloud_volume.id }}
+
+- name: Add hetzner_node to in-memory inventory with provisioned IP
+  ansible.builtin.add_host:
+    name: hetzner_node
+    ansible_host: "{{ hetzner_provision_tmp_server_ip }}"
+    ansible_user: root
+    ansible_ssh_private_key_file: "{{ hetzner_provision_ssh_private_key_file | expanduser }}"
+    ansible_ssh_common_args: "-o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes"
+    groups:
+      - hetzner
+
+- name: Write server IP to inventory file {{ hetzner_provision_inventory_path }}
+  ansible.builtin.replace:
+    path: "{{ hetzner_provision_inventory_path }}"
+    regexp: 'ansible_host: .*'
+    replace: "ansible_host: {{ hetzner_provision_tmp_server_ip }}"
+
+- name: Wait for SSH on {{ hetzner_provision_tmp_server_ip }}
+  ansible.builtin.wait_for:
+    host: "{{ hetzner_provision_tmp_server_ip }}"
+    port: 22
+    timeout: 120
+    state: started
+
+- name: Build hetzner_provision_artifacts
+  ansible.builtin.set_fact:
+    hetzner_provision_artifacts:
+      server_name: "{{ hetzner_provision_server_result.hcloud_server.name }}"
+      server_ip: "{{ hetzner_provision_tmp_server_ip }}"
+      volume_id: "{{ hetzner_provision_tmp_volume_id }}"
+      volume_name: "{{ hetzner_provision_volume_name }}"
+      firewall_name: "{{ hetzner_provision_firewall_name }}"
+      ssh_key_name: "{{ hetzner_provision_ssh_key_name }}"
+      ssh_private_key_file: "{{ hetzner_provision_ssh_private_key_file }}"
+      timestamp: "{{ ansible_date_time.iso8601 }}"
+
+- name: Record hetzner_provision artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    # noqa: var-naming
+    role_artifacts_path: "{{ hetzner_provision_artifacts_path }}"
+    calling_role_name: hetzner_provision
+    calling_role_artifacts_inputs: "{{ hetzner_provision_artifacts }}"

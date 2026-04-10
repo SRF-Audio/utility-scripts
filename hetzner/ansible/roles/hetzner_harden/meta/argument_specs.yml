@@ -1,0 +1,20 @@
+---
+argument_specs:
+  main:
+    options:
+      hetzner_harden_sshd_drop_in_dir:
+        type: str
+        required: false
+        description: >-
+          Directory for sshd drop-in config files. Defaults to
+          /etc/ssh/sshd_config.d for Ubuntu 24.04+.
+      hetzner_harden_sshd_service:
+        type: str
+        required: false
+        description: >-
+          Name of the sshd systemd service. Use "ssh" on Ubuntu, "sshd" on
+          Fedora/RHEL.
+      hetzner_harden_artifacts_path:
+        type: str
+        required: false
+        description: Base path for artifacts output, used by role_artifacts.

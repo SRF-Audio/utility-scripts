@@ -1,0 +1,52 @@
+---
+- name: Assert authorized_keys exists for root on {{ inventory_hostname }}
+  ansible.builtin.stat:
+    path: /root/.ssh/authorized_keys
+  register: hetzner_harden_authkeys_stat
+
+- name: Assert root authorized_keys is non-empty on {{ inventory_hostname }}
+  ansible.builtin.assert:
+    that:
+      - hetzner_harden_authkeys_stat.stat.exists
+      - hetzner_harden_authkeys_stat.stat.size > 0
+    fail_msg: >-
+      /root/.ssh/authorized_keys is missing or empty on {{ inventory_hostname }}.
+      Refusing to harden sshd — would lock out all SSH access.
+
+- name: Ensure sshd drop-in directory exists on {{ inventory_hostname }}
+  ansible.builtin.file:
+    path: "{{ hetzner_harden_sshd_drop_in_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Write sshd hardening drop-in config on {{ inventory_hostname }}
+  ansible.builtin.template:
+    src: 99-harden.conf.j2
+    dest: "{{ hetzner_harden_sshd_drop_in_dir }}/99-harden.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart sshd
+
+- name: Flush handlers to apply sshd hardening immediately on {{ inventory_hostname }}
+  ansible.builtin.meta: flush_handlers
+
+- name: Build hetzner_harden_artifacts
+  ansible.builtin.set_fact:
+    hetzner_harden_artifacts:
+      host: "{{ inventory_hostname }}"
+      sshd_drop_in: "{{ hetzner_harden_sshd_drop_in_dir }}/99-harden.conf"
+      password_auth: disabled
+      pubkey_auth: enabled
+      timestamp: "{{ ansible_date_time.iso8601 }}"
+
+- name: Record hetzner_harden artifacts
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    # noqa: var-naming
+    role_artifacts_path: "{{ hetzner_harden_artifacts_path }}"
+    calling_role_name: hetzner_harden
+    calling_role_artifacts_inputs: "{{ hetzner_harden_artifacts }}"

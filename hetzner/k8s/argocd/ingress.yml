@@ -1,0 +1,31 @@
+---
+# Tailscale Operator ingress for ArgoCD on Hetzner.
+# Exposes ArgoCD at argocd-hetzner.rohu-shark.ts.net via Tailscale VPN only.
+# Uses port 80 (HTTP) because argocd-cmd-params-cm sets server.insecure: "true".
+# Tailscale Operator handles TLS termination.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-server
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-server
+    app.kubernetes.io/part-of: argocd
+  annotations:
+    tailscale.com/tags: "tag:k8s,tag:server-apps"
+spec:
+  ingressClassName: tailscale
+  rules:
+    - host: argocd-hetzner.rohu-shark.ts.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - argocd-hetzner.rohu-shark.ts.net

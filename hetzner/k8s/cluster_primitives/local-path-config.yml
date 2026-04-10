@@ -1,0 +1,40 @@
+---
+# Overrides the k3s built-in local-path provisioner storage location.
+# Redirects all local-path PV data to the mounted Hetzner block volume at
+# /mnt/hetzner-volume/k3s-storage so data survives node rebuilds (volume is retained).
+#
+# This ConfigMap is watched by the local-path-provisioner. Changes take effect
+# for newly created PVs; existing PVs are not affected.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-path-config
+  namespace: kube-system
+data:
+  config.json: |-
+    {
+      "nodePathMap": [
+        {
+          "node": "DEFAULT_PATH_FOR_NON_LISTED_NODES",
+          "paths": ["/mnt/hetzner-volume/k3s-storage"]
+        }
+      ]
+    }
+  setup: |-
+    #!/bin/sh
+    set -eu
+    mkdir -m 0777 -p "$VOL_DIR"
+  teardown: |-
+    #!/bin/sh
+    set -eu
+    rm -rf "$VOL_DIR"
+  helperPod.yaml: |-
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: helper-pod
+    spec:
+      containers:
+      - name: helper-pod
+        image: busybox
+        imagePullPolicy: IfNotPresent

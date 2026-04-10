@@ -1,0 +1,28 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: hetzner-db
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: >
+    Database project for the Hetzner k3s cluster. Owns PostgreSQL and Redis.
+    Mirrors coachlight-k3s-db from the homelab cluster.
+
+  sourceRepos:
+    - "*"
+
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: db-*
+
+  orphanedResources:
+    warn: true
+
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"

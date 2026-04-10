@@ -1,0 +1,5 @@
+---
+- name: Restart sshd
+  ansible.builtin.systemd:
+    name: "{{ hetzner_harden_sshd_service }}"
+    state: restarted

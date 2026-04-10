@@ -1,0 +1,53 @@
+---
+# Redis for Paperless-NGX on Hetzner.
+# Identical to homelab redis.yml except:
+# - project: hetzner-db
+# - storageClass: local-path-retain (Hetzner block volume via local-path)
+# - replica count: 0 (single-node cluster, no need for replica)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redis
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  project: hetzner-db
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: redis
+    targetRevision: 23.1.1
+    helm:
+      valuesObject:
+        image:
+          repository: bitnamilegacy/redis
+        auth:
+          enabled: true
+          existingSecret: paperless-ngx-redis-secrets
+          existingSecretPasswordKey: redis-password
+        architecture: standalone
+        master:
+          podSecurityContext:
+            enabled: true
+            fsGroup: 1001
+            fsGroupChangePolicy: "OnRootMismatch"
+          containerSecurityContext:
+            enabled: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            runAsNonRoot: true
+          persistence:
+            storageClass: local-path-retain
+
+        volumePermissions:
+          enabled: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: db-redis
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

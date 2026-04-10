@@ -1,0 +1,26 @@
+---
+# Hetzner-specific ArgoCD ConfigMap override.
+# Applied by Ansible after argocd_deploy role, overwriting the homelab-oriented
+# argocd-cm that the role template generates.
+#
+# Key differences from homelab argocd-cm:
+# - url points to argocd-hetzner.rohu-shark.ts.net
+# - dex.config is omitted (no GitHub OAuth — use admin password, it's Tailscale-only)
+# - accounts.homepage kept for consistency but homepage is not deployed on Hetzner
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+data:
+  url: https://argocd-hetzner.rohu-shark.ts.net
+  exec.enabled: "true"
+  resource.customizations.health.networking.k8s.io_Ingress: |
+    hs = {}
+    ann = (obj.metadata and obj.metadata.annotations) or {}
+    if ann["gethomepage.dev/enabled"] == "true" then
+      hs.status = "Healthy"
+      return hs
+    end
+    hs.status = "Progressing"
+    return hs

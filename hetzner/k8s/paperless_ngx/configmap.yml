@@ -1,0 +1,24 @@
+---
+# Same as homelab configmap.yml.
+# Internal service DNS names are identical (same namespace strategy).
+# PAPERLESS_URL uses the same Tailscale hostname — homelab must be shut down first.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: paperless-ngx-config
+  namespace: apps-paperless-ngx
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: webserver
+    app.kubernetes.io/managed-by: argocd
+data:
+  PAPERLESS_REDIS: "redis://redis-master.db-redis.svc.cluster.local:6379"
+  PAPERLESS_DBHOST: "postgres-postgresql.db-postgres.svc.cluster.local"
+  PAPERLESS_DBPORT: "5432"
+  PAPERLESS_TIME_ZONE: "America/Chicago"
+  PAPERLESS_URL: "https://paperless-hetzner.rohu-shark.ts.net"
+  PAPERLESS_OCR_LANGUAGE: "eng"
+  PAPERLESS_TIKA_ENABLED: "true"
+  PAPERLESS_TIKA_ENDPOINT: "http://paperless-ngx-tika:9998"
+  PAPERLESS_TIKA_GOTENBERG_ENDPOINT: "http://paperless-ngx-gotenberg:3000"
+  PAPERLESS_CONSUMER_POLLING: "30"

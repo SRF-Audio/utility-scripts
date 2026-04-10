@@ -1,0 +1,6 @@
+---
+hetzner_tailscale_setup_hostname: "{{ inventory_hostname }}"
+hetzner_tailscale_setup_advertise_tags: []
+hetzner_tailscale_setup_ssh_enabled: false
+hetzner_tailscale_setup_extra_flags: []
+hetzner_tailscale_setup_artifacts_path: "{{ artifacts_path | default(playbook_dir ~ '/.artifacts') }}"

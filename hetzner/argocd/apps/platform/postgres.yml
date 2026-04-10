@@ -1,0 +1,69 @@
+---
+# PostgreSQL for Paperless-NGX on Hetzner.
+# Identical to homelab postgres.yml except:
+# - project: hetzner-db
+# - storageClass: local-path-retain (Hetzner block volume via local-path)
+# - replica disabled (single-node cluster, save resources)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgres
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  project: hetzner-db
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      name: postgres-postgresql
+      namespace: db-postgres
+      jsonPointers:
+        - /spec/replicas
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: postgresql
+    targetRevision: 18.1.1
+    helm:
+      valuesObject:
+        image:
+          repository: bitnamilegacy/postgresql
+
+        auth:
+          enablePostgresUser: false
+          username: paperless
+          database: paperless
+          existingSecret: paperless-ngx-secrets
+          secretKeys:
+            userPasswordKey: PAPERLESS_DBPASS
+
+        primary:
+          persistence:
+            enabled: true
+            storageClass: local-path-retain
+            size: 8Gi
+          podSecurityContext:
+            enabled: true
+            fsGroup: 1001
+            fsGroupChangePolicy: "OnRootMismatch"
+          containerSecurityContext:
+            enabled: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            runAsNonRoot: true
+          persistentVolumeClaimRetentionPolicy:
+            enabled: true
+            whenScaled: Retain
+            whenDeleted: Retain
+
+        volumePermissions:
+          enabled: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: db-postgres
+  syncPolicy:
+    automated:
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

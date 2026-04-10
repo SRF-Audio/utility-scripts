@@ -1,0 +1,30 @@
+---
+# Hetzner root ArgoCD Application.
+# Applied by Ansible (hetzner-bootstrap.yml) after ArgoCD is installed.
+# Recursively syncs everything under hetzner/argocd/apps/.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/SRF-Audio/utility-scripts
+    targetRevision: main
+    path: hetzner/argocd/apps
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true

@@ -1,0 +1,28 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: hetzner-apps
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: >
+    Application workloads for the Hetzner k3s cluster. Owns user-facing
+    applications. Mirrors coachlight-k3s-apps from the homelab cluster.
+
+  sourceRepos:
+    - "*"
+
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: apps-*
+
+  orphanedResources:
+    warn: true
+
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"

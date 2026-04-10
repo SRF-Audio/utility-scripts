@@ -1,0 +1,100 @@
+---
+- name: Install Tailscale via tailscale_install on {{ inventory_hostname }}
+  ansible.builtin.include_role:
+    name: tailscale_install
+  vars:
+    # noqa: var-naming
+    artifacts_path: "{{ hetzner_tailscale_setup_artifacts_path }}"
+
+- name: Ensure tailscaled service is enabled and started on {{ inventory_hostname }}
+  ansible.builtin.systemd:
+    name: tailscaled
+    enabled: true
+    state: started
+
+- name: Check current Tailscale status on {{ inventory_hostname }}
+  ansible.builtin.command:
+    cmd: tailscale status --json
+  register: hetzner_tailscale_setup_status_check
+  changed_when: false
+  failed_when: false
+
+- name: Parse Tailscale status on {{ inventory_hostname }}
+  ansible.builtin.set_fact:
+    hetzner_tailscale_setup_status: >-
+      {{ hetzner_tailscale_setup_status_check.stdout | from_json }}
+  when: hetzner_tailscale_setup_status_check.rc == 0
+
+- name: Compute tailscale up flags on {{ inventory_hostname }}
+  ansible.builtin.set_fact:
+    hetzner_tailscale_setup_tags_flag: >-
+      {{ ('--advertise-tags=' ~ (hetzner_tailscale_setup_advertise_tags | join(',')))
+         if hetzner_tailscale_setup_advertise_tags | length > 0
+         else '' }}
+    hetzner_tailscale_setup_ssh_flag: >-
+      {{ '--ssh' if hetzner_tailscale_setup_ssh_enabled else '' }}
+
+- name: Determine if tailscale up is needed on {{ inventory_hostname }}
+  ansible.builtin.set_fact:
+    hetzner_tailscale_setup_needs_up: >-
+      {{
+        hetzner_tailscale_setup_status_check.rc != 0 or
+        (hetzner_tailscale_setup_status.BackendState | default('')) != 'Running' or
+        (hetzner_tailscale_setup_status.Self.HostName | default(''))
+        != hetzner_tailscale_setup_hostname
+      }}
+
+- name: Run tailscale up on {{ inventory_hostname }}
+  ansible.builtin.command:
+    cmd: >-
+      tailscale up
+      --authkey={{ hetzner_tailscale_setup_auth_key }}
+      --hostname={{ hetzner_tailscale_setup_hostname }}
+      --force-reauth=false
+      {{ hetzner_tailscale_setup_ssh_flag }}
+      {{ hetzner_tailscale_setup_tags_flag }}
+      {{ hetzner_tailscale_setup_extra_flags | join(' ') }}
+  when: hetzner_tailscale_setup_needs_up
+  register: hetzner_tailscale_setup_up_result
+  changed_when: hetzner_tailscale_setup_up_result.rc == 0
+  no_log: true
+
+- name: Get final Tailscale status on {{ inventory_hostname }}
+  ansible.builtin.command:
+    cmd: tailscale status --json
+  register: hetzner_tailscale_setup_final_status
+  changed_when: false
+
+- name: Parse final Tailscale status on {{ inventory_hostname }}
+  ansible.builtin.set_fact:
+    hetzner_tailscale_setup_final: >-
+      {{ hetzner_tailscale_setup_final_status.stdout | from_json }}
+
+- name: Extract Tailscale IPs on {{ inventory_hostname }}
+  ansible.builtin.set_fact:
+    hetzner_tailscale_setup_ip_v4: >-
+      {{ hetzner_tailscale_setup_final.Self.TailscaleIPs
+         | select('match', '^[0-9]+\\.') | first | default('') }}
+    hetzner_tailscale_setup_ip_v6: >-
+      {{ hetzner_tailscale_setup_final.Self.TailscaleIPs
+         | select('match', '^[a-fA-F0-9]+:') | first | default('') }}
+
+- name: Build hetzner_tailscale_setup_artifacts on {{ inventory_hostname }}
+  ansible.builtin.set_fact:
+    hetzner_tailscale_setup_artifacts:
+      host: "{{ inventory_hostname }}"
+      hostname: "{{ hetzner_tailscale_setup_final.Self.HostName | default('') }}"
+      backend_state: "{{ hetzner_tailscale_setup_final.BackendState | default('') }}"
+      tailscale_ip_v4: "{{ hetzner_tailscale_setup_ip_v4 }}"
+      tailscale_ip_v6: "{{ hetzner_tailscale_setup_ip_v6 }}"
+      tags: "{{ hetzner_tailscale_setup_final.Self.Tags | default([]) }}"
+      timestamp: "{{ ansible_date_time.iso8601 }}"
+
+- name: Record hetzner_tailscale_setup artifacts on {{ inventory_hostname }}
+  ansible.builtin.include_role:
+    name: role_artifacts
+  vars:
+    # noqa: var-naming
+    role_artifacts_path: "{{ hetzner_tailscale_setup_artifacts_path }}"
+    calling_role_name: hetzner_tailscale_setup
+    calling_role_artifacts_inputs: "{{ hetzner_tailscale_setup_artifacts }}"

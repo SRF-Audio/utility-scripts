@@ -1,0 +1,18 @@
+---
+# Hetzner Cloud inventory.
+# ansible_host is updated automatically by hetzner_provision role on first run.
+# ansible_ssh_private_key_file points to the key written from 1Password by site.yml.
+all:
+  children:
+    hetzner:
+      hosts:
+        hetzner_node:
+          ansible_host: REPLACE_WITH_HETZNER_IP
+          ansible_user: root
+          ansible_ssh_private_key_file: ~/.ssh/coachlight-homelab.pem
+          ansible_ssh_common_args: "-o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes"
+
+    local:
+      hosts:
+        localhost:
+          ansible_connection: local

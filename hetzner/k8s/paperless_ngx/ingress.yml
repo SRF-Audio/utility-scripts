@@ -1,0 +1,36 @@
+---
+# Same hostname as homelab. Homelab instance must be shut down first
+# to avoid Tailscale hostname conflict.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: paperless-ngx
+  namespace: apps-paperless-ngx
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: webserver
+    app.kubernetes.io/managed-by: argocd
+  annotations:
+    tailscale.com/tags: "tag:k8s,tag:server-apps"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: "Paperless-NGX"
+    gethomepage.dev/description: "Document management and archive"
+    gethomepage.dev/group: "Documents"
+    gethomepage.dev/icon: "paperless-ngx.png"
+    gethomepage.dev/url: "paperless-hetzner.rohu-shark.ts.net"
+spec:
+  ingressClassName: tailscale
+  rules:
+    - host: paperless-hetzner.rohu-shark.ts.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: paperless-ngx-webserver
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - paperless-hetzner.rohu-shark.ts.net

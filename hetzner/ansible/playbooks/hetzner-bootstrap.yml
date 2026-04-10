@@ -1,0 +1,220 @@
+---
+# Bootstrap playbook for the Hetzner single-node k3s cluster.
+# Run via (from hetzner/ansible/): ansible-playbook -i inventory/hetzner.yml site.yml
+#
+# Pre-requisites:
+# - Hetzner CAX31 server is provisioned and accessible via SSH (run hetzner-provision.yml first,
+#   or ensure inventory/hetzner.yml has the real IP)
+# - 500 GB block volume is attached to the server
+# - 1Password CLI is configured on the control machine
+#
+# What this playbook does:
+# 1. (hetzner_node) Format + mount the Hetzner block volume
+# 2. (hetzner_node) Harden SSH: key-only auth, drop-in sshd config
+# 3. (hetzner_node) Install Tailscale and join the tailnet
+# 4. (hetzner_node) Install k3s single-node with local-path storage on the volume
+# 5. (local)        Retrieve + merge kubeconfig (context: "hetzner")
+# 6. (local)        Deploy ArgoCD + apply Hetzner-specific overrides
+# 7. (local)        Deploy 1Password Operator
+# 8. (local)        Register GitHub repo with ArgoCD
+# 9. (local)        Apply hetzner/argocd/root.yml — ArgoCD syncs all apps via waves
+
+- name: Prepare Hetzner node — harden, mount volume, install Tailscale and k3s
+  hosts: hetzner
+  gather_facts: true
+  become: true
+
+  vars:
+    hetzner_volume_id: >-
+      {{ hostvars['localhost']['hetzner_provision_artifacts']['volume_id']
+         | default('REPLACE_WITH_VOLUME_ID') }}
+    hetzner_volume_device: "/dev/disk/by-id/scsi-0HC_Volume_{{ hetzner_volume_id }}"
+    hetzner_volume_mount: /mnt/hetzner-volume
+    hetzner_k3s_storage_path: /mnt/hetzner-volume/k3s-storage
+    k3s_version: "v1.32.3+k3s1"
+
+  roles:
+    - role: hetzner_harden
+
+    - role: hetzner_tailscale_setup
+      vars:
+        hetzner_tailscale_setup_auth_key: >-
+          {{ lookup('community.general.onepassword',
+                    'Tailscale',
+                    field='hetzner nodes',
+                    vault='HomeLab') }}
+        hetzner_tailscale_setup_hostname: hetzner-node
+        hetzner_tailscale_setup_advertise_tags:
+          - tag:k8s
+          - tag:server-apps
+
+  tasks:
+    - name: Check if volume is already formatted
+      ansible.builtin.command: blkid {{ hetzner_volume_device }}
+      register: hetzner_bootstrap_blkid
+      changed_when: false
+      failed_when: false
+
+    - name: Format volume as ext4 (first-time only)
+      ansible.builtin.command: mkfs.ext4 {{ hetzner_volume_device }}
+      when: hetzner_bootstrap_blkid.rc != 0
+      changed_when: true
+
+    - name: Create mount point {{ hetzner_volume_mount }}
+      ansible.builtin.file:
+        path: "{{ hetzner_volume_mount }}"
+        state: directory
+        mode: "0755"
+
+    - name: Mount Hetzner volume at {{ hetzner_volume_mount }}
+      ansible.posix.mount:
+        path: "{{ hetzner_volume_mount }}"
+        src: "{{ hetzner_volume_device }}"
+        fstype: ext4
+        opts: defaults,nofail
+        state: mounted
+
+    - name: Create k3s storage directory on volume
+      ansible.builtin.file:
+        path: "{{ hetzner_k3s_storage_path }}"
+        state: directory
+        mode: "0755"
+
+    - name: Install k3s single-node {{ k3s_version }}
+      ansible.builtin.shell: |
+        curl -sfL https://get.k3s.io | \
+          INSTALL_K3S_VERSION="{{ k3s_version }}" \
+          sh -s - server \
+            --disable traefik \
+            --disable servicelb \
+            --default-local-storage-path {{ hetzner_k3s_storage_path }}
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Wait for k3s to be ready
+      ansible.builtin.command: k3s kubectl get nodes
+      register: hetzner_bootstrap_k3s_ready
+      until: hetzner_bootstrap_k3s_ready.rc == 0
+      retries: 30
+      delay: 5
+      changed_when: false
+
+    - name: Fetch kubeconfig from Hetzner node
+      ansible.builtin.fetch:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: /tmp/hetzner-k3s.yaml
+        flat: true
+
+- name: Deploy ArgoCD stack on Hetzner cluster
+  hosts: local
+  gather_facts: true
+
+  vars:
+    hetzner_server_ip: >-
+      {{ hostvars['localhost']['hetzner_provision_artifacts']['server_ip']
+         | default('REPLACE_WITH_HETZNER_IP') }}
+    hetzner_kubeconfig: /tmp/hetzner-k3s.yaml
+    hetzner_context: hetzner
+    hetzner_cluster_name: hetzner
+    hetzner_api_server: "https://{{ hetzner_server_ip }}:6443"
+
+  pre_tasks:
+    - name: Update kubeconfig server URL to {{ hetzner_server_ip }}
+      ansible.builtin.replace:
+        path: "{{ hetzner_kubeconfig }}"
+        regexp: 'https://127\.0\.0\.1:6443'
+        replace: "{{ hetzner_api_server }}"
+
+    - name: Import kubeconfig_manager role
+      ansible.builtin.import_role:
+        name: kubeconfig_manager
+      vars:
+        kubeconfig_manager_source_kubeconfig_path: "{{ hetzner_kubeconfig }}"
+        kubeconfig_manager_cluster_name: "{{ hetzner_cluster_name }}"
+        kubeconfig_manager_cluster_server: "{{ hetzner_api_server }}"
+        kubeconfig_manager_context_name: "{{ hetzner_context }}"
+        kubeconfig_manager_context_user: default
+
+    - name: Import k8s_validator role
+      ansible.builtin.import_role:
+        name: k8s_validator
+      vars:
+        k8s_validator_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        k8s_validator_context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
+
+  roles:
+    - role: argocd_deploy
+      vars:
+        argocd_deploy_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        argocd_deploy_context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
+        argocd_deploy_cluster_name: "{{ hetzner_cluster_name }}"
+
+    - role: k8s_object_manager
+      vars:
+        k8s_object_manager_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        k8s_object_manager_context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
+        k8s_object_manager_src: "{{ playbook_dir }}/../../../hetzner/k8s/argocd/argocd-cm.yml"
+        k8s_object_manager_state: present
+        k8s_object_manager_apply: true
+
+    - role: k8s_object_manager
+      vars:
+        k8s_object_manager_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        k8s_object_manager_context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
+        k8s_object_manager_src: "{{ playbook_dir }}/../../../hetzner/k8s/argocd/argocd-cmd-params-cm.yml"
+        k8s_object_manager_state: present
+        k8s_object_manager_apply: true
+
+    - role: k8s_object_manager
+      vars:
+        k8s_object_manager_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        k8s_object_manager_context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
+        k8s_object_manager_src: "{{ playbook_dir }}/../../../hetzner/k8s/argocd/ingress.yml"
+        k8s_object_manager_state: present
+        k8s_object_manager_apply: true
+
+    - role: onepassword_operator_deploy
+      vars:
+        onepassword_operator_deploy_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        onepassword_operator_deploy_context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
+        onepassword_operator_deploy_cluster_name: "{{ hetzner_cluster_name }}"
+        onepassword_operator_deploy_connect_credentials: >-
+          {{ lookup('community.general.onepassword_doc',
+                    'Coachlight HomeLab Credentials File',
+                    vault='HomeLab') }}
+        onepassword_operator_deploy_operator_token: >-
+          {{ lookup('community.general.onepassword',
+                    'd3dschiayvvfyy2lgcksk6koyy',
+                    field='credential',
+                    vault='HomeLab') }}
+
+    - role: argocd_github_repo_create
+      vars:
+        argocd_github_repo_create_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        argocd_github_repo_create_context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
+
+    - role: k8s_object_manager
+      vars:
+        k8s_object_manager_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        k8s_object_manager_context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
+        k8s_object_manager_src: "{{ playbook_dir }}/../../../hetzner/argocd/root.yml"
+        k8s_object_manager_state: present
+        k8s_object_manager_apply: true
+
+    - role: k9s_install
