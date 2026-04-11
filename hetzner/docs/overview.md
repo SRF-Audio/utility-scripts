@@ -28,7 +28,7 @@ single-node k3s cluster on Hetzner Cloud while relocating to the Netherlands.
 | Component        | Value                                      |
 |------------------|--------------------------------------------|
 | Server type      | CAX31 (16 vCPU ARM64, 32 GB RAM)           |
-| OS               | Fedora/Ubuntu (Hetzner Cloud image)        |
+| OS               | Fedora 43 ARM64 (Hetzner Cloud image)      |
 | k3s              | Single-node, latest stable                 |
 | Block volume     | 500 GB Hetzner attached volume             |
 | Volume mount     | `/mnt/hetzner-volume`                      |
@@ -85,7 +85,7 @@ ArgoCD on Hetzner will automatically sync the change within minutes.
 | ArgoCD hostname     | `argocd.rohu-shark.ts.net`         | `argocd-hetzner.rohu-shark.ts.net`       |
 | ArgoCD TLS          | Native HTTPS (port 443 backend)    | Insecure mode + Tailscale Operator TLS   |
 | ArgoCD OAuth        | GitHub OAuth via Dex               | Disabled — admin password only           |
-| Paperless hostname  | `paperless.rohu-shark.ts.net`      | `paperless-hetzner.rohu-shark.ts.net` (→ prod at cutover)       |
+| Paperless hostname  | `paperless.rohu-shark.ts.net`      | `paperless-hetzner.rohu-shark.ts.net`    |
 | Redis replicas      | master + replica                   | master only (single node, saves RAM)     |
 
 ---
@@ -150,6 +150,7 @@ hetzner/
 ## Architecture Notes
 
 ### Storage
+
 The 500 GB Hetzner block volume is mounted by Ansible at `/mnt/hetzner-volume` during
 server setup. k3s is installed with `--default-local-storage-path /mnt/hetzner-volume/k3s-storage`,
 and the `local-path-config` ConfigMap in `kube-system` confirms the same path. All PVCs
@@ -179,11 +180,20 @@ Ansible (site.yml):
 ```
 
 ### Networking / Access
+
 All external access via Tailscale VPN. Tailscale Operator provisions IngressClass
 `tailscale` used by Paperless-NGX and ArgoCD ingresses. No public ingress controller.
 ArgoCD runs in insecure mode (HTTP/80); Tailscale Operator handles TLS termination.
-The Hetzner node itself should be added to the Tailscale tailnet at the OS level during
-Phase 1 provisioning (manual step) to enable SSH access via Tailscale.
+The Hetzner node joins the Tailscale tailnet during Phase 1 bootstrap (automated via
+`hetzner_tailscale_setup` role).
+
+**k3s API server access**: The Hetzner Cloud Firewall blocks all ports except TCP/22
+and UDP/41641. Port 6443 (k3s API) is not publicly exposed. The kubeconfig for the
+`hetzner` context **must use the node's Tailscale IPv4 address** (100.x.x.x) as the
+API server URL — not the public IP. The bootstrap playbook derives this from
+`hostvars['hetzner_node']['hetzner_tailscale_setup_artifacts']['tailscale_ip_v4']`.
+Ensure your local machine is on the same Tailscale tailnet before running the
+bootstrap or any `kubectl --context hetzner` commands.
 
 ### ArgoCD on Hetzner
 

@@ -79,8 +79,10 @@ kubectl --context homelab -n db-postgres exec pg-dump-tmp -- \
     -U paperless paperless \
   > "$DUMP_FILE"
 
-# Verify dump is non-empty
+# Verify dump is non-empty and is a valid PostgreSQL dump
 ls -lh "$DUMP_FILE"
+head -5 "$DUMP_FILE" | grep -q 'PostgreSQL database dump' \
+  || { echo "ERROR: $DUMP_FILE does not look like a valid pg_dump output. Aborting."; exit 1; }
 
 # Clean up the temp pod
 kubectl --context homelab -n db-postgres delete pod pg-dump-tmp
@@ -348,8 +350,14 @@ as long as you scale down Hetzner before scaling up homelab.
 
 ## Notes
 
-- Both Postgres image versions (homelab and Hetzner) use `bitnami/postgresql:latest`
-  pinned to chart `18.1.1`. The pg_dump/restore will be compatible.
+- Both Postgres deployments use the Bitnami PostgreSQL Helm chart `18.1.1`. The temp
+  pods in Steps 2 and 4d use `--image=bitnami/postgresql:latest`, which is the canonical
+  form for one-shot kubectl runs. **Before running the migration**, confirm the exact
+  image tag in use by the running Postgres pod on homelab:
+  `kubectl --context homelab -n db-postgres get pod -l app.kubernetes.io/name=postgresql -o jsonpath='{.items[0].spec.containers[0].image}'`
+  Use that same tag (e.g. `bitnami/postgresql:17.2.0`) for both the dump pod and the
+  restore pod, replacing `:latest` in the commands above. This guarantees pg_dump format
+  compatibility between the two steps.
 - Paperless-NGX uses the filesystem for media and PostgreSQL for metadata. Both must
   be migrated together and be consistent with each other (always dump and rsync from
   the same quiesced state — Step 1 ensures this).
