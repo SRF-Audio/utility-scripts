@@ -73,10 +73,10 @@
 - name: Extract Tailscale IPs on {{ inventory_hostname }}
   ansible.builtin.set_fact:
     hetzner_tailscale_setup_ip_v4: >-
-      {{ hetzner_tailscale_setup_final.Self.TailscaleIPs
+      {{ hetzner_tailscale_setup_final.Self.TailscaleIPs | default([])
          | select('match', '^[0-9]+\\.') | first | default('') }}
     hetzner_tailscale_setup_ip_v6: >-
-      {{ hetzner_tailscale_setup_final.Self.TailscaleIPs
+      {{ hetzner_tailscale_setup_final.Self.TailscaleIPs | default([])
          | select('match', '^[a-fA-F0-9]+:') | first | default('') }}
 
 - name: Build hetzner_tailscale_setup_artifacts on {{ inventory_hostname }}

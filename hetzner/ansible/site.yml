@@ -3,12 +3,15 @@
 # Usage (run from hetzner/ansible/): ansible-playbook -i inventory/hetzner.yml site.yml
 #
 # Required 1Password items (HomeLab vault):
-#   "Hetzner"                    — field "api_token"     (Hetzner Cloud API token)
-#   "Tailscale"                  — field "hetzner nodes" (auth key with tag:k8s, tag:server-apps)
-#   "coachlight-homelab SSH key" — field "public_key"    (same key item used by homelab)
-#   "Coachlight HomeLab Credentials File" — (1Password Connect credentials doc)
-#   "Github"                     — fields "argocd-client-id", "argocd-client-secret"
-#   d3dschiayvvfyy2lgcksk6koyy   — field "credential"   (1Password Operator token)
+#   "Hetzner"                    — field "api_token"     (Hetzner Cloud API token)          ← NEW
+#   "Tailscale"                  — field "hetzner_nodes" (reusable auth key, tag:k8s + tag:server-apps) ← NEW field
+#   "coachlight-homelab SSH key" — field "public_key"    (existing homelab item)
+#   "Coachlight HomeLab Credentials File" — (existing 1Password Connect credentials doc)
+#   "HomeLab ArgoCD Deploy Key"  — field "private key"   (existing homelab item)
+#   d3dschiayvvfyy2lgcksk6koyy   — field "credential"   (existing 1Password Operator token)
+#
+# Note: GitHub OAuth (argocd-client-id, argocd-client-secret) is NOT needed — OAuth is
+#       disabled on Hetzner ArgoCD (admin password only, Tailscale-only access).
 #
 # SSH connections use ~/.ssh/coachlight-homelab.pem (same as homelab).
 

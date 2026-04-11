@@ -82,10 +82,10 @@
       - hetzner
 
 - name: Write server IP to inventory file {{ hetzner_provision_inventory_path }}
-  ansible.builtin.replace:
+  ansible.builtin.lineinfile:
     path: "{{ hetzner_provision_inventory_path }}"
-    regexp: 'ansible_host: .*'
-    replace: "ansible_host: {{ hetzner_provision_tmp_server_ip }}"
+    regexp: '(\s+ansible_host:\s+).*'
+    line: '          ansible_host: {{ hetzner_provision_tmp_server_ip }}'
 
 - name: Wait for SSH on {{ hetzner_provision_tmp_server_ip }}
   ansible.builtin.wait_for:

@@ -2,4 +2,4 @@
 hetzner_harden_sshd_drop_in_dir: /etc/ssh/sshd_config.d
 hetzner_harden_sshd_service: >-
   {{ 'ssh' if ansible_facts.os_family == 'Debian' else 'sshd' }}
-hetzner_harden_artifacts_path: "{{ artifacts_path | default(playbook_dir ~ '/.artifacts') }}"
+hetzner_harden_artifacts_path: "{{ playbook_dir ~ '/.artifacts' }}"

@@ -7,10 +7,10 @@ all:
     hetzner:
       hosts:
         hetzner_node:
-          ansible_host: REPLACE_WITH_HETZNER_IP
+          ansible_host: 178.104.100.13
           ansible_user: root
           ansible_ssh_private_key_file: ~/.ssh/coachlight-homelab.pem
-          ansible_ssh_common_args: "-o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes"
+          ansible_ssh_common_args: "-o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes -o IdentityAgent=~/.1password/agent.sock"
 
     local:
       hosts:

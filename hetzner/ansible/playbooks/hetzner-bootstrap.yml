@@ -41,7 +41,7 @@
         hetzner_tailscale_setup_auth_key: >-
           {{ lookup('community.general.onepassword',
                     'Tailscale',
-                    field='hetzner nodes',
+                    field='hetzner_nodes',
                     vault='HomeLab') }}
         hetzner_tailscale_setup_hostname: hetzner-node
         hetzner_tailscale_setup_advertise_tags:
@@ -50,13 +50,13 @@
 
   tasks:
     - name: Check if volume is already formatted
-      ansible.builtin.command: blkid {{ hetzner_volume_device }}
+      ansible.builtin.command: /usr/sbin/blkid {{ hetzner_volume_device }}
       register: hetzner_bootstrap_blkid
       changed_when: false
       failed_when: false
 
     - name: Format volume as ext4 (first-time only)
-      ansible.builtin.command: mkfs.ext4 {{ hetzner_volume_device }}
+      ansible.builtin.command: /usr/sbin/mkfs.ext4 {{ hetzner_volume_device }}
       when: hetzner_bootstrap_blkid.rc != 0
       changed_when: true
 
@@ -81,13 +81,16 @@
         mode: "0755"
 
     - name: Install k3s single-node {{ k3s_version }}
-      ansible.builtin.shell: |
-        curl -sfL https://get.k3s.io | \
-          INSTALL_K3S_VERSION="{{ k3s_version }}" \
-          sh -s - server \
-            --disable traefik \
-            --disable servicelb \
-            --default-local-storage-path {{ hetzner_k3s_storage_path }}
+      ansible.builtin.shell:
+        cmd: |
+          set -euo pipefail
+          curl -sfL https://get.k3s.io | \
+            INSTALL_K3S_VERSION="{{ k3s_version }}" \
+            sh -s - server \
+              --disable traefik \
+              --disable servicelb \
+              --default-local-storage-path {{ hetzner_k3s_storage_path }}
+        executable: /bin/bash
       args:
         creates: /usr/local/bin/k3s
 
@@ -99,27 +102,60 @@
       delay: 5
       changed_when: false
 
+    - name: Restrict SSH firewall rule to Tailscale CIDR
+      hetzner.hcloud.firewall:
+        api_token: >-
+          {{ lookup('community.general.onepassword',
+                    'Hetzner',
+                    field='api_token',
+                    vault='HomeLab') }}
+        name: "{{ hetzner_provision_firewall_name | default('hetzner-node-fw') }}"
+        rules:
+          - description: Allow SSH from Tailscale only
+            direction: in
+            protocol: tcp
+            port: "22"
+            source_ips:
+              - 100.64.0.0/10
+          - description: Allow Tailscale
+            direction: in
+            protocol: udp
+            port: "41641"
+            source_ips:
+              - 0.0.0.0/0
+              - ::/0
+        state: present
+      no_log: true
+      become: false
+      delegate_to: localhost
+
     - name: Fetch kubeconfig from Hetzner node
       ansible.builtin.fetch:
         src: /etc/rancher/k3s/k3s.yaml
-        dest: /tmp/hetzner-k3s.yaml
+        dest: "{{ lookup('env', 'HOME') }}/.kube/hetzner-k3s.yaml"
         flat: true
+
+    - name: Restrict kubeconfig permissions
+      ansible.builtin.file:
+        path: "{{ lookup('env', 'HOME') }}/.kube/hetzner-k3s.yaml"
+        mode: "0600"
+      become: false
+      delegate_to: localhost
 
 - name: Deploy ArgoCD stack on Hetzner cluster
   hosts: local
   gather_facts: true
 
   vars:
-    hetzner_server_ip: >-
-      {{ hostvars['localhost']['hetzner_provision_artifacts']['server_ip']
-         | default('REPLACE_WITH_HETZNER_IP') }}
-    hetzner_kubeconfig: /tmp/hetzner-k3s.yaml
+    hetzner_tailscale_ip: >-
+      {{ hostvars['hetzner_node']['hetzner_tailscale_setup_artifacts']['tailscale_ip_v4'] }}
+    hetzner_kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/hetzner-k3s.yaml"
     hetzner_context: hetzner
     hetzner_cluster_name: hetzner
-    hetzner_api_server: "https://{{ hetzner_server_ip }}:6443"
+    hetzner_api_server: "https://{{ hetzner_tailscale_ip }}:6443"
 
   pre_tasks:
-    - name: Update kubeconfig server URL to {{ hetzner_server_ip }}
+    - name: Update kubeconfig server URL to Tailscale IP {{ hetzner_tailscale_ip }}
       ansible.builtin.replace:
         path: "{{ hetzner_kubeconfig }}"
         regexp: 'https://127\.0\.0\.1:6443'

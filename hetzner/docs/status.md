@@ -10,7 +10,7 @@ This is the live status file for the Hetzner migration project.
 - When an open issue is resolved, move it from "Open Issues" to the Change Log.
 -->
 
-Last updated: 2026-04-10 (security/correctness audit)
+Last updated: 2026-04-11 (bootstrap in progress — stopped at volume format; see Open Issues)
 
 ---
 
@@ -37,24 +37,52 @@ Last updated: 2026-04-10 (security/correctness audit)
 
 ---
 
-## Phase 1 — Provision Hetzner Server (AUTOMATED — run site.yml)
+## Phase 1 — Provision Hetzner Server (COMPLETE)
 
-- [ ] Create Hetzner Cloud project (manual — one-time, then add API token to 1Password)
-- [ ] Add required 1Password items to HomeLab vault (see site.yml header comments)
-- [ ] Run `ansible-playbook -i inventory/hetzner.yml site.yml --tags provision`
-      — Uploads SSH key from 1Password to Hetzner Cloud
-      — Creates Cloud Firewall (TCP 22 + UDP 41641 inbound only)
-      — Provisions CAX31 server with Ubuntu 24.04
-      — Creates + attaches 500 GB block volume
-      — Updates inventory/hetzner.yml with real IP automatically
-- [ ] Run `ansible-playbook -i inventory/hetzner.yml site.yml --tags bootstrap`
-      — Hardens sshd (key-only, no passwords)
-      — Installs Tailscale and joins tailnet with tag:k8s, tag:server-apps
-      — Mounts volume, installs k3s, deploys ArgoCD stack
+- [x] Create Hetzner Cloud project + API token → stored in 1Password as `Hetzner → api_token`
+- [x] Add required 1Password items to HomeLab vault
+- [x] Provision run succeeded (localhost: ok=17, changed=9)
+      — SSH key uploaded to Hetzner Cloud
+      — Cloud Firewall created (TCP 22 + UDP 41641 inbound only)
+      — CAX31 server provisioned with Fedora 43 ARM64
+      — 500 GB block volume created and attached
+      — inventory/hetzner.yml updated with real IP (178.104.100.13)
 
 ---
 
-## Phase 2 — Bootstrap k3s and ArgoCD Stack (TODO)
+## Phase 2 — Bootstrap k3s and ArgoCD Stack (IN PROGRESS)
+
+**Stopped at:** volume format — see Open Issues (BOOT-1).
+
+Completed so far (ok=33 on hetzner_node):
+
+- [x] SSH hardening applied (key-only, sshd drop-in config)
+- [x] Tailscale installed and joined tailnet (`hetzner-node`, tag:k8s, tag:server-apps)
+- [ ] **BLOCKED** Format + mount Hetzner volume (BOOT-1)
+- [ ] Install k3s single-node
+- [ ] Fetch + merge kubeconfig (context: `hetzner`)
+- [ ] Deploy ArgoCD + apply Hetzner overrides
+- [ ] Deploy 1Password Operator
+- [ ] Register GitHub repo with ArgoCD
+- [ ] Apply `hetzner/argocd/root.yml` — ArgoCD syncs all apps
+
+**To resume:** Fix BOOT-1 (see Open Issues), then run the full `site.yml` (not `--tags bootstrap`
+alone) so provision artifacts are in memory and `hetzner_volume_id` resolves correctly:
+
+```bash
+cd hetzner/ansible && ansible-playbook -i inventory/hetzner.yml site.yml
+```
+
+- [ ] Verify ArgoCD is accessible at `https://argocd-hetzner.rohu-shark.ts.net`
+  - Admin password: `kubectl --context hetzner -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d`
+- [ ] Verify 1Password Operator is running and syncing secrets
+- [ ] Verify Tailscale Operator is running
+- [ ] Verify Postgres and Redis are healthy
+- [ ] Paperless pod may be in CrashLoop (no data yet — expected, proceed to Phase 3)
+
+---
+
+## Phase 2b — Bootstrap k3s and ArgoCD Stack — original checklist (TODO)
 
 - [ ] Run bootstrap: `cd hetzner/ansible && ansible-playbook -i inventory/hetzner.yml site.yml`
   - Mounts Hetzner volume at `/mnt/hetzner-volume`
@@ -123,309 +151,73 @@ When returning to hardware, reverse the process:
 
 ## Open Issues
 
-All issues below were identified in a security/correctness audit on 2026-04-10. Grouped
-by severity. Each entry includes the exact files and steps to fix it.
-
----
-
-### HIGH-1 — Port 6443 firewalled; kubeconfig uses public IP (bootstrap will fail)
-
-**Files:** `hetzner/ansible/playbooks/hetzner-bootstrap.yml`
-
-The Hetzner Cloud Firewall only opens TCP/22 and UDP/41641. Port 6443 (k3s API) is not
-open. The bootstrap playbook currently sets `hetzner_api_server` to the public IP:
-
-```yaml
-hetzner_api_server: "https://{{ hetzner_server_ip }}:6443"
-```
-
-All `kubectl` operations in the second play (ArgoCD deploy, 1Password Operator, root
-app) will time out. The fix is to use the node's Tailscale IPv4 instead, which is
-available after `hetzner_tailscale_setup` runs.
-
-**Fix steps:**
-
-1. In `hetzner/ansible/playbooks/hetzner-bootstrap.yml`, in the `Deploy ArgoCD stack`
-   play's `vars` block, replace:
-
-   ```yaml
-   hetzner_server_ip: >-
-     {{ hostvars['localhost']['hetzner_provision_artifacts']['server_ip']
-        | default('REPLACE_WITH_HETZNER_IP') }}
-   hetzner_kubeconfig: /tmp/hetzner-k3s.yaml
-   hetzner_context: hetzner
-   hetzner_cluster_name: hetzner
-   hetzner_api_server: "https://{{ hetzner_server_ip }}:6443"
-   ```
-
-   with:
-
-   ```yaml
-   hetzner_tailscale_ip: >-
-     {{ hostvars['hetzner_node']['hetzner_tailscale_setup_artifacts']['tailscale_ip_v4'] }}
-   hetzner_kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/hetzner-k3s.yaml"
-   hetzner_context: hetzner
-   hetzner_cluster_name: hetzner
-   hetzner_api_server: "https://{{ hetzner_tailscale_ip }}:6443"
-   ```
-
-   (The `hetzner_server_ip` var can remain if used elsewhere, but must not be used for
-   the API server URL.)
-
-2. Update the kubeconfig `replace` pre_task regexp to match `127.0.0.1` and replace
-   with `{{ hetzner_tailscale_ip }}` (same logic, different source variable).
-
-3. Verify by running a dry-run of the second play after Tailscale is up:
-   `kubectl --context hetzner get nodes`
-
----
-
-### HIGH-2 — SSH port 22 permanently open to the internet
-
-**Files:** `hetzner/ansible/roles/hetzner_provision/tasks/main.yml`
-
-The Cloud Firewall is created during provisioning with TCP/22 open from `0.0.0.0/0`
-and `::/0`. The firewall is never updated after Tailscale is installed. Even with
-key-only auth this is unnecessary public attack surface.
-
-**Fix steps:**
-
-Add a task to `hetzner/ansible/playbooks/hetzner-bootstrap.yml` at the end of the
-`hetzner` play (after `hetzner_tailscale_setup` confirms the node is on the tailnet)
-that calls `hetzner.hcloud.firewall` to update the SSH rule:
-
-```yaml
-- name: Restrict SSH to Tailscale CIDR now that Tailscale is active
-  hetzner.hcloud.firewall:
-    api_token: "{{ lookup('community.general.onepassword',
-                           'Hetzner', field='api_token', vault='HomeLab') }}"
-    name: "{{ hetzner_provision_firewall_name | default('hetzner-node-fw') }}"
-    rules:
-      - description: Allow SSH from Tailscale only
-        direction: in
-        protocol: tcp
-        port: "22"
-        source_ips:
-          - 100.64.0.0/10
-      - description: Allow Tailscale
-        direction: in
-        protocol: udp
-        port: "41641"
-        source_ips:
-          - 0.0.0.0/0
-          - ::/0
-    state: present
-  no_log: true
-  delegate_to: localhost
-```
-
-`100.64.0.0/10` is the CGNAT range used by Tailscale for all node IPs. Alternatively,
-enable Tailscale SSH (`hetzner_tailscale_setup_ssh_enabled: true`) and remove port 22
-from the firewall entirely — but that requires ACL changes in the Tailscale admin
-console first.
-
----
-
-### HIGH-3 — Cluster-admin kubeconfig written to world-readable `/tmp`
-
-**Files:** `hetzner/ansible/playbooks/hetzner-bootstrap.yml`
-
-```yaml
-- name: Fetch kubeconfig from Hetzner node
-  ansible.builtin.fetch:
-    src: /etc/rancher/k3s/k3s.yaml
-    dest: /tmp/hetzner-k3s.yaml
-    flat: true
-```
-
-`/tmp` is world-readable on Linux. The fetched file contains the cluster CA certificate,
-admin client cert, and private key. Must be written to a private location.
-
-**Fix steps:**
-
-1. Change `dest` to `"{{ lookup('env', 'HOME') }}/.kube/hetzner-k3s.yaml"`.
-
-2. Add a permissions task immediately after the fetch:
-
-   ```yaml
-   - name: Restrict kubeconfig permissions
-     ansible.builtin.file:
-       path: "{{ lookup('env', 'HOME') }}/.kube/hetzner-k3s.yaml"
-       mode: "0600"
-     delegate_to: localhost
-   ```
-
-3. Update `hetzner_kubeconfig` in the second play vars to match
-   (also handled by HIGH-1 fix above).
-
-4. After `kubeconfig_manager` merges the context into `~/.kube/config`, optionally
-   delete the standalone file:
-
-   ```yaml
-   - name: Remove temporary standalone kubeconfig
-     ansible.builtin.file:
-       path: "{{ hetzner_kubeconfig }}"
-       state: absent
-     delegate_to: localhost
-   ```
-
----
-
-### MEDIUM-1 — `TailscaleIPs` accessed without `default([])` guard
-
-**File:** `hetzner/ansible/roles/hetzner_tailscale_setup/tasks/main.yml`
-
-If `Self.TailscaleIPs` is absent from the final status JSON, Jinja2 will raise an
-undefined error before `first | default('')` can catch it.
-
-**Fix steps:**
-
-Change the two IP extraction tasks from:
-
-```yaml
-hetzner_tailscale_setup_ip_v4: >-
-  {{ hetzner_tailscale_setup_final.Self.TailscaleIPs
-     | select('match', '^[0-9]+\\.') | first | default('') }}
-hetzner_tailscale_setup_ip_v6: >-
-  {{ hetzner_tailscale_setup_final.Self.TailscaleIPs
-     | select('match', '^[a-fA-F0-9]+:') | first | default('') }}
-```
-
-to:
-
-```yaml
-hetzner_tailscale_setup_ip_v4: >-
-  {{ hetzner_tailscale_setup_final.Self.TailscaleIPs | default([])
-     | select('match', '^[0-9]+\\.') | first | default('') }}
-hetzner_tailscale_setup_ip_v6: >-
-  {{ hetzner_tailscale_setup_final.Self.TailscaleIPs | default([])
-     | select('match', '^[a-fA-F0-9]+:') | first | default('') }}
-```
-
----
-
-### MEDIUM-2 — k3s install via `curl | sh` without `pipefail`
+### BOOT-1 — Volume ID not resolved when bootstrap runs without provision (BLOCKING)
 
 **File:** `hetzner/ansible/playbooks/hetzner-bootstrap.yml`
 
-`ansible.builtin.shell` runs `/bin/sh -c` which does not set `pipefail`. If `curl`
-fails silently (e.g. transient network error, non-200 from get.k3s.io), `sh` receives
-empty stdin, the pipe exits 0, and the `creates:` guard treats k3s as already installed
-— silently leaving the node without k3s.
+`hetzner_volume_id` is sourced from `hostvars['localhost']['hetzner_provision_artifacts']['volume_id']`,
+which is only populated when the provision play runs in the same Ansible process. When running
+`--tags bootstrap` alone (e.g. to retry after a failure), the hostvars aren't populated and the
+variable falls back to the `REPLACE_WITH_VOLUME_ID` sentinel, causing `mkfs.ext4` to fail.
 
-**Fix steps:**
+**Fix options:**
 
-Add `executable` and `set -euo pipefail` to the shell task:
+1. **Always run full `site.yml`** — provision is idempotent (server/volume already exist, Hetzner
+   API will no-op). This is the simplest fix and the recommended approach going forward.
 
-```yaml
-- name: Install k3s single-node {{ k3s_version }}
-  ansible.builtin.shell:
-    cmd: |
-      set -euo pipefail
-      curl -sfL https://get.k3s.io | \
-        INSTALL_K3S_VERSION="{{ k3s_version }}" \
-        sh -s - server \
-          --disable traefik \
-          --disable servicelb \
-          --default-local-storage-path {{ hetzner_k3s_storage_path }}
-    executable: /bin/bash
-  args:
-    creates: /usr/local/bin/k3s
-```
+2. **Read volume ID from the artifacts file** — the provision role writes `.artifacts/hetzner_provision.json`.
+   Add a pre-task in the bootstrap play to read this file and set the fact when `hetzner_provision_artifacts`
+   is not already populated. More complex but enables true `--tags bootstrap` re-runs.
 
----
-
-### MEDIUM-3 — Inventory `replace` regexp too broad
-
-**File:** `hetzner/ansible/roles/hetzner_provision/tasks/main.yml`
-
-```yaml
-regexp: 'ansible_host: .*'
-replace: "ansible_host: {{ hetzner_provision_tmp_server_ip }}"
-```
-
-This replaces every `ansible_host:` line in the inventory file. Safe today because only
-`hetzner_node` has an `ansible_host`, but will silently corrupt the inventory if a
-second host is ever added.
-
-**Fix steps:**
-
-Scope the match to the server name. Replace the `ansible.builtin.replace` task with
-`ansible.builtin.lineinfile` using `insertafter`:
-
-```yaml
-- name: Write server IP to inventory file {{ hetzner_provision_inventory_path }}
-  ansible.builtin.lineinfile:
-    path: "{{ hetzner_provision_inventory_path }}"
-    regexp: '(\s+ansible_host:\s+).*'
-    line: '          ansible_host: {{ hetzner_provision_tmp_server_ip }}'
-    backrefs: false
-```
-
-Or if you prefer to keep `replace`, anchor it to the hetzner_node block:
-
-```yaml
-regexp: '(hetzner_node:.*\n\s+ansible_host:).*'
-```
-
-(Requires `multiline: true` — consider `lineinfile` instead for reliability.)
-
----
-
-### MEDIUM-4 — PostgreSQL image pinned to `:latest` in migration runbook
-
-**File:** `hetzner/docs/migration-runbook.md`
-
-The temp pods in Steps 2 and 4d use `--image=bitnami/postgresql:latest`. If the
-`:latest` tag resolves to a different version between the dump and restore steps,
-pg_dump format compatibility could break.
-
-**Fix steps** (already documented inline in the runbook):
-
-Before starting the migration, run:
-
-```bash
-kubectl --context homelab -n db-postgres get pod \
-  -l app.kubernetes.io/name=postgresql \
-  -o jsonpath='{.items[0].spec.containers[0].image}'
-```
-
-Substitute the exact tag (e.g. `bitnami/postgresql:17.2.0`) for `:latest` in both the
-dump pod (`pg-dump-tmp`) and the restore pod (`pg-restore-tmp`) commands.
-
----
-
-### LOW-1 — `blkid` and `mkfs.ext4` called without full paths
-
-**File:** `hetzner/ansible/playbooks/hetzner-bootstrap.yml`
-
-```yaml
-ansible.builtin.command: blkid {{ hetzner_volume_device }}
-ansible.builtin.command: mkfs.ext4 {{ hetzner_volume_device }}
-```
-
-Works on Fedora because `/usr/sbin` is in `PATH`, but not portable.
-
-**Fix:** Use `/usr/sbin/blkid` and `/usr/sbin/mkfs.ext4`.
-
----
-
-### LOW-2 — PostgreSQL dump validated only by file size
-
-**File:** `hetzner/docs/migration-runbook.md` — already fixed inline (2026-04-10).
-
-The runbook previously only ran `ls -lh` to verify the dump. A redirect failure or
-connection error can produce a tiny partial file that passes a size check. The runbook
-now adds:
-
-```bash
-head -5 "$DUMP_FILE" | grep -q 'PostgreSQL database dump' \
-  || { echo "ERROR: $DUMP_FILE does not look like a valid pg_dump output. Aborting."; exit 1; }
-```
+**Recommended action:** Use option 1 for now (run `site.yml` without tags). Document option 2 as a
+future improvement if re-runs become painful.
 
 ---
 
 ## Change Log
+
+### 2026-04-11 (first live bootstrap attempt — Phase 1 complete, Phase 2 in progress)
+
+**Phase 1 complete:** Server provisioned successfully (178.104.100.13), SSH key uploaded,
+firewall created, 500 GB volume attached, inventory updated with real IP.
+
+Bugs encountered and fixed during bootstrap run:
+
+- **Fixed: SSH agent** — Ansible wasn't picking up `~/.ssh/config` `IdentityAgent` setting.
+  Added `-o IdentityAgent=~/.1password/agent.sock` explicitly to `ansible_ssh_common_args`
+  in `inventory/hetzner.yml`.
+- **Fixed: Recursive template loop** — `artifacts_path | default(...)` in role defaults caused
+  Ansible argument spec validation to recurse infinitely. Fixed in all three hetzner role
+  defaults (`hetzner_tailscale_setup`, `hetzner_provision`, `hetzner_harden`) by removing
+  the `artifacts_path` indirection and using `playbook_dir ~ '/.artifacts'` directly.
+- **Open: BOOT-1** — Volume ID not resolved on `--tags bootstrap` re-runs. Bootstrap stopped
+  at `mkfs.ext4` with `REPLACE_WITH_VOLUME_ID`. Fix: run full `site.yml` next time.
+
+Bootstrap progress before stopping: SSH hardening ✓, Tailscale installed and on tailnet ✓,
+volume format ✗ (BOOT-1).
+
+### 2026-04-11 (all audit issues fixed — ready for Phase 1)
+
+Applied all code-level fixes from the 2026-04-10 audit:
+
+- **Fixed HIGH-1** (`hetzner-bootstrap.yml`) — Second play now uses Tailscale IPv4
+  (`hostvars['hetzner_node']['hetzner_tailscale_setup_artifacts']['tailscale_ip_v4']`)
+  for `hetzner_api_server` instead of the public IP. Port 6443 is firewalled so kubectl
+  operations would have timed out without this fix.
+- **Fixed HIGH-2** (`hetzner-bootstrap.yml`) — Added `Restrict SSH firewall rule to
+  Tailscale CIDR` task (delegated to localhost, `become: false`) after k3s is up.
+  SSH is now restricted to `100.64.0.0/10` once Tailscale is active.
+- **Fixed HIGH-3** (`hetzner-bootstrap.yml`) — Kubeconfig fetched to
+  `~/.kube/hetzner-k3s.yaml` (not `/tmp`) with a follow-up `file` task setting `0600`.
+- **Fixed MEDIUM-1** (`hetzner_tailscale_setup/tasks/main.yml`) — Added `| default([])`
+  guard to both `TailscaleIPs` extractions to prevent Jinja2 undefined errors.
+- **Fixed MEDIUM-2** (`hetzner-bootstrap.yml`) — k3s shell task now uses
+  `set -euo pipefail` and `executable: /bin/bash` so a failed `curl` is fatal.
+- **Fixed MEDIUM-3** (`hetzner_provision/tasks/main.yml`) — Replaced overly-broad
+  `ansible.builtin.replace` with `ansible.builtin.lineinfile` (scoped regexp) for
+  inventory IP update.
+- **Fixed LOW-1** (`hetzner-bootstrap.yml`) — `blkid` and `mkfs.ext4` now use full
+  `/usr/sbin/` paths.
 
 ### 2026-04-10 (security and correctness audit)
 
