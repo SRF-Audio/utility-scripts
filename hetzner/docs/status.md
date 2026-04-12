@@ -10,7 +10,7 @@ This is the live status file for the Hetzner migration project.
 - When an open issue is resolved, move it from "Open Issues" to the Change Log.
 -->
 
-Last updated: 2026-04-12 (BOOT-8 fixed — argocd_github_repo_create CRD ordering; ready to re-run)
+Last updated: 2026-04-12 (Phase 2 COMPLETE — all apps healthy; stopping for night, Phase 3 is next)
 
 ---
 
@@ -50,72 +50,92 @@ Last updated: 2026-04-12 (BOOT-8 fixed — argocd_github_repo_create CRD orderin
 
 ---
 
-## Phase 2 — Bootstrap k3s and ArgoCD Stack (IN PROGRESS)
+## Phase 2 — Bootstrap k3s and ArgoCD Stack (COMPLETE)
 
-**Stopped at:** `argocd_github_repo_create` CRD check — see Change Log (BOOT-8, now fixed).
-
-Completed so far:
+Bootstrap run completed successfully on 2026-04-12. All ArgoCD apps Synced + Healthy.
 
 - [x] SSH hardening applied (key-only, sshd drop-in config)
 - [x] Tailscale installed and joined tailnet (`hetzner-node`, tag:k8s, tag:server-apps)
-- [x] Format + mount Hetzner volume (BOOT-1 resolved — full site.yml run, provision idempotent)
-- [x] k3s installed single-node
-- [x] k3s TLS cert regenerated with Tailscale IP SAN (BOOT-5 resolved)
-- [x] hetzner.hcloud collection installed to user path (BOOT-6 resolved)
-- [x] kubeconfig fetched and server URL patched to Tailscale IP
-- [x] kubeconfig_manager merge + 1Password save (BOOT-2 resolved)
-- [x] k8s_validator passed (BOOT-3/BOOT-4 resolved)
-- [x] Deploy ArgoCD + apply Hetzner overrides (BOOT-7 fixed)
-- [ ] **READY** Deploy 1Password Operator + register GitHub repo (BOOT-8 fixed — re-run needed)
-- [ ] Register GitHub repo with ArgoCD
-- [ ] Apply `hetzner/argocd/root.yml` — ArgoCD syncs all apps (hetzner-infra project created)
-- [ ] Deploy 1Password Operator (waits up to 5 min for ArgoCD to sync)
+- [x] Format + mount Hetzner volume
+- [x] k3s v1.32.3+k3s1 installed single-node, Tailscale IP SAN in TLS cert
+- [x] kubeconfig fetched, server URL patched, merged to `~/.kube/config` (context: `hetzner`)
+- [x] kubeconfig saved to 1Password (`Hetzner k3s Kubeconfig`, HomeLab vault)
+- [x] ArgoCD deployed + Hetzner overrides applied (insecure mode, argocd-hetzner hostname, no Dex)
+- [x] hetzner-infra AppProject applied directly (bootstrap prerequisite for 1Password Operator)
+- [x] 1Password Operator deployed and healthy (`infra-1password-operator` namespace)
+- [x] GitHub repo registered with ArgoCD (SSH deploy key via 1Password)
+- [x] Root ArgoCD Application applied — all apps synced via waves
 
-**To resume:** Run `site.yml` — provision and bootstrap steps before ArgoCD deploy will no-op:
+**Verified cluster state (2026-04-12):**
+
+| ArgoCD Application            | Sync     | Health  |
+|-------------------------------|----------|---------|
+| root                          | Synced   | Healthy |
+| 1password-operator            | Synced   | Healthy |
+| cluster-primitives            | Synced   | Healthy |
+| tailscale-operator            | Synced   | Healthy |
+| tailscale-operator-secrets    | Synced   | Healthy |
+| postgres                      | Synced   | Healthy |
+| paperless-ngx-postgres-secrets| Synced   | Healthy |
+| redis                         | Synced   | Healthy |
+| paperless-ngx-redis-secrets   | Synced   | Healthy |
+| paperless-ngx                 | Synced   | Healthy |
+| paperless-ngx-app-secrets     | Synced   | Healthy |
+
+All pods Running. Paperless-NGX webserver is up at `https://paperless-hetzner.rohu-shark.ts.net`
+but has **no data** — empty Postgres database, no documents. Phase 3 migrates the data.
+
+**PostgreSQL version on Hetzner: 17.5** (use `bitnami/postgresql:17.5.0` or the exact tag
+from the homelab pod when running pg_dump/pg_restore temp pods — see migration-runbook.md).
+
+---
+
+## Phase 3 — Migrate Paperless-NGX Data (TODO — NEXT SESSION START HERE)
+
+Full step-by-step commands are in `migration-runbook.md`. This section is the progress
+tracker — check off items as you go.
+
+**Before starting:** Confirm you have both kubectl contexts (`homelab` and `hetzner`)
+and Tailscale active on your machine.
+
+**Pre-migration verification:**
+
+- [ ] Confirm all Hetzner ArgoCD apps are green (see Phase 2 table above — they were on 2026-04-12)
+- [ ] Confirm PostgreSQL running on Hetzner: `kubectl --context hetzner -n db-postgres get pods`
+- [ ] Confirm Redis running on Hetzner: `kubectl --context hetzner -n db-redis get pods`
+- [ ] Confirm Paperless-NGX webserver pod is Running (empty DB is fine):
+      `kubectl --context hetzner -n apps-paperless-ngx get pods`
+- [ ] Confirm homelab Paperless-NGX is currently running:
+      `kubectl --context homelab -n apps-paperless-ngx get pods`
+
+**Get the exact PostgreSQL image tag from homelab** (must match for pg_dump/pg_restore):
 
 ```bash
-cd hetzner/ansible && ansible-playbook -i inventory/hetzner.yml site.yml
+kubectl --context homelab -n db-postgres get pod \
+  -l app.kubernetes.io/name=postgresql \
+  -o jsonpath='{.items[0].spec.containers[0].image}'
 ```
 
-- [ ] Verify ArgoCD is accessible at `https://argocd-hetzner.rohu-shark.ts.net`
-  - Admin password: `kubectl --context hetzner -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d`
-- [ ] Verify 1Password Operator is running and syncing secrets
-- [ ] Verify Tailscale Operator is running
-- [ ] Verify Postgres and Redis are healthy
-- [ ] Paperless pod may be in CrashLoop (no data yet — expected, proceed to Phase 3)
+Use that exact tag (e.g. `bitnami/postgresql:17.2.0`) in the temp pods for Steps 2 and 4d
+of the runbook. The Hetzner cluster is running PostgreSQL **17.5** — confirm the homelab
+version matches major version 17 before proceeding. If it doesn't, check for pg_dump format
+compatibility.
 
----
+**Migration steps (see migration-runbook.md for full commands):**
 
-## Phase 2b — Bootstrap k3s and ArgoCD Stack — original checklist (TODO)
-
-- [ ] Run bootstrap: `cd hetzner/ansible && ansible-playbook -i inventory/hetzner.yml site.yml`
-  - Mounts Hetzner volume at `/mnt/hetzner-volume`
-  - Installs k3s single-node (context: `hetzner` added to `~/.kube/config`)
-  - Deploys ArgoCD + applies Hetzner ArgoCD overrides (URL, insecure mode, ingress)
-  - Deploys 1Password Operator
-  - Registers GitHub repo with ArgoCD
-  - Applies `hetzner/argocd/root.yml` — ArgoCD syncs all apps via waves
-- [ ] Verify ArgoCD is accessible at `https://argocd-hetzner.rohu-shark.ts.net`
-  - Admin password: `kubectl --context hetzner -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d`
-- [ ] Verify 1Password Operator is running and syncing secrets
-- [ ] Verify Tailscale Operator is running
-- [ ] Verify Postgres and Redis are healthy
-- [ ] Paperless pod may be in CrashLoop (no data yet — expected, proceed to Phase 3)
-
----
-
-## Phase 3 — Migrate Paperless-NGX Data (TODO)
-
-See `migration-runbook.md` for full step-by-step procedure.
-
-- [ ] Take Synology NAS snapshot
-- [ ] Scale down Paperless-NGX on homelab to 0 replicas
-- [ ] Export PostgreSQL dump from homelab
-- [ ] Archive paperless volumes from homelab PVCs (data, media, export)
-- [ ] Scale down Paperless-NGX on Hetzner
-- [ ] Restore archives to Hetzner PVCs via writer pod
-- [ ] Restore PostgreSQL dump on Hetzner
-- [ ] Scale up Paperless-NGX on Hetzner
+- [ ] Take Synology NAS snapshot (before touching anything)
+- [ ] Step 1 — Scale down Paperless-NGX on homelab to 0 replicas (quiesce writes)
+- [ ] Step 2 — Export PostgreSQL dump from homelab to `/tmp/paperless-YYYYMMDD-HHMM.sql`
+              — verify dump is non-empty and is a valid PostgreSQL dump header
+- [ ] Step 3 — Archive Paperless volumes from homelab PVCs (data, media, export)
+              — via reader pod + `tar czf` piped to local `/tmp/paperless-*.tar.gz`
+              — Note sizes before proceeding: media is likely largest
+- [ ] Step 4a — Scale down Paperless-NGX on Hetzner
+- [ ] Step 4b — Create writer pod on Hetzner with all PVCs mounted
+- [ ] Step 4c — Push data archives to Hetzner PVCs (`tar xzf` via writer pod)
+- [ ] Step 4d — Restore PostgreSQL dump on Hetzner (temp psql pod)
+- [ ] Step 5 — Scale up Paperless-NGX on Hetzner
+- [ ] Step 5 — Tail logs and confirm Paperless starts cleanly (no migration errors)
 
 ---
 
@@ -155,11 +175,18 @@ When returning to hardware, reverse the process:
 
 ## Open Issues
 
-No blocking issues — BOOT-1 through BOOT-7 are resolved. See Change Log.
+None. Phase 2 complete. Phase 3 (data migration) is the next step.
 
 ---
 
 ## Change Log
+
+### 2026-04-12 (Phase 2 COMPLETE — bootstrap run succeeded, all apps healthy)
+
+Full `site.yml` run completed successfully. All 11 ArgoCD Applications Synced + Healthy.
+All pods Running. Paperless-NGX webserver is up at `paperless-hetzner.rohu-shark.ts.net`
+with an empty database. PostgreSQL 17.5, Redis healthy. Stopping for the night.
+Phase 3 (data migration) is next — see Phase 3 section above for the starting checklist.
 
 ### 2026-04-12 (BOOT-8 fix — argocd_github_repo_create CRD ordering)
 
