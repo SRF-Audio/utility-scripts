@@ -15,7 +15,7 @@
           - python3
           - python3-pip
         state: present
-      when: ansible_os_family == "Debian"
+      when: ansible_os_family == "Debian" and k8s_validator_install_packages
       become: true
 
     - name: Ensure Python toolchain packages are present on RedHat family
@@ -24,7 +24,7 @@
           - python3
           - python3-pip
         state: present
-      when: ansible_os_family == "RedHat"
+      when: ansible_os_family == "RedHat" and k8s_validator_install_packages
       become: true
 
     - name: Assert Python version is supported for k8s_validator
@@ -42,6 +42,7 @@
         state: present
         executable: pip3
       become: true
+      when: k8s_validator_install_packages
 
     - name: Gather Kubernetes cluster info
       kubernetes.core.k8s_cluster_info:

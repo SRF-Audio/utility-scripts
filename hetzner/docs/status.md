@@ -10,7 +10,7 @@ This is the live status file for the Hetzner migration project.
 - When an open issue is resolved, move it from "Open Issues" to the Change Log.
 -->
 
-Last updated: 2026-04-11 (bootstrap in progress — stopped at volume format; see Open Issues)
+Last updated: 2026-04-12 (BOOT-8 fixed — argocd_github_repo_create CRD ordering; ready to re-run)
 
 ---
 
@@ -52,22 +52,26 @@ Last updated: 2026-04-11 (bootstrap in progress — stopped at volume format; se
 
 ## Phase 2 — Bootstrap k3s and ArgoCD Stack (IN PROGRESS)
 
-**Stopped at:** volume format — see Open Issues (BOOT-1).
+**Stopped at:** `argocd_github_repo_create` CRD check — see Change Log (BOOT-8, now fixed).
 
-Completed so far (ok=33 on hetzner_node):
+Completed so far:
 
 - [x] SSH hardening applied (key-only, sshd drop-in config)
 - [x] Tailscale installed and joined tailnet (`hetzner-node`, tag:k8s, tag:server-apps)
-- [ ] **BLOCKED** Format + mount Hetzner volume (BOOT-1)
-- [ ] Install k3s single-node
-- [ ] Fetch + merge kubeconfig (context: `hetzner`)
-- [ ] Deploy ArgoCD + apply Hetzner overrides
-- [ ] Deploy 1Password Operator
+- [x] Format + mount Hetzner volume (BOOT-1 resolved — full site.yml run, provision idempotent)
+- [x] k3s installed single-node
+- [x] k3s TLS cert regenerated with Tailscale IP SAN (BOOT-5 resolved)
+- [x] hetzner.hcloud collection installed to user path (BOOT-6 resolved)
+- [x] kubeconfig fetched and server URL patched to Tailscale IP
+- [x] kubeconfig_manager merge + 1Password save (BOOT-2 resolved)
+- [x] k8s_validator passed (BOOT-3/BOOT-4 resolved)
+- [x] Deploy ArgoCD + apply Hetzner overrides (BOOT-7 fixed)
+- [ ] **READY** Deploy 1Password Operator + register GitHub repo (BOOT-8 fixed — re-run needed)
 - [ ] Register GitHub repo with ArgoCD
-- [ ] Apply `hetzner/argocd/root.yml` — ArgoCD syncs all apps
+- [ ] Apply `hetzner/argocd/root.yml` — ArgoCD syncs all apps (hetzner-infra project created)
+- [ ] Deploy 1Password Operator (waits up to 5 min for ArgoCD to sync)
 
-**To resume:** Fix BOOT-1 (see Open Issues), then run the full `site.yml` (not `--tags bootstrap`
-alone) so provision artifacts are in memory and `hetzner_volume_id` resolves correctly:
+**To resume:** Run `site.yml` — provision and bootstrap steps before ArgoCD deploy will no-op:
 
 ```bash
 cd hetzner/ansible && ansible-playbook -i inventory/hetzner.yml site.yml
@@ -151,30 +155,94 @@ When returning to hardware, reverse the process:
 
 ## Open Issues
 
-### BOOT-1 — Volume ID not resolved when bootstrap runs without provision (BLOCKING)
-
-**File:** `hetzner/ansible/playbooks/hetzner-bootstrap.yml`
-
-`hetzner_volume_id` is sourced from `hostvars['localhost']['hetzner_provision_artifacts']['volume_id']`,
-which is only populated when the provision play runs in the same Ansible process. When running
-`--tags bootstrap` alone (e.g. to retry after a failure), the hostvars aren't populated and the
-variable falls back to the `REPLACE_WITH_VOLUME_ID` sentinel, causing `mkfs.ext4` to fail.
-
-**Fix options:**
-
-1. **Always run full `site.yml`** — provision is idempotent (server/volume already exist, Hetzner
-   API will no-op). This is the simplest fix and the recommended approach going forward.
-
-2. **Read volume ID from the artifacts file** — the provision role writes `.artifacts/hetzner_provision.json`.
-   Add a pre-task in the bootstrap play to read this file and set the fact when `hetzner_provision_artifacts`
-   is not already populated. More complex but enables true `--tags bootstrap` re-runs.
-
-**Recommended action:** Use option 1 for now (run `site.yml` without tags). Document option 2 as a
-future improvement if re-runs become painful.
+No blocking issues — BOOT-1 through BOOT-7 are resolved. See Change Log.
 
 ---
 
 ## Change Log
+
+### 2026-04-12 (BOOT-8 fix — argocd_github_repo_create CRD ordering)
+
+- **Fixed BOOT-8: argocd_github_repo_create fails with missing OnePasswordItem CRD** —
+  The `argocd_github_repo_create` role checks for `onepassworditems.onepassword.com` CRD
+  before creating an `OnePasswordItem` resource to retrieve the GitHub deploy key. The CRD
+  only exists after the 1Password Operator is deployed, but `onepassword_operator_deploy`
+  was ordered AFTER `argocd_github_repo_create` due to the incorrect BOOT-3 reasoning.
+  **Root cause**: The BOOT-3 comment claimed ArgoCD can't sync the 1Password Operator app
+  until the GitHub SSH repo is registered — but the `onepassword_operator_deploy` ArgoCD
+  Application uses a **public Helm repo** (`https://1password.github.io/connect-helm-charts/`),
+  not the private GitHub repo. The only real prerequisite is the `hetzner-infra` AppProject.
+  **Fix**: Added a `k8s_object_manager` step to apply `hetzner-infra-project.yml` directly
+  (no ArgoCD sync needed — just `kubectl apply`), then moved `onepassword_operator_deploy`
+  before `argocd_github_repo_create`. The operator deploys via ArgoCD (Helm repo is public,
+  project now exists), waits up to 5 min for deployments, and then `argocd_github_repo_create`
+  runs with the CRD available. `root.yml` is applied last with the GitHub SSH repo registered.
+
+### 2026-04-12 (BOOT-5, BOOT-6, BOOT-7 fixes — k3s TLS, collection path, argocd Dex)
+
+- **Fixed BOOT-5: k3s TLS cert missing Tailscale SAN** — The bootstrap playbook rewrites the
+  kubeconfig server URL from `127.0.0.1` to the Tailscale IP, but the k3s serving cert was never
+  issued with that IP as a SAN. Fixed in two ways:
+  - **Immediate (manual):** On `hetzner-node`, wrote `/etc/rancher/k3s/config.yaml` with
+    `tls-san: [100.91.201.40]`, deleted the old serving cert, restarted k3s.
+  - **Playbook fix:** Added a "Get Tailscale IP" task before k3s install; `--tls-san` is now
+    passed to the install command so future installs are correct from the start.
+- **Fixed BOOT-6: hetzner.hcloud collection installed to system Python, not user path** —
+  `ansible-galaxy collection install -r requirements.yml --force` reinstalled the collection
+  to `~/.ansible/collections` (6.8.0). Also fixed root cause: the initial install was missing
+  `-r`, treating the filename as a collection name.
+- **Fixed BOOT-7: argocd_deploy Dex template fails on Hetzner** — The `argocd_deploy` role
+  unconditionally renders `argocd-config-patch.yml.j2`, which requires `argocd_github_oauth_client_id`.
+  Hetzner intentionally has no Dex/GitHub OAuth (managed separately via `hetzner/k8s/argocd/argocd-cm.yml`).
+  Added `argocd_deploy_configure_dex` flag (default `true`, preserves homelab behavior). Set to
+  `false` in the Hetzner bootstrap.
+- **Added: SSH config entry** — Bootstrap playbook now writes a `hetzner-node` entry to
+  `~/.ssh/config` (via `blockinfile`) after the Tailscale IP is resolved. `ssh hetzner-node`
+  now works after bootstrap runs.
+
+### 2026-04-11 (BOOT-4 fix — k8s_validator sudo on localhost)
+
+- **Fixed: k8s_validator fails with `sudo: a password is required` on localhost** —
+  The role's package install tasks (python3, python3-pip via `package` module, and
+  kubernetes library via `pip`) all use `become: true`. On the Fedora 43 control machine,
+  sudo requires a password, so they fail. Python3 is already present on the control
+  machine; the kubernetes library was presumably installed in a prior session.
+  - Added `k8s_validator_install_packages: true` default to the role. When `false`,
+    all three package install tasks are skipped.
+  - Set `k8s_validator_install_packages: false` in the hetzner-bootstrap.yml pre_task
+    import.
+
+### 2026-04-11 (BOOT-3 fix — Tailscale IP, k3s_cluster_domain, role execution order)
+
+- **Fixed: hetzner_tailscale_ip always empty** — `hostvars['hetzner_node']['hetzner_tailscale_setup_artifacts']`
+  doesn't reliably cross play boundaries. Replaced with a dedicated pre_task that delegates
+  `tailscale ip -4` to `hetzner_node` and sets the IP as a host fact via `set_fact`. This also
+  fixes `kubeconfig_manager` writing `https://:6443` into `~/.kube/config` on re-runs.
+- **Fixed: k3s_cluster_domain not in play scope** — `k8s_object_manager` calls `k8s_validator`
+  internally on every invocation. `k3s_cluster_domain` must be a play-level var, not just in
+  `import_role vars:`. Added `k3s_cluster_domain: "{{ hetzner_tailscale_ip }}"` to play vars.
+- **Fixed: k3s_cluster_name undefined** — `k8s_validator` artifacts reference `k3s_cluster_name`
+  without a per-role prefix. Added `k3s_cluster_name: "{{ hetzner_cluster_name }}"` to play vars.
+- **Fixed: onepassword_operator_deploy_project** — Default `coachlight-k3s-infra` project doesn't
+  exist on Hetzner. Added explicit `onepassword_operator_deploy_project: "hetzner-infra"`.
+- **Fixed: role execution order deadlock** — `onepassword_operator_deploy` previously ran before
+  `argocd_github_repo_create` and root.yml. It creates an ArgoCD Application and waits 5 min for
+  the deployment — but ArgoCD can't sync until the GitHub repo is registered AND the `hetzner-infra`
+  project exists (both created by the later steps). Reordered: GitHub repo → root.yml → 1Password.
+
+### 2026-04-11 (BOOT-2 fix — artifacts_path + 1Password kubeconfig saving)
+
+- **Fixed BOOT-2** (`hetzner-bootstrap.yml`) — Added `artifacts_path: "{{ playbook_dir }}/.artifacts"`
+  to the "Deploy ArgoCD stack" play vars. `kubeconfig_manager` and `k9s_install` both default to
+  `{{ artifacts_path }}` internally; without it Ansible validation fails before the role runs.
+- **Added: 1Password kubeconfig save** — Two new pre_tasks after `kubeconfig_manager`:
+  - `op_item_create` creates "Hetzner k3s Kubeconfig" (category: server, vault: HomeLab) on first run.
+  - `op_item_edit` updates it on re-runs (runs only when `op_item_create_existing_items` is non-empty).
+  - Both use `lookup('env', 'OP_SERVICE_ACCOUNT_TOKEN')` for auth and `no_log: true`.
+  - Kubeconfig stored as a `concealed` field (`kubeconfig[concealed]`).
+- **BOOT-1 resolved** — Phase 2 progressed past volume format (ran full `site.yml`; provision
+  was idempotent). k3s installed, kubeconfig fetched. Bootstrap stopped at kubeconfig_manager
+  (BOOT-2) before ArgoCD deployment.
 
 ### 2026-04-11 (first live bootstrap attempt — Phase 1 complete, Phase 2 in progress)
 

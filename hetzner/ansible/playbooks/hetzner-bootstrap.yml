@@ -80,6 +80,11 @@
         state: directory
         mode: "0755"
 
+    - name: Get Tailscale IP for k3s TLS SAN
+      ansible.builtin.command: tailscale ip -4
+      register: _k3s_tailscale_ip
+      changed_when: false
+
     - name: Install k3s single-node {{ k3s_version }}
       ansible.builtin.shell:
         cmd: |
@@ -89,7 +94,8 @@
             sh -s - server \
               --disable traefik \
               --disable servicelb \
-              --default-local-storage-path {{ hetzner_k3s_storage_path }}
+              --default-local-storage-path {{ hetzner_k3s_storage_path }} \
+              --tls-san {{ _k3s_tailscale_ip.stdout | trim }}
         executable: /bin/bash
       args:
         creates: /usr/local/bin/k3s
@@ -147,18 +153,47 @@
   gather_facts: true
 
   vars:
-    hetzner_tailscale_ip: >-
-      {{ hostvars['hetzner_node']['hetzner_tailscale_setup_artifacts']['tailscale_ip_v4'] }}
     hetzner_kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/hetzner-k3s.yaml"
     hetzner_context: hetzner
     hetzner_cluster_name: hetzner
     hetzner_api_server: "https://{{ hetzner_tailscale_ip }}:6443"
+    # hetzner_tailscale_ip is set via set_fact in pre_tasks below (delegate to hetzner_node).
+    # k3s_cluster_domain and k3s_cluster_name must be play-level vars: k8s_object_manager calls
+    # k8s_validator internally on every invocation, and both variables are required by that role.
+    k3s_cluster_domain: "{{ hetzner_tailscale_ip }}"
+    k3s_cluster_name: "{{ hetzner_cluster_name }}"
+    artifacts_path: "{{ playbook_dir }}/.artifacts"
 
   pre_tasks:
+    - name: Get Tailscale IPv4 from hetzner_node
+      ansible.builtin.command: tailscale ip -4
+      delegate_to: hetzner_node
+      become: false
+      register: _hetzner_tailscale_ip
+      changed_when: false
+
+    - name: Set hetzner_tailscale_ip fact
+      ansible.builtin.set_fact:
+        hetzner_tailscale_ip: "{{ _hetzner_tailscale_ip.stdout | trim }}"
+
+    - name: Write hetzner-node SSH config entry
+      ansible.builtin.blockinfile:
+        path: "{{ lookup('env', 'HOME') }}/.ssh/config"
+        marker: "# {mark} ANSIBLE MANAGED — hetzner-node"
+        block: |
+          Host hetzner-node
+              HostName {{ hetzner_tailscale_ip }}
+              User root
+              IdentityFile ~/.ssh/coachlight-homelab.pem
+              IdentitiesOnly yes
+              StrictHostKeyChecking accept-new
+        create: true
+        mode: "0600"
+
     - name: Update kubeconfig server URL to Tailscale IP {{ hetzner_tailscale_ip }}
       ansible.builtin.replace:
         path: "{{ hetzner_kubeconfig }}"
-        regexp: 'https://127\.0\.0\.1:6443'
+        regexp: "https://127\\.0\\.0\\.1:6443"
         replace: "{{ hetzner_api_server }}"
 
     - name: Import kubeconfig_manager role
@@ -171,6 +206,39 @@
         kubeconfig_manager_context_name: "{{ hetzner_context }}"
         kubeconfig_manager_context_user: default
 
+    - name: Save Hetzner kubeconfig to 1Password (create if missing)
+      ansible.builtin.include_role:
+        name: op_item_create
+      vars:
+        op_item_create_vault_name: HomeLab
+        op_item_create_artifacts_path: "{{ artifacts_path }}"
+        op_item_create_op_service_account_token: >-
+          {{ lookup('env', 'OP_SERVICE_ACCOUNT_TOKEN') }}
+        op_item_create_items:
+          - name: Hetzner k3s Kubeconfig
+            category: server
+            tags:
+              - ansible_managed
+              - hetzner
+            fields:
+              kubeconfig[concealed]: "{{ lookup('file', hetzner_kubeconfig) }}"
+      no_log: true
+
+    - name: Update Hetzner kubeconfig in 1Password (edit if already exists)
+      ansible.builtin.include_role:
+        name: op_item_edit
+      when: op_item_create_existing_items | default([]) | length > 0
+      vars:
+        op_item_edit_vault_name: HomeLab
+        op_item_edit_artifacts_path: "{{ artifacts_path }}"
+        op_item_edit_op_service_account_token: >-
+          {{ lookup('env', 'OP_SERVICE_ACCOUNT_TOKEN') }}
+        op_item_edit_items:
+          - name: Hetzner k3s Kubeconfig
+            fields:
+              kubeconfig[concealed]: "{{ lookup('file', hetzner_kubeconfig) }}"
+      no_log: true
+
     - name: Import k8s_validator role
       ansible.builtin.import_role:
         name: k8s_validator
@@ -179,6 +247,9 @@
           {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
         k8s_validator_context: >-
           {{ kubeconfig_manager_artifacts.context_name }}
+        # localhost (control machine) already has Python3 — skip OS package installs
+        # that would require passwordless sudo.
+        k8s_validator_install_packages: false
 
   roles:
     - role: argocd_deploy
@@ -188,6 +259,7 @@
         argocd_deploy_context: >-
           {{ kubeconfig_manager_artifacts.context_name }}
         argocd_deploy_cluster_name: "{{ hetzner_cluster_name }}"
+        argocd_deploy_configure_dex: false
 
     - role: k8s_object_manager
       vars:
@@ -219,6 +291,25 @@
         k8s_object_manager_state: present
         k8s_object_manager_apply: true
 
+    # Apply hetzner-infra AppProject directly so onepassword_operator_deploy can create
+    # its ArgoCD Application. The 1Password Operator Application uses a PUBLIC Helm repo
+    # (https://1password.github.io/connect-helm-charts/), NOT the private GitHub repo —
+    # so it only needs the hetzner-infra project to exist, not GitHub SSH credentials.
+    - role: k8s_object_manager
+      vars:
+        k8s_object_manager_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        k8s_object_manager_context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
+        k8s_object_manager_src: >-
+          {{ playbook_dir }}/../../../hetzner/argocd/apps/projects/hetzner-infra-project.yml
+        k8s_object_manager_state: present
+        k8s_object_manager_apply: true
+
+    # Deploy 1Password Operator via ArgoCD Application (public Helm repo — syncs immediately).
+    # Waits up to 5 min for onepassword-connect and onepassword-connect-operator to be Available.
+    # After this role completes, the OnePasswordItem CRD exists and argocd_github_repo_create
+    # can create OnePasswordItem resources.
     - role: onepassword_operator_deploy
       vars:
         onepassword_operator_deploy_kubeconfig: >-
@@ -226,6 +317,7 @@
         onepassword_operator_deploy_context: >-
           {{ kubeconfig_manager_artifacts.context_name }}
         onepassword_operator_deploy_cluster_name: "{{ hetzner_cluster_name }}"
+        onepassword_operator_deploy_project: "hetzner-infra"
         onepassword_operator_deploy_connect_credentials: >-
           {{ lookup('community.general.onepassword_doc',
                     'Coachlight HomeLab Credentials File',
@@ -236,6 +328,9 @@
                     field='credential',
                     vault='HomeLab') }}
 
+    # Register GitHub repo with ArgoCD. Now that the 1Password Operator is running,
+    # the OnePasswordItem CRD exists and this role can create OnePasswordItem resources
+    # to retrieve the GitHub SSH deploy key from 1Password.
     - role: argocd_github_repo_create
       vars:
         argocd_github_repo_create_kubeconfig: >-
@@ -243,6 +338,8 @@
         argocd_github_repo_create_context: >-
           {{ kubeconfig_manager_artifacts.context_name }}
 
+    # Apply root ArgoCD Application. The GitHub SSH repo is now registered, so ArgoCD
+    # can sync all apps in hetzner/argocd/apps/ (projects, operators, platform, apps).
     - role: k8s_object_manager
       vars:
         k8s_object_manager_kubeconfig: >-

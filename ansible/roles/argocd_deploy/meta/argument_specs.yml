@@ -25,3 +25,9 @@ argument_specs:
         type: str
         required: false
         description: Logical cluster name used for artifact recording.
+      argocd_deploy_configure_dex:
+        type: bool
+        required: false
+        description: >-
+          When true (default), renders and applies the argocd-cm config patch with Dex/GitHub OAuth.
+          Set to false to skip Dex configuration (e.g. clusters that manage argocd-cm separately).

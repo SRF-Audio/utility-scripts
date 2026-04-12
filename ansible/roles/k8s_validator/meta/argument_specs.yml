@@ -92,3 +92,11 @@ argument_specs:
         type: bool
         required: false
         description: Whether or not to verify the API server SSL certificates.
+      k8s_validator_install_packages:
+        type: bool
+        required: false
+        description: >-
+          Whether to install OS-level Python packages (python3, python3-pip) and
+          the Kubernetes Python library via pip. Set to false when the control
+          machine already has Python and the kubernetes library available (e.g.
+          when running on localhost).

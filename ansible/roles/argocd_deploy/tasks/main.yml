@@ -49,6 +49,7 @@
     dest: "{{ role_path }}/files/argocd-config-patch.yml"
     mode: "0644"
   register: argocd_deploy_config_patch_template
+  when: argocd_deploy_configure_dex | default(true) | bool
 
 - name: Discover additional Argo CD resource manifests in role files/
   ansible.builtin.find:
