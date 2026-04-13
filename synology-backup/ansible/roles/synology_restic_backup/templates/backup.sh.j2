@@ -1,0 +1,49 @@
+#!/bin/bash
+# Managed by Ansible role synology_restic_backup — do not edit by hand.
+# Re-run the Ansible playbook to update this file.
+#
+# Runs a restic backup of all configured shares to the Hetzner Storage Box.
+# Safe to invoke manually; concurrent runs are prevented via a lock directory.
+set -euo pipefail
+
+readonly LOCK_DIR="/var/lock/restic-backup-backup.lock"
+readonly LOG_FILE="{{ synology_restic_backup_log_dir }}/backup.log"
+readonly RESTIC="{{ synology_restic_backup_restic_install_dir }}/restic"
+readonly PASSWORD_FILE="{{ synology_restic_backup_config_dir }}/.restic-password"
+
+# Acquire lock — mkdir is atomic on all DSM-supported filesystems.
+if ! mkdir "${LOCK_DIR}" 2>/dev/null; then
+    echo "$(date -Iseconds) [backup] Lock exists at ${LOCK_DIR}; another instance is running. Exiting." \
+        >> "${LOG_FILE}"
+    exit 0
+fi
+trap 'rmdir "${LOCK_DIR}" 2>/dev/null || true' EXIT INT TERM
+
+{
+    echo "=== $(date -Iseconds) [backup] START ==="
+
+    export RESTIC_REPOSITORY="sftp:storagebox:{{ synology_restic_backup_storagebox_repo_path }}"
+    export RESTIC_PASSWORD
+    RESTIC_PASSWORD=$(cat "${PASSWORD_FILE}")
+
+    EXCLUDES=(
+{% for exclude in synology_restic_backup_excludes %}
+        --exclude="{{ exclude }}"
+{% endfor %}
+    )
+
+    SOURCES=(
+{% for path in synology_restic_backup_backup_paths %}
+        "{{ path }}"
+{% endfor %}
+    )
+
+    "${RESTIC}" backup \
+        --one-file-system \
+        --tag "{{ synology_restic_backup_snapshot_tag }}" \
+        --verbose \
+        "${EXCLUDES[@]}" \
+        "${SOURCES[@]}"
+
+    echo "=== $(date -Iseconds) [backup] END rc=$? ==="
+} >> "${LOG_FILE}" 2>&1

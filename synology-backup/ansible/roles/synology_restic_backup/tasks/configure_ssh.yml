@@ -1,0 +1,56 @@
+---
+# synology_restic_backup/tasks/configure_ssh.yml
+#
+# Configures root's SSH environment on the NAS so that restic can reach the
+# Hetzner Storage Box via the "storagebox" alias without embedding connection
+# parameters in the repository URL.
+
+- name: Ensure /root/.ssh directory exists
+  ansible.builtin.file:
+    path: /root/.ssh
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+  become: true
+
+- name: Ensure /root/.ssh/known_hosts exists
+  ansible.builtin.file:
+    path: /root/.ssh/known_hosts
+    state: touch
+    owner: root
+    group: root
+    mode: "0600"
+    modification_time: preserve
+    access_time: preserve
+  become: true
+
+- name: Ensure /root/.ssh/config exists
+  ansible.builtin.file:
+    path: /root/.ssh/config
+    state: touch
+    owner: root
+    group: root
+    mode: "0600"
+    modification_time: preserve
+    access_time: preserve
+  become: true
+
+- name: Write SSH config block for Storage Box
+  ansible.builtin.blockinfile:
+    path: /root/.ssh/config
+    marker: "# {mark} ANSIBLE MANAGED — restic-storagebox"
+    block: |
+      Host storagebox
+          HostName {{ synology_restic_backup_storagebox_host }}
+          User {{ synology_restic_backup_storagebox_user }}
+          Port {{ synology_restic_backup_storagebox_port }}
+          IdentityFile {{ synology_restic_backup_config_dir }}/storagebox-key
+          IdentitiesOnly yes
+          # accept-new records the host key on first connection; subsequent
+          # connections verify against it. Set to "yes" after the first
+          # successful backup to harden further.
+          StrictHostKeyChecking accept-new
+          ServerAliveInterval 60
+          ServerAliveCountMax 240
+  become: true

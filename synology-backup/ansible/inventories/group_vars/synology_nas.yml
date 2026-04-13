@@ -1,0 +1,19 @@
+---
+# DSM 7 SSH access.
+#
+# By default, SSH on DSM is available for the "admin" user. The admin user has
+# passwordless sudo on DSM 7. If you have enabled root SSH login directly,
+# set ansible_user to "root" and ansible_become to false.
+#
+# Prerequisites on the NAS (one-time manual steps):
+#   1. Control Panel → Terminal & SNMP → Enable SSH service
+#   2. Add your control-host public key to admin's ~/.ssh/authorized_keys
+#      (or /root/.ssh/authorized_keys if using root directly)
+#
+ansible_user: admin
+ansible_become: true
+ansible_become_method: sudo
+
+# DSM 7 ships Python 3 at this path when the "Python 3.x" package is installed
+# via Synology Package Center. Install it before running this playbook.
+ansible_python_interpreter: /usr/bin/python3

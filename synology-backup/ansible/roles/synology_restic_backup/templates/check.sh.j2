@@ -1,0 +1,34 @@
+#!/bin/bash
+# Managed by Ansible role synology_restic_backup — do not edit by hand.
+# Re-run the Ansible playbook to update this file.
+#
+# Runs restic check with --read-data-subset=5% to verify repository integrity.
+# Reading 5% of random pack files on each run provides meaningful coverage
+# without an I/O window that would conflict with large-volume weekly backups.
+# A full --read-data pass can be triggered manually when needed.
+# Safe to invoke manually; concurrent runs are prevented via a lock directory.
+set -euo pipefail
+
+readonly LOCK_DIR="/var/lock/restic-backup-check.lock"
+readonly LOG_FILE="{{ synology_restic_backup_log_dir }}/check.log"
+readonly RESTIC="{{ synology_restic_backup_restic_install_dir }}/restic"
+readonly PASSWORD_FILE="{{ synology_restic_backup_config_dir }}/.restic-password"
+
+if ! mkdir "${LOCK_DIR}" 2>/dev/null; then
+    echo "$(date -Iseconds) [check] Lock exists at ${LOCK_DIR}; another instance is running. Exiting." \
+        >> "${LOG_FILE}"
+    exit 0
+fi
+trap 'rmdir "${LOCK_DIR}" 2>/dev/null || true' EXIT INT TERM
+
+{
+    echo "=== $(date -Iseconds) [check] START ==="
+
+    export RESTIC_REPOSITORY="sftp:storagebox:{{ synology_restic_backup_storagebox_repo_path }}"
+    export RESTIC_PASSWORD
+    RESTIC_PASSWORD=$(cat "${PASSWORD_FILE}")
+
+    "${RESTIC}" check --read-data-subset=5%
+
+    echo "=== $(date -Iseconds) [check] END rc=$? ==="
+} >> "${LOG_FILE}" 2>&1

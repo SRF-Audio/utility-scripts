@@ -1,0 +1,84 @@
+---
+# synology_restic_backup/tasks/init_repo.yml
+#
+# Idempotently initialises the restic repository on the Storage Box.
+#
+# Logic:
+#   rc == 0              → repo exists and credentials are valid; skip init.
+#   rc != 0 AND stderr contains a "no repository" signal phrase
+#                        → repo does not exist; run init.
+#   rc != 0 AND anything else (bad password, network failure, corrupt repo)
+#                        → fail loudly with the restic error output.
+#
+# RESTIC_PASSWORD_FILE is used throughout so the repository password is never
+# present in an environment variable that could appear in task output.
+
+- name: Check whether restic repository is already initialised
+  ansible.builtin.command:
+    argv:
+      - "{{ synology_restic_backup_restic_install_dir }}/restic"
+      - snapshots
+      - --json
+  environment:
+    RESTIC_REPOSITORY: "sftp:storagebox:{{ synology_restic_backup_storagebox_repo_path }}"
+    RESTIC_PASSWORD_FILE: "{{ synology_restic_backup_config_dir }}/.restic-password"
+  register: _srb_repo_check
+  changed_when: false
+  failed_when: false
+  become: true
+
+- name: Determine repository initialisation state
+  ansible.builtin.set_fact:
+    _srb_repo_uninitialised: >-
+      {{
+        _srb_repo_check.rc != 0 and (
+          'Is there a repository at the following location'
+          in (_srb_repo_check.stderr | default(''))
+          or 'unable to open config'
+          in (_srb_repo_check.stderr | default(''))
+          or 'config file not found'
+          in (_srb_repo_check.stderr | default(''))
+          or 'no such file or directory'
+          in (_srb_repo_check.stderr | default('') | lower)
+        )
+      }}
+
+- name: Fail on unexpected repository check error
+  ansible.builtin.fail:
+    msg: >-
+      restic snapshots returned a non-zero exit code that does not indicate an
+      uninitialised repository. This may mean wrong credentials, an unreachable
+      Storage Box, or a corrupt repository. Investigate before re-running.
+
+      restic exit code: {{ _srb_repo_check.rc }}
+      restic stderr:    {{ _srb_repo_check.stderr | default('(empty)') }}
+      restic stdout:    {{ _srb_repo_check.stdout | default('(empty)') }}
+  when:
+    - _srb_repo_check.rc != 0
+    - not _srb_repo_uninitialised
+
+- name: Initialise restic repository on Storage Box
+  ansible.builtin.command:
+    argv:
+      - "{{ synology_restic_backup_restic_install_dir }}/restic"
+      - init
+  environment:
+    RESTIC_REPOSITORY: "sftp:storagebox:{{ synology_restic_backup_storagebox_repo_path }}"
+    RESTIC_PASSWORD_FILE: "{{ synology_restic_backup_config_dir }}/.restic-password"
+  when: _srb_repo_uninitialised
+  become: true
+  register: _srb_repo_init_result
+  changed_when: _srb_repo_init_result.rc == 0
+
+- name: Confirm repository is healthy after initialisation
+  ansible.builtin.command:
+    argv:
+      - "{{ synology_restic_backup_restic_install_dir }}/restic"
+      - snapshots
+      - --json
+  environment:
+    RESTIC_REPOSITORY: "sftp:storagebox:{{ synology_restic_backup_storagebox_repo_path }}"
+    RESTIC_PASSWORD_FILE: "{{ synology_restic_backup_config_dir }}/.restic-password"
+  changed_when: false
+  become: true
+  when: _srb_repo_uninitialised

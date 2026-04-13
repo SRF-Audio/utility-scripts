@@ -1,0 +1,99 @@
+---
+# synology_restic_backup/defaults/main.yml
+
+# ---------------------------------------------------------------------------
+# Restic binary
+# ---------------------------------------------------------------------------
+# Upstream release version to install. Verify against
+# https://github.com/restic/restic/releases before bumping.
+synology_restic_backup_restic_version: "0.17.3"
+synology_restic_backup_restic_install_dir: "/usr/local/bin"
+
+# ---------------------------------------------------------------------------
+# Directory layout on the NAS
+# ---------------------------------------------------------------------------
+synology_restic_backup_config_dir: "/etc/restic-backup"
+synology_restic_backup_log_dir: "/var/log/restic-backup"
+synology_restic_backup_scripts_dir: "/usr/local/bin/restic-backup"
+
+# ---------------------------------------------------------------------------
+# Backup source
+# ---------------------------------------------------------------------------
+# Full paths passed directly to restic backup as sources.
+# Restic recurses into each path, so a single volume entry is sufficient.
+synology_restic_backup_backup_paths:
+  - /volume2
+
+# DSM-specific noise directories excluded unconditionally from every source path.
+synology_restic_backup_excludes:
+  - "@eaDir"
+  - "#recycle"
+  - "#snapshot"
+  - "lost+found"
+
+# ---------------------------------------------------------------------------
+# Snapshot identity & retention
+# ---------------------------------------------------------------------------
+# All snapshots created by this role carry this tag so retention policy can
+# target them precisely without touching any manually-created snapshots.
+synology_restic_backup_snapshot_tag: "synology-ansible-managed"
+
+# Conservative policy for a transit backup: prioritise recoverability.
+synology_restic_backup_retention_keep_daily: 7
+synology_restic_backup_retention_keep_weekly: 4
+synology_restic_backup_retention_keep_monthly: 3
+
+# ---------------------------------------------------------------------------
+# Hetzner Storage Box connection
+# ---------------------------------------------------------------------------
+# REQUIRED — no default. Set in the playbook vars or host/group vars:
+#   synology_restic_backup_storagebox_host: "uXXXXXX.your-storagebox.de"
+#   synology_restic_backup_storagebox_user: "uXXXXXX"
+#
+# Hetzner Storage Boxes use port 23 for SFTP (not 22).
+synology_restic_backup_storagebox_port: 23
+
+# Path on the storage box relative to the SFTP user's home directory.
+# The restic repository URL will be: sftp:storagebox:<repo_path>
+synology_restic_backup_storagebox_repo_path: "restic"
+
+# ---------------------------------------------------------------------------
+# 1Password item references
+# ---------------------------------------------------------------------------
+# All three items must exist in this vault before the playbook is run.
+synology_restic_backup_op_vault: "HomeLab"
+
+# SSH Key item: the private key used to authenticate to the Storage Box.
+# Expected 1Password item type: SSH Key, field: "private key"
+synology_restic_backup_op_storagebox_ssh_key_item: "Hetzner Storage Box SSH Key"
+synology_restic_backup_op_storagebox_ssh_key_field: "private key"
+
+# Login or Secure Note holding the restic repository password.
+# This item is the canonical source of the repo password — store it in
+# 1Password before running the playbook so it is machine-independent.
+synology_restic_backup_op_restic_repo_item: "Synology Restic Repository"
+synology_restic_backup_op_restic_repo_password_field: "password"
+
+# ---------------------------------------------------------------------------
+# Cron schedule
+# ---------------------------------------------------------------------------
+# Daily backup — default: 02:00 every day.
+synology_restic_backup_cron_backup_minute: "0"
+synology_restic_backup_cron_backup_hour: "2"
+synology_restic_backup_cron_backup_weekday: "*"
+
+# Weekly forget + prune — default: Sunday 03:00.
+synology_restic_backup_cron_forget_minute: "0"
+synology_restic_backup_cron_forget_hour: "3"
+synology_restic_backup_cron_forget_weekday: "0"
+
+# Weekly integrity check — default: Wednesday 04:00.
+# Intentionally offset from forget/prune to avoid overlapping I/O.
+synology_restic_backup_cron_check_minute: "0"
+synology_restic_backup_cron_check_hour: "4"
+synology_restic_backup_cron_check_weekday: "3"
+
+# ---------------------------------------------------------------------------
+# Restore documentation
+# ---------------------------------------------------------------------------
+synology_restic_backup_restore_doc_path: "{{ synology_restic_backup_config_dir }}/RESTORE_PROCEDURE.txt"

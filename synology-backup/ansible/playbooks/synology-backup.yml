@@ -1,0 +1,59 @@
+---
+# synology-backup/ansible/playbooks/synology-backup.yml
+#
+# Installs, configures, and schedules restic backups from the Synology DS1813+
+# (DSM 7.x, x86_64) to a Hetzner Storage Box over SFTP.
+#
+# Prerequisites
+# -------------
+# On the control host:
+#   - 1Password CLI installed and authenticated:
+#       op signin
+#       # or: export OP_SERVICE_ACCOUNT_TOKEN=<token>
+#   - The following 1Password items must exist in the vault specified by
+#     synology_restic_backup_op_vault (default: "HomeLab"):
+#       - "{{ synology_restic_backup_op_restic_repo_item }}"
+#             (Login or Secure Note, field "password" holds the restic repo password)
+#       - "{{ synology_restic_backup_op_storagebox_ssh_key_item }}"
+#             (SSH Key item, field "private key" holds the Storage Box private key)
+#   - SSH access to the Synology NAS (admin user with sudo, or root directly).
+#     The control-host public key must be in the NAS admin's authorized_keys.
+#
+# On the Synology NAS (one-time manual setup):
+#   - Control Panel → Terminal & SNMP → Enable SSH service
+#   - Install "Python 3.x" package via Synology Package Center
+#   - Add control-host public key to /var/services/homes/admin/.ssh/authorized_keys
+#
+# Usage
+# -----
+#   ansible-playbook -i inventories/hosts.yml playbooks/synology-backup.yml
+#
+# Idempotent: safe to re-run. Only changes what differs from the desired state.
+
+- name: Configure restic backup on Synology NAS
+  hosts: synology_nas
+  gather_facts: true
+
+  vars:
+    # Storage Box connection — REQUIRED, no defaults in the role.
+    # Replace these values for your environment.
+    synology_restic_backup_storagebox_host: "uXXXXXX.your-storagebox.de"
+    synology_restic_backup_storagebox_user: "uXXXXXX"
+
+    # Override retention policy here if the defaults don't suit your window.
+    # synology_restic_backup_retention_keep_daily: 7
+    # synology_restic_backup_retention_keep_weekly: 4
+    # synology_restic_backup_retention_keep_monthly: 3
+
+    # Override 1Password item names here if they differ from the role defaults.
+    # synology_restic_backup_op_vault: "HomeLab"
+    # synology_restic_backup_op_restic_repo_item: "Synology Restic Repository"
+    # synology_restic_backup_op_storagebox_ssh_key_item: "Hetzner Storage Box SSH Key"
+
+    # Override schedule here if needed.
+    # synology_restic_backup_cron_backup_hour: "2"
+    # synology_restic_backup_cron_forget_weekday: "0"   # Sunday
+    # synology_restic_backup_cron_check_weekday: "3"    # Wednesday
+
+  roles:
+    - role: synology_restic_backup

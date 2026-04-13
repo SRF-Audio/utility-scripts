@@ -1,0 +1,185 @@
+---
+argument_specs:
+  main:
+    short_description: Install, configure, and schedule restic backups from a Synology NAS to a Hetzner Storage Box over SFTP.
+    description:
+      - Downloads and verifies the upstream restic binary (SHA256 checked against the official release manifest).
+      - Reads all secrets (repo password, Storage Box SSH key) from 1Password at role-run time.
+      - Configures SSH on the NAS to reach the Storage Box using an alias defined in /root/.ssh/config.
+      - Idempotently initialises the restic SFTP repository.
+      - Deploys backup, forget/prune, and integrity-check wrapper scripts.
+      - Schedules three cron jobs (daily backup, weekly forget/prune, weekly check).
+      - Writes a plain-text restore procedure to a known path on the NAS.
+    options:
+      # --- Required (no defaults) ---
+      synology_restic_backup_storagebox_host:
+        type: str
+        required: true
+        description: >-
+          SFTP hostname of the Hetzner Storage Box (e.g. uXXXXXX.your-storagebox.de).
+          Used in the SSH config Host block written to /root/.ssh/config on the NAS.
+      synology_restic_backup_storagebox_user:
+        type: str
+        required: true
+        description: >-
+          SFTP username for the Hetzner Storage Box (e.g. uXXXXXX).
+          Used in the SSH config Host block and documented in the restore procedure.
+
+      # --- Binary ---
+      synology_restic_backup_restic_version:
+        type: str
+        required: false
+        description: >-
+          Upstream restic release tag to install (e.g. "0.17.3").
+          The role verifies the downloaded binary against the SHA256SUMS file
+          published at the same release URL before installing it.
+      synology_restic_backup_restic_install_dir:
+        type: str
+        required: false
+        description: Directory into which the restic binary is installed.
+
+      # --- Directory layout ---
+      synology_restic_backup_config_dir:
+        type: str
+        required: false
+        description: Directory for credentials, SSH key, and the restore procedure document.
+      synology_restic_backup_log_dir:
+        type: str
+        required: false
+        description: Directory for per-operation log files (backup, forget, check).
+      synology_restic_backup_scripts_dir:
+        type: str
+        required: false
+        description: Directory for the backup, forget, and check wrapper scripts.
+
+      # --- Backup source ---
+      synology_restic_backup_backup_paths:
+        type: list
+        elements: str
+        required: false
+        description: >-
+          Full paths on the NAS passed directly to restic backup as sources.
+          Restic recurses into each entry, so a single volume path is sufficient
+          for a wholesale copy. Defaults to ["/volume2"].
+      synology_restic_backup_excludes:
+        type: list
+        elements: str
+        required: false
+        description: >-
+          Glob patterns passed to restic --exclude for every share.
+          The DSM noise directories (@eaDir, #recycle, #snapshot, lost+found) are
+          always present in the default list and must not be removed.
+
+      # --- Snapshot policy ---
+      synology_restic_backup_snapshot_tag:
+        type: str
+        required: false
+        description: >-
+          Tag applied to every snapshot created by this role.
+          The forget/prune job targets only snapshots carrying this tag, leaving
+          any manually created snapshots untouched.
+      synology_restic_backup_retention_keep_daily:
+        type: int
+        required: false
+        description: Number of daily snapshots to keep (passed to restic forget --keep-daily).
+      synology_restic_backup_retention_keep_weekly:
+        type: int
+        required: false
+        description: Number of weekly snapshots to keep (passed to restic forget --keep-weekly).
+      synology_restic_backup_retention_keep_monthly:
+        type: int
+        required: false
+        description: Number of monthly snapshots to keep (passed to restic forget --keep-monthly).
+
+      # --- Storage Box connection ---
+      synology_restic_backup_storagebox_port:
+        type: int
+        required: false
+        description: >-
+          SSH/SFTP port for the Hetzner Storage Box.
+          Hetzner Storage Boxes use port 23, not 22.
+      synology_restic_backup_storagebox_repo_path:
+        type: str
+        required: false
+        description: >-
+          Path on the Storage Box, relative to the SFTP user's home directory,
+          used as the restic repository root.
+          The full restic repository URL is: sftp:storagebox:<repo_path>
+
+      # --- 1Password ---
+      synology_restic_backup_op_vault:
+        type: str
+        required: false
+        description: >-
+          Name of the 1Password vault that holds the Storage Box SSH key item and the
+          restic repository password item.
+      synology_restic_backup_op_storagebox_ssh_key_item:
+        type: str
+        required: false
+        description: Title of the 1Password SSH Key item holding the Storage Box private key.
+      synology_restic_backup_op_storagebox_ssh_key_field:
+        type: str
+        required: false
+        description: Field name within the SSH Key item that contains the private key.
+      synology_restic_backup_op_restic_repo_item:
+        type: str
+        required: false
+        description: >-
+          Title of the 1Password item that holds the restic repository password.
+          This item is the machine-independent source of truth for the password — it
+          must be retrievable from any machine to perform a restore.
+      synology_restic_backup_op_restic_repo_password_field:
+        type: str
+        required: false
+        description: Field name within the restic repository item that contains the password.
+
+      # --- Schedule ---
+      synology_restic_backup_cron_backup_minute:
+        type: str
+        required: false
+        description: Cron minute field for the daily backup job.
+      synology_restic_backup_cron_backup_hour:
+        type: str
+        required: false
+        description: Cron hour field for the daily backup job.
+      synology_restic_backup_cron_backup_weekday:
+        type: str
+        required: false
+        description: Cron weekday field for the daily backup job ("*" runs every day).
+      synology_restic_backup_cron_forget_minute:
+        type: str
+        required: false
+        description: Cron minute field for the weekly forget/prune job.
+      synology_restic_backup_cron_forget_hour:
+        type: str
+        required: false
+        description: Cron hour field for the weekly forget/prune job.
+      synology_restic_backup_cron_forget_weekday:
+        type: str
+        required: false
+        description: >-
+          Cron weekday field for the forget/prune job (0=Sunday, 3=Wednesday, etc.).
+          Must differ from synology_restic_backup_cron_check_weekday.
+      synology_restic_backup_cron_check_minute:
+        type: str
+        required: false
+        description: Cron minute field for the weekly integrity check job.
+      synology_restic_backup_cron_check_hour:
+        type: str
+        required: false
+        description: Cron hour field for the weekly integrity check job.
+      synology_restic_backup_cron_check_weekday:
+        type: str
+        required: false
+        description: >-
+          Cron weekday field for the integrity check job (0=Sunday, 3=Wednesday, etc.).
+          Must differ from synology_restic_backup_cron_forget_weekday.
+
+      # --- Restore doc ---
+      synology_restic_backup_restore_doc_path:
+        type: str
+        required: false
+        description: >-
+          Absolute path on the NAS where the plain-text restore procedure is written.
+          The file is accessible even when this repository is not, so it must be on
+          persistent NAS storage (default: inside synology_restic_backup_config_dir).

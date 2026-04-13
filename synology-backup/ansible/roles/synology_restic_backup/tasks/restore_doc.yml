@@ -1,0 +1,15 @@
+---
+# synology_restic_backup/tasks/restore_doc.yml
+#
+# Deploys a plain-text restore procedure to a known path on the NAS.
+# The file is self-contained — it documents all steps needed to restore data
+# from a clean machine without access to this repository.
+
+- name: Deploy restore procedure document
+  ansible.builtin.template:
+    src: restore_procedure.txt.j2
+    dest: "{{ synology_restic_backup_restore_doc_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true

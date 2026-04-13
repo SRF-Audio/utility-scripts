@@ -1,0 +1,163 @@
+---
+# synology_restic_backup/tasks/main.yml
+
+- name: Assert required variables are defined and non-empty
+  ansible.builtin.assert:
+    that:
+      - synology_restic_backup_storagebox_host is defined
+      - synology_restic_backup_storagebox_host | length > 0
+      - synology_restic_backup_storagebox_user is defined
+      - synology_restic_backup_storagebox_user | length > 0
+    fail_msg: >-
+      synology_restic_backup_storagebox_host and
+      synology_restic_backup_storagebox_user must both be set.
+      See meta/argument_specs.yml for the full variable reference.
+
+- name: Assert forget and check weekdays differ
+  ansible.builtin.assert:
+    that:
+      - synology_restic_backup_cron_forget_weekday !=
+        synology_restic_backup_cron_check_weekday
+    fail_msg: >-
+      synology_restic_backup_cron_forget_weekday and
+      synology_restic_backup_cron_check_weekday must be different days to
+      avoid overlapping I/O on the repository.
+
+# ---------------------------------------------------------------------------
+# Secrets — read from 1Password on the control host.
+# The community.general.onepassword lookup plugin always executes on the
+# control host and uses the active op session (OP_SERVICE_ACCOUNT_TOKEN or
+# an existing "op signin" session). Values are held only in memory during
+# this play and are never written to disk on the control host.
+# ---------------------------------------------------------------------------
+- name: Read restic repository password from 1Password
+  ansible.builtin.set_fact:
+    _srb_repo_password: >-
+      {{ lookup('community.general.onepassword',
+                synology_restic_backup_op_restic_repo_item,
+                field=synology_restic_backup_op_restic_repo_password_field,
+                vault=synology_restic_backup_op_vault) }}
+  no_log: true
+
+- name: Read Storage Box SSH private key from 1Password
+  ansible.builtin.set_fact:
+    _srb_storagebox_ssh_key: >-
+      {{ lookup('community.general.onepassword',
+                synology_restic_backup_op_storagebox_ssh_key_item,
+                field=synology_restic_backup_op_storagebox_ssh_key_field,
+                vault=synology_restic_backup_op_vault) }}
+  no_log: true
+
+# ---------------------------------------------------------------------------
+# Install restic binary
+# ---------------------------------------------------------------------------
+- name: Install restic binary
+  ansible.builtin.import_tasks: install_restic.yml
+
+# ---------------------------------------------------------------------------
+# Directory layout
+# ---------------------------------------------------------------------------
+- name: Ensure config directory exists
+  ansible.builtin.file:
+    path: "{{ synology_restic_backup_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+  become: true
+
+- name: Ensure log directory exists
+  ansible.builtin.file:
+    path: "{{ synology_restic_backup_log_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+  become: true
+
+- name: Ensure scripts directory exists
+  ansible.builtin.file:
+    path: "{{ synology_restic_backup_scripts_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+  become: true
+
+# ---------------------------------------------------------------------------
+# Credentials — written to the NAS with strict permissions.
+# Both tasks use no_log to prevent secret values appearing in any output.
+# ---------------------------------------------------------------------------
+- name: Write restic repository password file
+  ansible.builtin.copy:
+    dest: "{{ synology_restic_backup_config_dir }}/.restic-password"
+    content: "{{ _srb_repo_password }}"
+    owner: root
+    group: root
+    mode: "0400"
+  become: true
+  no_log: true
+
+- name: Write Storage Box SSH private key
+  ansible.builtin.copy:
+    dest: "{{ synology_restic_backup_config_dir }}/storagebox-key"
+    content: "{{ _srb_storagebox_ssh_key }}"
+    owner: root
+    group: root
+    mode: "0400"
+  become: true
+  no_log: true
+
+# ---------------------------------------------------------------------------
+# SSH configuration for the Storage Box
+# ---------------------------------------------------------------------------
+- name: Configure SSH for Storage Box
+  ansible.builtin.import_tasks: configure_ssh.yml
+
+# ---------------------------------------------------------------------------
+# Wrapper scripts
+# ---------------------------------------------------------------------------
+- name: Deploy backup script
+  ansible.builtin.template:
+    src: backup.sh.j2
+    dest: "{{ synology_restic_backup_scripts_dir }}/backup.sh"
+    owner: root
+    group: root
+    mode: "0750"
+  become: true
+
+- name: Deploy forget/prune script
+  ansible.builtin.template:
+    src: forget.sh.j2
+    dest: "{{ synology_restic_backup_scripts_dir }}/forget.sh"
+    owner: root
+    group: root
+    mode: "0750"
+  become: true
+
+- name: Deploy integrity check script
+  ansible.builtin.template:
+    src: check.sh.j2
+    dest: "{{ synology_restic_backup_scripts_dir }}/check.sh"
+    owner: root
+    group: root
+    mode: "0750"
+  become: true
+
+# ---------------------------------------------------------------------------
+# Repository initialisation
+# ---------------------------------------------------------------------------
+- name: Initialise restic repository
+  ansible.builtin.import_tasks: init_repo.yml
+
+# ---------------------------------------------------------------------------
+# Cron jobs
+# ---------------------------------------------------------------------------
+- name: Schedule cron jobs
+  ansible.builtin.import_tasks: schedule_jobs.yml
+
+# ---------------------------------------------------------------------------
+# Restore documentation
+# ---------------------------------------------------------------------------
+- name: Deploy restore procedure document
+  ansible.builtin.import_tasks: restore_doc.yml

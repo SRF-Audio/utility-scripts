@@ -1,0 +1,19 @@
+---
+# Prefer Tailscale address when ts_ip is defined; fall back to LAN IP or hostname.
+connection_preference: tailnet
+
+ansible_host: >-
+  {{
+    (
+      connection_preference == 'tailnet'
+      and (ts_ip | default('') | length > 0)
+    )
+    | ternary(
+        ts_ip,
+        lan_ip | default(inventory_hostname)
+      )
+  }}
+
+ansible_ssh_private_key_file: "~/.ssh/coachlight-homelab.pem"
+ansible_ssh_common_args: >-
+  -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new

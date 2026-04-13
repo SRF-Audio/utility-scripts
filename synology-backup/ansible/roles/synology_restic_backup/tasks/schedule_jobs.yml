@@ -1,0 +1,43 @@
+---
+# synology_restic_backup/tasks/schedule_jobs.yml
+#
+# Creates three root crontab entries on the NAS.
+# DSM 7.x has no systemd; crond is used via the standard crontab interface.
+#
+# Each job invokes a wrapper script that:
+#   - acquires a lock to prevent concurrent execution
+#   - sets RESTIC_REPOSITORY and RESTIC_PASSWORD via file reads (no env secrets)
+#   - appends all output to a dedicated log file
+
+- name: Schedule daily backup job
+  ansible.builtin.cron:
+    name: "restic-backup-daily"
+    user: root
+    minute: "{{ synology_restic_backup_cron_backup_minute }}"
+    hour: "{{ synology_restic_backup_cron_backup_hour }}"
+    weekday: "{{ synology_restic_backup_cron_backup_weekday }}"
+    job: "{{ synology_restic_backup_scripts_dir }}/backup.sh"
+    state: present
+  become: true
+
+- name: Schedule weekly forget/prune job
+  ansible.builtin.cron:
+    name: "restic-forget-weekly"
+    user: root
+    minute: "{{ synology_restic_backup_cron_forget_minute }}"
+    hour: "{{ synology_restic_backup_cron_forget_hour }}"
+    weekday: "{{ synology_restic_backup_cron_forget_weekday }}"
+    job: "{{ synology_restic_backup_scripts_dir }}/forget.sh"
+    state: present
+  become: true
+
+- name: Schedule weekly integrity check job
+  ansible.builtin.cron:
+    name: "restic-check-weekly"
+    user: root
+    minute: "{{ synology_restic_backup_cron_check_minute }}"
+    hour: "{{ synology_restic_backup_cron_check_hour }}"
+    weekday: "{{ synology_restic_backup_cron_check_weekday }}"
+    job: "{{ synology_restic_backup_scripts_dir }}/check.sh"
+    state: present
+  become: true

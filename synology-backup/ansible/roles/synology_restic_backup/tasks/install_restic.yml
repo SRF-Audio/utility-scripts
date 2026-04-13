@@ -1,0 +1,113 @@
+---
+# synology_restic_backup/tasks/install_restic.yml
+#
+# Downloads the upstream restic binary for linux/amd64, verifies its SHA256
+# checksum against the official SHA256SUMS release file, then installs it.
+# The task is a no-op when the correct version is already present.
+
+- name: Check whether restic is already installed at the target version
+  ansible.builtin.command:
+    cmd: "{{ synology_restic_backup_restic_install_dir }}/restic version"
+  register: _srb_restic_version_check
+  changed_when: false
+  failed_when: false
+  become: true
+
+- name: Set restic_already_installed fact
+  ansible.builtin.set_fact:
+    _srb_restic_already_installed: >-
+      {{
+        _srb_restic_version_check.rc == 0 and
+        ('restic ' ~ synology_restic_backup_restic_version)
+        in _srb_restic_version_check.stdout
+      }}
+
+- name: Install restic
+  when: not _srb_restic_already_installed
+  become: true
+  block:
+    - name: Create temporary directory for restic download
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: restic_install
+      register: _srb_restic_tmpdir
+
+    - name: Download restic SHA256SUMS manifest
+      ansible.builtin.get_url:
+        url: >-
+          https://github.com/restic/restic/releases/download/v{{
+          synology_restic_backup_restic_version }}/SHA256SUMS
+        dest: "{{ _srb_restic_tmpdir.path }}/SHA256SUMS"
+        mode: "0644"
+      register: _srb_sha256sums_download
+
+    # Parse the expected checksum for the linux_amd64 bz2 archive out of the
+    # manifest. The manifest line format is: "<hash>  <filename>"
+    - name: Read SHA256SUMS manifest
+      ansible.builtin.slurp:
+        src: "{{ _srb_restic_tmpdir.path }}/SHA256SUMS"
+      register: _srb_sha256sums_content
+
+    - name: Extract expected SHA256 for linux_amd64 binary archive
+      ansible.builtin.set_fact:
+        _srb_restic_expected_sha256: >-
+          {{
+            (_srb_sha256sums_content.content | b64decode)
+            | regex_findall('([0-9a-f]{64})\s+restic_'
+              ~ synology_restic_backup_restic_version
+              ~ '_linux_amd64\.bz2')
+            | first
+          }}
+
+    - name: Fail if expected SHA256 was not found in manifest
+      ansible.builtin.assert:
+        that:
+          - _srb_restic_expected_sha256 | length == 64
+        fail_msg: >-
+          Could not find a SHA256 entry for
+          restic_{{ synology_restic_backup_restic_version }}_linux_amd64.bz2
+          in the downloaded SHA256SUMS manifest.
+          Check that the version string is correct and the release exists.
+
+    - name: Download restic binary archive (linux/amd64)
+      ansible.builtin.get_url:
+        url: >-
+          https://github.com/restic/restic/releases/download/v{{
+          synology_restic_backup_restic_version }}/restic_{{
+          synology_restic_backup_restic_version }}_linux_amd64.bz2
+        dest: >-
+          {{ _srb_restic_tmpdir.path }}/restic_{{
+          synology_restic_backup_restic_version }}_linux_amd64.bz2
+        checksum: "sha256:{{ _srb_restic_expected_sha256 }}"
+        mode: "0644"
+
+    - name: Decompress restic binary archive
+      ansible.builtin.command:
+        cmd: >-
+          bzip2 -d {{ _srb_restic_tmpdir.path }}/restic_{{
+          synology_restic_backup_restic_version }}_linux_amd64.bz2
+        creates: >-
+          {{ _srb_restic_tmpdir.path }}/restic_{{
+          synology_restic_backup_restic_version }}_linux_amd64
+
+    - name: Install restic binary to target directory
+      ansible.builtin.copy:
+        src: >-
+          {{ _srb_restic_tmpdir.path }}/restic_{{
+          synology_restic_backup_restic_version }}_linux_amd64
+        dest: "{{ synology_restic_backup_restic_install_dir }}/restic"
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+
+    - name: Remove temporary download directory
+      ansible.builtin.file:
+        path: "{{ _srb_restic_tmpdir.path }}"
+        state: absent
+
+- name: Confirm restic binary is executable
+  ansible.builtin.command:
+    cmd: "{{ synology_restic_backup_restic_install_dir }}/restic version"
+  changed_when: false
+  become: true
