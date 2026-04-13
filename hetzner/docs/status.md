@@ -10,7 +10,7 @@ This is the live status file for the Hetzner migration project.
 - When an open issue is resolved, move it from "Open Issues" to the Change Log.
 -->
 
-Last updated: 2026-04-12 (Phase 2 COMPLETE — all apps healthy; stopping for night, Phase 3 is next)
+Last updated: 2026-04-13 (Phase 3 runbook audited and corrected — ready to execute)
 
 ---
 
@@ -90,51 +90,39 @@ from the homelab pod when running pg_dump/pg_restore temp pods — see migration
 
 ---
 
-## Phase 3 — Migrate Paperless-NGX Data (TODO — NEXT SESSION START HERE)
+## Phase 3 — Migrate Paperless-NGX Data (READY TO EXECUTE)
 
 Full step-by-step commands are in `migration-runbook.md`. This section is the progress
 tracker — check off items as you go.
 
-**Before starting:** Confirm you have both kubectl contexts (`homelab` and `hetzner`)
-and Tailscale active on your machine.
+**Before starting:** Confirm you have both kubectl contexts (`coachlight-k3s-cluster` and
+`hetzner`) and Tailscale active on your machine.
 
-**Pre-migration verification:**
+**Pre-migration verification (confirmed 2026-04-13):**
 
-- [ ] Confirm all Hetzner ArgoCD apps are green (see Phase 2 table above — they were on 2026-04-12)
-- [ ] Confirm PostgreSQL running on Hetzner: `kubectl --context hetzner -n db-postgres get pods`
-- [ ] Confirm Redis running on Hetzner: `kubectl --context hetzner -n db-redis get pods`
-- [ ] Confirm Paperless-NGX webserver pod is Running (empty DB is fine):
-      `kubectl --context hetzner -n apps-paperless-ngx get pods`
-- [ ] Confirm homelab Paperless-NGX is currently running:
-      `kubectl --context homelab -n apps-paperless-ngx get pods`
-
-**Get the exact PostgreSQL image tag from homelab** (must match for pg_dump/pg_restore):
-
-```bash
-kubectl --context homelab -n db-postgres get pod \
-  -l app.kubernetes.io/name=postgresql \
-  -o jsonpath='{.items[0].spec.containers[0].image}'
-```
-
-Use that exact tag (e.g. `bitnami/postgresql:17.2.0`) in the temp pods for Steps 2 and 4d
-of the runbook. The Hetzner cluster is running PostgreSQL **17.5** — confirm the homelab
-version matches major version 17 before proceeding. If it doesn't, check for pg_dump format
-compatibility.
+- [x] kubectl context for homelab is `coachlight-k3s-cluster` (NOT `homelab`)
+- [x] All Hetzner ArgoCD apps Synced + Healthy (re-verified 2026-04-13 — still all green)
+- [x] Homelab Paperless-NGX running: webserver + gotenberg + tika all Running (103d uptime)
+- [x] Both clusters run identical PostgreSQL image (same SHA256: `42a8200d...`) — no version issue
+- [x] Data sizes confirmed: data=313MB, media=646MB, export=~0, consume=115MB (~1.1GB total)
+- [x] PVC names, secret names, and service hostnames confirmed matching runbook
+- [x] **CRITICAL**: Both ArgoCD apps have `selfHeal: true` — must disable auto-sync before
+      scaling down (runbook Step 1 and Step 4a now include this fix)
 
 **Migration steps (see migration-runbook.md for full commands):**
 
 - [ ] Take Synology NAS snapshot (before touching anything)
-- [ ] Step 1 — Scale down Paperless-NGX on homelab to 0 replicas (quiesce writes)
+- [ ] Step 1 — Disable ArgoCD auto-sync on homelab; scale down to 0 replicas (quiesce writes)
 - [ ] Step 2 — Export PostgreSQL dump from homelab to `/tmp/paperless-YYYYMMDD-HHMM.sql`
               — verify dump is non-empty and is a valid PostgreSQL dump header
-- [ ] Step 3 — Archive Paperless volumes from homelab PVCs (data, media, export)
+- [ ] Step 3 — Archive Paperless volumes from homelab PVCs (data, media, export, consume)
               — via reader pod + `tar czf` piped to local `/tmp/paperless-*.tar.gz`
-              — Note sizes before proceeding: media is likely largest
-- [ ] Step 4a — Scale down Paperless-NGX on Hetzner
+              — Expected total: ~1.1 GB
+- [ ] Step 4a — Disable ArgoCD auto-sync on Hetzner; scale down Paperless-NGX
 - [ ] Step 4b — Create writer pod on Hetzner with all PVCs mounted
 - [ ] Step 4c — Push data archives to Hetzner PVCs (`tar xzf` via writer pod)
 - [ ] Step 4d — Restore PostgreSQL dump on Hetzner (temp psql pod)
-- [ ] Step 5 — Scale up Paperless-NGX on Hetzner
+- [ ] Step 5 — Re-enable ArgoCD auto-sync on Hetzner; scale up Paperless-NGX
 - [ ] Step 5 — Tail logs and confirm Paperless starts cleanly (no migration errors)
 
 ---
@@ -175,11 +163,33 @@ When returning to hardware, reverse the process:
 
 ## Open Issues
 
-None. Phase 2 complete. Phase 3 (data migration) is the next step.
+None. Phase 3 runbook is audited and corrected. Ready to execute.
 
 ---
 
 ## Change Log
+
+### 2026-04-13 (Phase 3 runbook audit — three bugs fixed, ready to execute)
+
+Pre-migration research on both live clusters revealed three bugs in the runbook:
+
+- **Fixed RUN-1: wrong kubectl context name** — runbook used `--context homelab` throughout,
+  but the actual context name for the homelab cluster is `coachlight-k3s-cluster`. Fixed in
+  every step of the runbook.
+- **Fixed RUN-2: wrong PostgreSQL image name** — Steps 2 and 4d used `bitnami/postgresql:latest`
+  for temp pods, but both clusters run `bitnamilegacy/postgresql:latest`. Both clusters were
+  confirmed to be running the exact same image digest (`sha256:42a8200d...`), so
+  `pg_dump`/`pg_restore` compatibility is guaranteed. Fixed image name in both steps.
+- **Fixed RUN-3: ArgoCD selfHeal not addressed** — Both ArgoCD applications have
+  `selfHeal: true` and `automated.prune: true`. A bare `kubectl scale --replicas=0` would
+  be reverted by ArgoCD within seconds. Added `kubectl patch application` commands to
+  disable auto-sync before each scale-down (Step 1 for homelab, Step 4a for Hetzner), and
+  re-enable it after scale-up (Step 5 for Hetzner). Rollback procedure also updated.
+
+Other findings (no changes needed):
+
+- consume volume (115MB) was not included in archive list — added it to Step 3.
+- Data sizes: data=313MB, media=646MB, export=~0, consume=115MB (~1.1 GB total).
 
 ### 2026-04-12 (Phase 2 COMPLETE — bootstrap run succeeded, all apps healthy)
 
