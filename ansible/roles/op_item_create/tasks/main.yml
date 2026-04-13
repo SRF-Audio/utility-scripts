@@ -31,12 +31,15 @@
 
 - name: Check if 1Password item already exists
   ansible.builtin.command:
-    cmd: >-
-      {{ op_item_create_op_executable }}
-      item get
-      {{ op_item_create_item.name }}
-      --vault {{ op_item_create_vault_name }}
-      --format json
+    argv:
+      - "{{ op_item_create_op_executable }}"
+      - item
+      - get
+      - "{{ op_item_create_item.name }}"
+      - --vault
+      - "{{ op_item_create_vault_name }}"
+      - --format
+      - json
   environment:
     OP_SERVICE_ACCOUNT_TOKEN: "{{ op_item_create_op_service_account_token }}"
   loop: "{{ op_item_create_items }}"
@@ -64,6 +67,21 @@
     label: "{{ op_item_create_vault_name }}/{{ op_item_create_pair.0.name }}"
   when: op_item_create_pair.1.rc == 0
 
+- name: Fail when multiple items exist with the same name
+  ansible.builtin.fail:
+    msg: >-
+      Multiple 1Password items found with the name "{{ op_item_create_pair.0.name }}" in vault
+      "{{ op_item_create_vault_name }}". Delete the duplicates in 1Password before re-running.
+      {{ op_item_create_pair.1.stderr | default('') }}
+  loop: >-
+    {{ op_item_create_items | zip(op_item_create_get_results.results) | list }}
+  loop_control:
+    loop_var: op_item_create_pair
+    label: "{{ op_item_create_vault_name }}/{{ op_item_create_pair.0.name }}"
+  when: >-
+    op_item_create_pair.1.rc != 0 and
+    'More than one item matches' in (op_item_create_pair.1.stderr | default(''))
+
 - name: Build list of items that need to be created
   ansible.builtin.set_fact:
     op_item_create_missing_items: >-
@@ -77,7 +95,9 @@
   loop_control:
     loop_var: op_item_create_pair
     label: "{{ op_item_create_vault_name }}/{{ op_item_create_pair.0.name }}"
-  when: op_item_create_pair.1.rc == 1
+  when: >-
+    op_item_create_pair.1.rc != 0 and
+    'More than one item matches' not in (op_item_create_pair.1.stderr | default(''))
 
 - name: Create 1Password items when missing
   ansible.builtin.shell: |

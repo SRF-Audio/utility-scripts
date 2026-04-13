@@ -57,7 +57,6 @@
   roles:
     - role: k9s_install
 
-
 # ─── Play 2: coachlight-k3s-cluster (homelab) ────────────────────────────────
 - name: Connect to coachlight-k3s-cluster (homelab)
   hosts: local
@@ -151,7 +150,6 @@
           {{ kubeconfig_manager_artifacts.context_name }}
         k8s_validator_install_packages: false
 
-
 # ─── Play 3: hetzner k3s cluster ─────────────────────────────────────────────
 - name: Connect to hetzner k3s cluster
   hosts: local
@@ -166,14 +164,49 @@
     _hetzner_kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/hetzner-k3s.yaml"
 
   tasks:
-    - name: Write hetzner kubeconfig from 1Password
+    - name: List all items in HomeLab vault
+      ansible.builtin.command:
+        cmd: op item list --vault HomeLab --format json
+      register: _op_items_raw
+      changed_when: false
+      no_log: true
+
+    - name: Verify hetzner kubeconfig item exists in 1Password
+      ansible.builtin.assert:
+        that:
+          - >-
+            (_op_items_raw.stdout | from_json)
+            | selectattr('title', 'equalto', 'Hetzner k3s Kubeconfig')
+            | list | length > 0
+        fail_msg: >-
+          No 1Password item named "Hetzner k3s Kubeconfig" found in HomeLab vault.
+          Run the Hetzner bootstrap first (hetzner/ansible/site.yml).
+
+    - name: Resolve UUID of most recently updated hetzner kubeconfig item
+      ansible.builtin.set_fact:
+        _hetzner_item_id: >-
+          {{
+            (_op_items_raw.stdout | from_json)
+            | selectattr('title', 'equalto', 'Hetzner k3s Kubeconfig')
+            | sort(attribute='updated_at')
+            | last
+            | attr('id')
+          }}
+
+    - name: Read hetzner kubeconfig from 1Password by item UUID
+      ansible.builtin.command:
+        argv:
+          - op
+          - read
+          - "op://HomeLab/{{ _hetzner_item_id }}/kubeconfig"
+      register: _hetzner_kubeconfig_raw
+      changed_when: false
+      no_log: true
+
+    - name: Write hetzner kubeconfig to disk
       ansible.builtin.copy:
         dest: "{{ _hetzner_kubeconfig_path }}"
-        content: >-
-          {{ lookup('community.general.onepassword',
-                    'Hetzner k3s Kubeconfig',
-                    field='kubeconfig',
-                    vault='HomeLab') }}
+        content: "{{ _hetzner_kubeconfig_raw.stdout }}"
         mode: "0600"
       no_log: true
 
@@ -198,7 +231,7 @@
         kubeconfig_manager_cluster_name: hetzner
         kubeconfig_manager_cluster_server: "{{ _hetzner_api_server }}"
         kubeconfig_manager_context_name: hetzner
-        kubeconfig_manager_context_user: default
+        kubeconfig_manager_context_user: sfroeber
 
     - name: Write hetzner-node SSH config entry
       ansible.builtin.blockinfile:

@@ -29,12 +29,15 @@
 
 - name: Check if 1Password item already exists
   ansible.builtin.command:
-    cmd: >-
-      {{ op_item_edit_op_executable }}
-      item get
-      {{ op_item_edit_item.name }}
-      --vault {{ op_item_edit_vault_name }}
-      --format json
+    argv:
+      - "{{ op_item_edit_op_executable }}"
+      - item
+      - get
+      - "{{ op_item_edit_item.name }}"
+      - --vault
+      - "{{ op_item_edit_vault_name }}"
+      - --format
+      - json
   environment:
     OP_SERVICE_ACCOUNT_TOKEN: "{{ op_item_edit_op_service_account_token }}"
   loop: "{{ op_item_edit_items }}"
