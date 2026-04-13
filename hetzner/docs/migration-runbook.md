@@ -46,6 +46,30 @@ against the Synology NFS, not via the NFS provisioner).
 
 ---
 
+## Step 0 — Take Synology NAS Snapshot
+
+Do this before touching anything. The Synology NAS holds the source PVC data; a snapshot
+ensures you can recover it even if something goes wrong with the homelab cluster.
+
+```bash
+# SSH to NAS and create a snapshot on the k3s-cluster-storage volume
+# (adjust share name if yours differs)
+ssh admin@192.168.226.6 \
+  "synodiskutil snapshotpair take /volume2/k3s-cluster-storage --desc 'pre-paperless-migration'"
+
+# Verify the snapshot exists
+ssh admin@192.168.226.6 \
+  "synodiskutil snapshotpair list /volume2/k3s-cluster-storage"
+```
+
+> **If the `synodiskutil` command is unavailable**, take the snapshot manually via the
+> Synology DSM web UI: Storage Manager → Shared Folder → k3s-cluster-storage → Snapshot →
+> Take. Confirm the new snapshot appears in the list before continuing.
+
+**Do not proceed to Step 1 until the snapshot is confirmed.**
+
+---
+
 ## Pre-Migration Checklist
 
 - [ ] Hetzner cluster is bootstrapped and healthy (all ArgoCD apps green — confirmed 2026-04-12)
@@ -305,13 +329,25 @@ kubectl --context hetzner -n db-postgres run pg-restore-tmp \
 kubectl --context hetzner -n db-postgres wait pod/pg-restore-tmp \
   --for=condition=Ready --timeout=60s
 
-# Copy dump to pod (use the exact filename captured in Step 2)
+# Resolve dump file — use $DUMP_FILE if still set from Step 2, otherwise pick the latest
+DUMP_FILE="${DUMP_FILE:-$(ls -t /tmp/paperless-*.sql 2>/dev/null | head -1)}"
+[[ -z "$DUMP_FILE" ]] && { echo "ERROR: no dump file found in /tmp. Aborting."; exit 1; }
+echo "Restoring from: $DUMP_FILE"
+
 kubectl --context hetzner -n db-postgres cp "$DUMP_FILE" pg-restore-tmp:/tmp/paperless.sql
 
 kubectl --context hetzner -n db-postgres exec pg-restore-tmp -- \
   psql -h postgres-postgresql.db-postgres.svc.cluster.local \
     -U paperless paperless \
     -f /tmp/paperless.sql
+
+# Verify restore — row count must be non-zero
+DOC_COUNT=$(kubectl --context hetzner -n db-postgres exec pg-restore-tmp -- \
+  psql -h postgres-postgresql.db-postgres.svc.cluster.local \
+    -U paperless paperless \
+    -At -c "SELECT COUNT(*) FROM documents_document;")
+echo "Documents restored: $DOC_COUNT"
+[[ "$DOC_COUNT" -gt 0 ]] || { echo "ERROR: documents_document is empty after restore. Do not proceed."; exit 1; }
 
 kubectl --context hetzner -n db-postgres delete pod pg-restore-tmp
 ```

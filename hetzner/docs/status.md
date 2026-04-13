@@ -10,7 +10,7 @@ This is the live status file for the Hetzner migration project.
 - When an open issue is resolved, move it from "Open Issues" to the Change Log.
 -->
 
-Last updated: 2026-04-13 (Phase 3 runbook audited and corrected — ready to execute)
+Last updated: 2026-04-13 (Phase 3 runbook — four additional fixes applied, ready to execute)
 
 ---
 
@@ -85,8 +85,9 @@ Bootstrap run completed successfully on 2026-04-12. All ArgoCD apps Synced + Hea
 All pods Running. Paperless-NGX webserver is up at `https://paperless-hetzner.rohu-shark.ts.net`
 but has **no data** — empty Postgres database, no documents. Phase 3 migrates the data.
 
-**PostgreSQL version on Hetzner: 17.5** (use `bitnami/postgresql:17.5.0` or the exact tag
-from the homelab pod when running pg_dump/pg_restore temp pods — see migration-runbook.md).
+**PostgreSQL version on Hetzner: 17.5.** Use `bitnamilegacy/postgresql:latest` for temp
+pg_dump/pg_restore pods — both clusters run the identical image digest
+(`sha256:42a8200d...`), so compatibility is guaranteed. See migration-runbook.md Steps 2 and 4d.
 
 ---
 
@@ -168,6 +169,23 @@ None. Phase 3 runbook is audited and corrected. Ready to execute.
 ---
 
 ## Change Log
+
+### 2026-04-13 (Phase 3 runbook — four additional fixes applied)
+
+- **Fixed RUN-4: status.md PostgreSQL image note contradicted runbook** — The Phase 2 section
+  said to use `bitnami/postgresql:17.5.0` for temp pods, but the runbook correctly uses
+  `bitnamilegacy/postgresql:latest` (per the RUN-2 fix). Updated status.md to match.
+- **Fixed RUN-5: `$DUMP_FILE` shell variable not resilient across sessions** — Step 4d
+  previously relied on `$DUMP_FILE` being set in the same shell session as Step 2. Added a
+  fallback: `DUMP_FILE="${DUMP_FILE:-$(ls -t /tmp/paperless-*.sql | head -1)}"` with an
+  explicit abort if no dump file is found, so a new terminal or accidental close doesn't
+  silently restore nothing.
+- **Fixed RUN-6: no database integrity check after psql restore** — Added a post-restore
+  `SELECT COUNT(*) FROM documents_document` check in Step 4d. The step now aborts if the
+  table is empty after restore, preventing a silent data-loss scenario.
+- **Fixed RUN-7: Synology snapshot was checklist-only, not a runbook step** — Added Step 0
+  to migration-runbook.md with `synodiskutil snapshotpair take` command and a DSM UI
+  fallback. The step explicitly blocks progress until the snapshot is confirmed.
 
 ### 2026-04-13 (Phase 3 runbook audit — three bugs fixed, ready to execute)
 
