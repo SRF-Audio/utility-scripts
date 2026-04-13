@@ -88,13 +88,23 @@ ssh admin@192.168.226.6 \
 Both ArgoCD applications have `selfHeal: true`. You MUST disable auto-sync before scaling
 to zero, or ArgoCD will immediately scale it back up.
 
+**IMPORTANT (confirmed 2026-04-13)**: The homelab uses an app-of-apps pattern. The `root`
+ArgoCD Application manages the `paperless-ngx` Application object with `selfHeal: true`.
+Patching `paperless-ngx` alone is immediately reverted by `root`. You must disable `root`
+first — nothing manages `root`, so that patch sticks.
+
 ```bash
-# Disable auto-sync on the homelab ArgoCD app (prevents selfHeal from undoing the scale-down)
+# Disable auto-sync on root app first (prevents it from reverting the paperless-ngx patch)
+kubectl --context coachlight-k3s-cluster -n argocd patch application root \
+  --type=merge \
+  -p '{"spec":{"syncPolicy":{"automated":null}}}'
+
+# Now disable auto-sync on paperless-ngx (root can no longer revert this)
 kubectl --context coachlight-k3s-cluster -n argocd patch application paperless-ngx \
   --type=merge \
   -p '{"spec":{"syncPolicy":{"automated":null}}}'
 
-# Verify auto-sync is disabled
+# Verify auto-sync is disabled on paperless-ngx
 kubectl --context coachlight-k3s-cluster -n argocd get application paperless-ngx \
   -o jsonpath='{.spec.syncPolicy}' | python3 -m json.tool
 # Expected: no "automated" key
@@ -103,8 +113,11 @@ kubectl --context coachlight-k3s-cluster -n argocd get application paperless-ngx
 kubectl --context coachlight-k3s-cluster -n apps-paperless-ngx \
   scale deployment paperless-ngx-webserver --replicas=0
 
-# Confirm no pods running
-kubectl --context coachlight-k3s-cluster -n apps-paperless-ngx get pods
+# Wait and confirm replica count is 0 and stays 0
+sleep 10 && \
+kubectl --context coachlight-k3s-cluster -n apps-paperless-ngx get pods && \
+kubectl --context coachlight-k3s-cluster -n apps-paperless-ngx \
+  get deployment paperless-ngx-webserver -o jsonpath='replicas={.spec.replicas}{"\n"}'
 ```
 
 **Do NOT delete the PVCs. Just scale to zero.**
@@ -235,10 +248,15 @@ ssh admin@192.168.226.6 "ls /volume2/k3s-cluster-storage/apps-paperless-ngx/"
 
 ### 4a — Scale down Paperless-NGX on Hetzner
 
-Same ArgoCD selfHeal concern applies — disable auto-sync first.
+Same app-of-apps pattern applies — disable `root` first, then `paperless-ngx`.
 
 ```bash
-# Disable auto-sync on the Hetzner ArgoCD app
+# Disable auto-sync on Hetzner root app first
+kubectl --context hetzner -n argocd patch application root \
+  --type=merge \
+  -p '{"spec":{"syncPolicy":{"automated":null}}}'
+
+# Now disable auto-sync on paperless-ngx
 kubectl --context hetzner -n argocd patch application paperless-ngx \
   --type=merge \
   -p '{"spec":{"syncPolicy":{"automated":null}}}'
@@ -250,6 +268,11 @@ kubectl --context hetzner -n argocd get application paperless-ngx \
 # Scale down
 kubectl --context hetzner -n apps-paperless-ngx \
   scale deployment paperless-ngx-webserver --replicas=0
+
+# Wait and confirm it stays at 0
+sleep 10 && \
+kubectl --context hetzner -n apps-paperless-ngx \
+  get deployment paperless-ngx-webserver -o jsonpath='replicas={.spec.replicas}{"\n"}'
 ```
 
 ### 4b — Create a writer pod on Hetzner with all PVCs mounted
@@ -336,6 +359,15 @@ echo "Restoring from: $DUMP_FILE"
 
 kubectl --context hetzner -n db-postgres cp "$DUMP_FILE" pg-restore-tmp:/tmp/paperless.sql
 
+# IMPORTANT (confirmed 2026-04-13): Paperless-NGX runs Django migrations on first startup,
+# creating the full schema before we restore. Restoring on top of an existing schema causes
+# constraint-already-exists errors and leaves documents_document empty. Drop and recreate
+# the schema first to get a clean slate.
+kubectl --context hetzner -n db-postgres exec pg-restore-tmp -- \
+  psql -h postgres-postgresql.db-postgres.svc.cluster.local \
+    -U paperless paperless \
+    -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO paperless;"
+
 kubectl --context hetzner -n db-postgres exec pg-restore-tmp -- \
   psql -h postgres-postgresql.db-postgres.svc.cluster.local \
     -U paperless paperless \
@@ -356,10 +388,16 @@ kubectl --context hetzner -n db-postgres delete pod pg-restore-tmp
 
 ## Step 5 — Start Paperless-NGX on Hetzner
 
-Re-enable auto-sync on the Hetzner ArgoCD app first (so ArgoCD manages it again after cutover).
+Re-enable auto-sync on both `root` and `paperless-ngx` before scaling up, so ArgoCD
+fully manages the cluster again.
 
 ```bash
-# Re-enable auto-sync
+# Re-enable auto-sync on root app
+kubectl --context hetzner -n argocd patch application root \
+  --type=merge \
+  -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=true","PrunePropagationPolicy=foreground","PruneLast=true"]}}}'
+
+# Re-enable auto-sync on paperless-ngx
 kubectl --context hetzner -n argocd patch application paperless-ngx \
   --type=merge \
   -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=true"]}}}'
@@ -371,7 +409,9 @@ kubectl --context hetzner -n apps-paperless-ngx \
 kubectl --context hetzner -n apps-paperless-ngx \
   rollout status deployment/paperless-ngx-webserver
 
-# Tail logs and confirm startup (look for "Application startup complete", no migration errors)
+# Tail logs — look for active task consumption, no crash loops.
+# The XFA form error ("This PDF contains dynamic XFA forms...") is a pre-existing
+# document in the consume folder that Paperless has always rejected — not a migration issue.
 kubectl --context hetzner -n apps-paperless-ngx \
   logs -f deployment/paperless-ngx-webserver
 ```
@@ -443,7 +483,11 @@ If anything goes wrong before or during cutover, roll back to homelab:
 kubectl --context hetzner -n apps-paperless-ngx \
   scale deployment paperless-ngx-webserver --replicas=0
 
-# 2. Re-enable auto-sync on homelab ArgoCD app
+# 2. Re-enable auto-sync on homelab root and paperless-ngx apps
+kubectl --context coachlight-k3s-cluster -n argocd patch application root \
+  --type=merge \
+  -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=true","PrunePropagationPolicy=foreground","PruneLast=true"]}}}'
+
 kubectl --context coachlight-k3s-cluster -n argocd patch application paperless-ngx \
   --type=merge \
   -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=true"]}}}'

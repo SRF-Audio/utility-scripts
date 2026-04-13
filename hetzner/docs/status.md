@@ -10,7 +10,7 @@ This is the live status file for the Hetzner migration project.
 - When an open issue is resolved, move it from "Open Issues" to the Change Log.
 -->
 
-Last updated: 2026-04-13 (Phase 3 runbook — four additional fixes applied, ready to execute)
+Last updated: 2026-04-13 (Phase 3 COMPLETE — data migration executed successfully)
 
 ---
 
@@ -91,40 +91,45 @@ pg_dump/pg_restore pods — both clusters run the identical image digest
 
 ---
 
-## Phase 3 — Migrate Paperless-NGX Data (READY TO EXECUTE)
+## Phase 3 — Migrate Paperless-NGX Data (COMPLETE — 2026-04-13)
 
-Full step-by-step commands are in `migration-runbook.md`. This section is the progress
-tracker — check off items as you go.
+**Migration steps (completed 2026-04-13):**
 
-**Before starting:** Confirm you have both kubectl contexts (`coachlight-k3s-cluster` and
-`hetzner`) and Tailscale active on your machine.
+- [x] Take Synology NAS snapshot (confirmed before starting)
+- [x] Step 1 — Disabled ArgoCD auto-sync on homelab (root first, then paperless-ngx); scaled down to 0 replicas
+- [x] Step 2 — pg_dump: 14 MB, valid Postgres 17.5 dump, 0 errors
+- [x] Step 3 — Archived all 4 volumes: data=273M, media=594M, consume=106M, export=239B
+- [x] Step 4a — Disabled ArgoCD auto-sync on Hetzner (root first, then paperless-ngx); scaled down to 0 replicas
+- [x] Step 4b — Writer pod created on Hetzner with all 4 PVCs mounted
+- [x] Step 4c — All archives restored to Hetzner PVCs (0 errors)
+              — File counts: media=1159 ✓, consume=466 ✓, data=38 vs 37 homelab (1 extra from Hetzner init, harmless)
+- [x] Step 4d — Postgres restored; 392 documents in `documents_document` ✓
+- [x] Step 5 — ArgoCD auto-sync re-enabled (root + paperless-ngx); webserver scaled up; all apps Synced + Healthy
+- [x] Step 8 — Local dump and archive files deleted from `/tmp`
 
-**Pre-migration verification (confirmed 2026-04-13):**
+**Current state:**
 
-- [x] kubectl context for homelab is `coachlight-k3s-cluster` (NOT `homelab`)
-- [x] All Hetzner ArgoCD apps Synced + Healthy (re-verified 2026-04-13 — still all green)
-- [x] Homelab Paperless-NGX running: webserver + gotenberg + tika all Running (103d uptime)
-- [x] Both clusters run identical PostgreSQL image (same SHA256: `42a8200d...`) — no version issue
-- [x] Data sizes confirmed: data=313MB, media=646MB, export=~0, consume=115MB (~1.1GB total)
-- [x] PVC names, secret names, and service hostnames confirmed matching runbook
-- [x] **CRITICAL**: Both ArgoCD apps have `selfHeal: true` — must disable auto-sync before
-      scaling down (runbook Step 1 and Step 4a now include this fix)
+- Hetzner: Paperless-NGX running at `https://paperless-hetzner.rohu-shark.ts.net`, 392 documents, all apps green
+- Homelab: Paperless-NGX webserver at 0 replicas; ArgoCD auto-sync **disabled** on both `root` and `paperless-ngx` apps
+- Homelab PVCs intact on Synology (data safe)
 
-**Migration steps (see migration-runbook.md for full commands):**
+**Homelab cleanup required (after Hetzner is validated stable):**
 
-- [ ] Take Synology NAS snapshot (before touching anything)
-- [ ] Step 1 — Disable ArgoCD auto-sync on homelab; scale down to 0 replicas (quiesce writes)
-- [ ] Step 2 — Export PostgreSQL dump from homelab to `/tmp/paperless-YYYYMMDD-HHMM.sql`
-              — verify dump is non-empty and is a valid PostgreSQL dump header
-- [ ] Step 3 — Archive Paperless volumes from homelab PVCs (data, media, export, consume)
-              — via reader pod + `tar czf` piped to local `/tmp/paperless-*.tar.gz`
-              — Expected total: ~1.1 GB
-- [ ] Step 4a — Disable ArgoCD auto-sync on Hetzner; scale down Paperless-NGX
-- [ ] Step 4b — Create writer pod on Hetzner with all PVCs mounted
-- [ ] Step 4c — Push data archives to Hetzner PVCs (`tar xzf` via writer pod)
-- [ ] Step 4d — Restore PostgreSQL dump on Hetzner (temp psql pod)
-- [ ] Step 5 — Re-enable ArgoCD auto-sync on Hetzner; scale up Paperless-NGX
-- [ ] Step 5 — Tail logs and confirm Paperless starts cleanly (no migration errors)
+To restore homelab ArgoCD to normal managed state, run:
+
+```bash
+kubectl --context coachlight-k3s-cluster -n argocd patch application root \
+  --type=merge \
+  -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=true","PrunePropagationPolicy=foreground","PruneLast=true"]}}}'
+
+kubectl --context coachlight-k3s-cluster -n argocd patch application paperless-ngx \
+  --type=merge \
+  -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=true"]}}}'
+```
+
+Note: once root auto-sync is re-enabled, it will attempt to reconcile `paperless-ngx`
+back to its Git state (1 replica). To keep it scaled to 0, re-enable root only and keep
+paperless-ngx auto-sync disabled, or scale to 1 and let both run in parallel temporarily.
 
 ---
 
@@ -164,11 +169,40 @@ When returning to hardware, reverse the process:
 
 ## Open Issues
 
-None. Phase 3 runbook is audited and corrected. Ready to execute.
+None. Phase 3 complete. Hetzner Paperless-NGX running with full data. Homelab cleanup
+(re-enable ArgoCD auto-sync) pending validation confirmation.
 
 ---
 
 ## Change Log
+
+### 2026-04-13 (Phase 3 COMPLETE — data migration executed)
+
+Migration executed successfully in a single session. All data transferred and verified.
+Two bugs were discovered in the runbook during execution and fixed:
+
+- **Fixed RUN-8: root app selfHeal reverts paperless-ngx auto-sync patch** — Both clusters
+  use an app-of-apps pattern where the `root` Application manages `paperless-ngx` with
+  `selfHeal: true`. Patching `paperless-ngx` directly was immediately reverted by `root`.
+  Fix: disable `root` auto-sync first (nothing manages root, so that patch sticks), then
+  patch `paperless-ngx`. Updated Steps 1, 4a, 5, and rollback procedure in the runbook.
+
+- **Fixed RUN-9: Postgres restore fails silently on pre-existing schema** — Paperless-NGX
+  runs Django migrations on first startup, creating the full schema including all
+  constraints. Restoring `pg_dump` on top produced constraint-already-exists errors and
+  left `documents_document` empty (0 rows). Fix: `DROP SCHEMA public CASCADE; CREATE SCHEMA
+  public; GRANT ALL ON SCHEMA public TO paperless;` before running `psql -f`. Updated
+  Step 4d in the runbook.
+
+**Actual migration outcomes (2026-04-13):**
+
+- pg_dump: 14 MB, Postgres 17.5, valid header, 0 errors
+- Volume archives: data=273M, media=594M, consume=106M, export=239B
+- File counts post-restore: media=1159 ✓, consume=466 ✓, data=38 (37 homelab + 1 from Hetzner init — harmless)
+- Postgres restore: 392 documents in `documents_document` after schema drop + re-restore
+- Hetzner startup: clean — active task consumption in logs, no crash loops
+- Known non-issue: XFA form error in logs ("SrA Miller AF Form 1206 1Q2019.pdf") — pre-existing
+  document in the consume folder that Paperless has always rejected; not related to migration
 
 ### 2026-04-13 (Phase 3 runbook — four additional fixes applied)
 

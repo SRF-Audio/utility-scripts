@@ -14,7 +14,7 @@ spec:
     Mirrors coachlight-k3s-db from the homelab cluster.
 
   sourceRepos:
-    - "*"
+    - https://charts.bitnami.com/bitnami
 
   destinations:
     - server: https://kubernetes.default.svc
@@ -24,5 +24,5 @@ spec:
     warn: true
 
   clusterResourceWhitelist:
-    - group: "*"
-      kind: "*"
+    - group: ""
+      kind: Namespace

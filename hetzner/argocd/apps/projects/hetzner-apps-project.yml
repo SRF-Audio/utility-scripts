@@ -14,7 +14,8 @@ spec:
     applications. Mirrors coachlight-k3s-apps from the homelab cluster.
 
   sourceRepos:
-    - "*"
+    - https://github.com/SRF-Audio/utility-scripts
+    - https://github.com/SRF-Audio/utility-scripts.git
 
   destinations:
     - server: https://kubernetes.default.svc
@@ -24,5 +25,5 @@ spec:
     warn: true
 
   clusterResourceWhitelist:
-    - group: "*"
-      kind: "*"
+    - group: ""
+      kind: Namespace
