@@ -25,8 +25,8 @@
     - name: Gather OS facts for package installation
       ansible.builtin.setup:
         gather_subset:
-          - '!all'
-          - '!min'
+          - "!all"
+          - "!min"
           - distribution
           - pkg_mgr
       when: ansible_facts.os_family is not defined

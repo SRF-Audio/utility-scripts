@@ -1,3 +1,4 @@
+---
 - name: Determine k9s OS identifier for macOS
   ansible.builtin.set_fact:
     k9s_install_os_id: Darwin

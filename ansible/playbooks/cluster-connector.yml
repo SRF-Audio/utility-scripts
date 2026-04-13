@@ -1,0 +1,222 @@
+---
+# cluster-connector.yml
+#
+# Makes any blank control node permanently ready to manage both k3s clusters:
+#   - coachlight-k3s-cluster (homelab, Proxmox VMs on Tailscale)
+#   - hetzner               (single-node Hetzner Cloud, Tailscale)
+#
+# Idempotent: safe to re-run on machines that are already connected.
+#
+# Prerequisites:
+#   - Tailscale active and on the rohu-shark.ts.net tailnet
+#   - 1Password CLI authenticated (op signin, or OP_SERVICE_ACCOUNT_TOKEN set)
+#   - For homelab: homelab cluster must be running (kubeconfig is fetched live via SSH)
+#   - For hetzner: cluster bootstrapped (kubeconfig stored in 1Password during bootstrap)
+#
+# Usage (from ansible/):
+#   Both clusters:    ansible-playbook -i inventories/hosts.yml playbooks/cluster-connector.yml
+#   Homelab only:     ansible-playbook -i inventories/hosts.yml playbooks/cluster-connector.yml --tags cluster_connector_homelab
+#   Hetzner only:     ansible-playbook -i inventories/hosts.yml playbooks/cluster-connector.yml --tags cluster_connector_hetzner
+#   Via site.yml:     ansible-playbook site.yml --tags cluster_connector
+
+# ─── Play 1: SSH key + k9s ───────────────────────────────────────────────────
+- name: Prepare control node — SSH key and k9s
+  hosts: local
+  gather_facts: true
+  tags:
+    - cluster_connector
+    - cluster_connector_homelab
+    - cluster_connector_hetzner
+
+  tasks:
+    - name: Check if SSH private key exists
+      ansible.builtin.stat:
+        path: "{{ lookup('env', 'HOME') }}/.ssh/coachlight-homelab.pem"
+      register: _cc_ssh_key_stat
+
+    - name: Write SSH private key from 1Password (if missing)
+      ansible.builtin.copy:
+        dest: "{{ lookup('env', 'HOME') }}/.ssh/coachlight-homelab.pem"
+        content: >-
+          {{ lookup('community.general.onepassword',
+                    'coachlight-homelab SSH key',
+                    field='private key',
+                    vault='HomeLab') }}
+        mode: "0600"
+      when: not _cc_ssh_key_stat.stat.exists
+      no_log: true
+
+    - name: Ensure ~/.ssh/config exists with correct permissions
+      ansible.builtin.file:
+        path: "{{ lookup('env', 'HOME') }}/.ssh/config"
+        state: touch
+        mode: "0600"
+        modification_time: preserve
+        access_time: preserve
+
+  roles:
+    - role: k9s_install
+
+
+# ─── Play 2: coachlight-k3s-cluster (homelab) ────────────────────────────────
+- name: Connect to coachlight-k3s-cluster (homelab)
+  hosts: local
+  gather_facts: true
+  tags:
+    - cluster_connector
+    - cluster_connector_homelab
+
+  vars:
+    # Required by k8s_validator and kubeconfig_manager internally
+    k3s_cluster_name: coachlight-k3s-cluster
+    k3s_context_name: coachlight-k3s-cluster
+    k3s_user_name: sfroeber
+    k3s_cluster_domain: rohu-shark.ts.net
+    k3s_api_server_url: "https://k3s-cp-1.{{ k3s_cluster_domain }}:6443"
+
+  tasks:
+    - name: Fetch homelab kubeconfig from k3s-cp-1
+      ansible.builtin.import_role:
+        name: k3s_kubeconfig_retriever
+      vars:
+        # k3s-cp-1 is the first host in the k3s_control_plane group (default),
+        # but we name it explicitly for clarity.
+        k3s_kubeconfig_retriever_control_plane_host: k3s-cp-1
+
+    - name: Merge homelab kubeconfig into ~/.kube/config
+      ansible.builtin.import_role:
+        name: kubeconfig_manager
+      vars:
+        kubeconfig_manager_source_kubeconfig_path: >-
+          {{ k3s_kubeconfig_retriever_artifacts.local_output_path }}
+        kubeconfig_manager_cluster_name: "{{ k3s_cluster_name }}"
+        kubeconfig_manager_cluster_server: "{{ k3s_api_server_url }}"
+        kubeconfig_manager_context_name: "{{ k3s_context_name }}"
+        kubeconfig_manager_context_user: "{{ k3s_user_name }}"
+
+    - name: Write SSH config entries for all homelab k3s nodes
+      ansible.builtin.blockinfile:
+        path: "{{ lookup('env', 'HOME') }}/.ssh/config"
+        marker: "# {mark} ANSIBLE MANAGED — homelab-k3s-nodes"
+        block: |
+          Host k3s-cp-1
+              HostName k3s-cp-1.rohu-shark.ts.net
+              User sfroeber
+              IdentityFile ~/.ssh/coachlight-homelab.pem
+              IdentitiesOnly yes
+              StrictHostKeyChecking accept-new
+
+          Host k3s-cp-2
+              HostName k3s-cp-2.rohu-shark.ts.net
+              User sfroeber
+              IdentityFile ~/.ssh/coachlight-homelab.pem
+              IdentitiesOnly yes
+              StrictHostKeyChecking accept-new
+
+          Host k3s-cp-3
+              HostName k3s-cp-3.rohu-shark.ts.net
+              User sfroeber
+              IdentityFile ~/.ssh/coachlight-homelab.pem
+              IdentitiesOnly yes
+              StrictHostKeyChecking accept-new
+
+          Host k3s-wkr-1
+              HostName k3s-wkr-1.rohu-shark.ts.net
+              User sfroeber
+              IdentityFile ~/.ssh/coachlight-homelab.pem
+              IdentitiesOnly yes
+              StrictHostKeyChecking accept-new
+
+          Host k3s-wkr-2
+              HostName k3s-wkr-2.rohu-shark.ts.net
+              User sfroeber
+              IdentityFile ~/.ssh/coachlight-homelab.pem
+              IdentitiesOnly yes
+              StrictHostKeyChecking accept-new
+
+          Host k3s-wkr-3
+              HostName k3s-wkr-3.rohu-shark.ts.net
+              User sfroeber
+              IdentityFile ~/.ssh/coachlight-homelab.pem
+              IdentitiesOnly yes
+              StrictHostKeyChecking accept-new
+
+    - name: Validate homelab cluster connectivity
+      ansible.builtin.import_role:
+        name: k8s_validator
+      vars:
+        k8s_validator_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        k8s_validator_context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
+        k8s_validator_install_packages: false
+
+
+# ─── Play 3: hetzner k3s cluster ─────────────────────────────────────────────
+- name: Connect to hetzner k3s cluster
+  hosts: local
+  gather_facts: true
+  tags:
+    - cluster_connector
+    - cluster_connector_hetzner
+
+  vars:
+    # Required by k8s_validator internally — set to hetzner cluster name
+    k3s_cluster_name: hetzner
+    _hetzner_kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/hetzner-k3s.yaml"
+
+  tasks:
+    - name: Write hetzner kubeconfig from 1Password
+      ansible.builtin.copy:
+        dest: "{{ _hetzner_kubeconfig_path }}"
+        content: >-
+          {{ lookup('community.general.onepassword',
+                    'Hetzner k3s Kubeconfig',
+                    field='kubeconfig',
+                    vault='HomeLab') }}
+        mode: "0600"
+      no_log: true
+
+    - name: Parse hetzner API server URL from kubeconfig
+      ansible.builtin.set_fact:
+        _hetzner_api_server: >-
+          {{ (lookup('file', _hetzner_kubeconfig_path) | from_yaml).clusters[0].cluster.server }}
+
+    - name: Parse hetzner Tailscale IP from API server URL
+      ansible.builtin.set_fact:
+        _hetzner_tailscale_ip: >-
+          {{ _hetzner_api_server | regex_replace('^https://(.+):6443$', '\1') }}
+        # k3s_cluster_domain is required by k8s_validator — for hetzner it's the Tailscale IP
+        k3s_cluster_domain: >-
+          {{ _hetzner_api_server | regex_replace('^https://(.+):6443$', '\1') }}
+
+    - name: Merge hetzner kubeconfig into ~/.kube/config
+      ansible.builtin.import_role:
+        name: kubeconfig_manager
+      vars:
+        kubeconfig_manager_source_kubeconfig_path: "{{ _hetzner_kubeconfig_path }}"
+        kubeconfig_manager_cluster_name: hetzner
+        kubeconfig_manager_cluster_server: "{{ _hetzner_api_server }}"
+        kubeconfig_manager_context_name: hetzner
+        kubeconfig_manager_context_user: default
+
+    - name: Write hetzner-node SSH config entry
+      ansible.builtin.blockinfile:
+        path: "{{ lookup('env', 'HOME') }}/.ssh/config"
+        marker: "# {mark} ANSIBLE MANAGED — hetzner-node"
+        block: |
+          Host hetzner-node
+              HostName {{ _hetzner_tailscale_ip }}
+              User root
+              IdentityFile ~/.ssh/coachlight-homelab.pem
+              IdentitiesOnly yes
+              StrictHostKeyChecking accept-new
+
+    - name: Validate hetzner cluster connectivity
+      ansible.builtin.import_role:
+        name: k8s_validator
+      vars:
+        k8s_validator_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        k8s_validator_context: hetzner
+        k8s_validator_install_packages: false

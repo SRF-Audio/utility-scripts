@@ -1,3 +1,4 @@
+---
 - name: Determine k9s OS identifier for Linux
   ansible.builtin.set_fact:
     k9s_install_os_id: linux
@@ -5,13 +6,8 @@
 - name: Determine k9s architecture identifier for Linux
   ansible.builtin.set_fact:
     k9s_install_arch_id: >-
-      {%- if ansible_architecture in ['x86_64', 'amd64'] -%}
-      amd64
-      {%- elif ansible_architecture in ['aarch64', 'arm64'] -%}
-      arm64
-      {%- else -%}
-      unsupported
-      {%- endif -%}
+      {%- if ansible_architecture in ['x86_64', 'amd64'] -%} amd64{%- elif ansible_architecture in ['aarch64', 'arm64'] -%} arm64{%- else -%} unsupported{%- endif
+      -%}
 
 - name: Fail if k9s architecture is unsupported on Linux
   ansible.builtin.fail:
@@ -21,13 +17,7 @@
 - name: Determine k9s package extension for Linux
   ansible.builtin.set_fact:
     k9s_install_pkg_ext: >-
-      {%- if ansible_facts['os_family'] == 'Debian' -%}
-      deb
-      {%- elif ansible_facts['os_family'] in ['RedHat', 'Suse'] -%}
-      rpm
-      {%- else -%}
-      unsupported
-      {%- endif -%}
+      {%- if ansible_facts['os_family'] == 'Debian' -%} deb{%- elif ansible_facts['os_family'] in ['RedHat', 'Suse'] -%} rpm{%- else -%} unsupported{%- endif -%}
 
 - name: Fail if k9s package format is unsupported on Linux
   ansible.builtin.fail:
@@ -42,7 +32,8 @@
 
 - name: Download k9s Linux package from GitHub
   ansible.builtin.get_url:
-    url: "https://github.com/derailed/k9s/releases/download/{{ k9s_install_version }}/k9s_{{ k9s_install_os_id }}_{{ k9s_install_arch_id }}.{{ k9s_install_pkg_ext }}"
+    url: "https://github.com/derailed/k9s/releases/download/{{ k9s_install_version }}/k9s_{{ k9s_install_os_id }}_{{ k9s_install_arch_id }}.{{ k9s_install_pkg_ext
+      }}"
     dest: "{{ k9s_install_tempdir.path }}/k9s_linux_{{ k9s_install_arch_id }}.{{ k9s_install_pkg_ext }}"
     mode: "0644"
   register: k9s_install_download

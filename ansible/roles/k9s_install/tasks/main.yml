@@ -1,3 +1,4 @@
+---
 - name: Test if k9s CLI is already installed
   ansible.builtin.include_role:
     name: cli_tester

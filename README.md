@@ -4,6 +4,39 @@ To use, run `git clone https://github.com/SRF-Audio/utility-scripts.git && cd ut
 
 This repo is a list of useful setup scripts for different Linux Distros, and various cloud/kubernetes tools that I use. These allow me to spin up a new VM or container, and quickly bring it back to my preferred configuration.
 
+---
+
+## Quick Start: Cluster Connector
+
+Got a fresh machine and need kubectl/k9s access to both clusters? One command sets everything up permanently:
+
+```bash
+cd ansible/
+ansible-playbook -i inventories/hosts.yml playbooks/cluster-connector.yml
+```
+
+This will:
+
+- Pull `~/.ssh/coachlight-homelab.pem` from 1Password if it's missing
+- Fetch the `coachlight-k3s-cluster` kubeconfig live from `k3s-cp-1` (requires homelab to be up)
+- Fetch the `hetzner` kubeconfig from 1Password (stored during bootstrap)
+- Merge both into `~/.kube/config` as contexts `coachlight-k3s-cluster` and `hetzner`
+- Write SSH aliases for all 6 homelab k3s nodes and `hetzner-node` into `~/.ssh/config`
+- Install k9s if not already present
+- Validate connectivity to both clusters
+
+**Prerequisites:** Tailscale active on `rohu-shark.ts.net` and 1Password CLI authenticated (`op signin` or `OP_SERVICE_ACCOUNT_TOKEN` set).
+
+**One cluster at a time:**
+
+```bash
+# Homelab only (cluster must be running)
+ansible-playbook -i inventories/hosts.yml playbooks/cluster-connector.yml --tags cluster_connector_homelab
+
+# Hetzner only
+ansible-playbook -i inventories/hosts.yml playbooks/cluster-connector.yml --tags cluster_connector_hetzner
+```
+
 ## Contributing
 
 If you find these useful, but see a way to make them better, or more efficient, feel free to open an issue. I appreciate the contribution.
@@ -31,8 +64,8 @@ inventories/
         └── k3s_worker.yml
 ```
 
-* **Hosts go in the most specific group only**; use Ansible’s built-in group inheritance (`children=` blocks) if something truly belongs to several groups.
-* Put *behaviour* in `group_vars`, secrets in `vault.yml` (or call the 1Password lookup plug-in there).  This keeps secrets out of playbooks and roles.  ([docs.ansible.com][2], [docs.ansible.com][3])
+- **Hosts go in the most specific group only**; use Ansible’s built-in group inheritance (`children=` blocks) if something truly belongs to several groups.
+- Put *behaviour* in `group_vars`, secrets in `vault.yml` (or call the 1Password lookup plug-in there).  This keeps secrets out of playbooks and roles.  ([docs.ansible.com][2], [docs.ansible.com][3])
 
 ---
 
@@ -124,10 +157,10 @@ playbooks/
 
 | High-level job                          | Command                                                           |
 | --------------------------------------- | ----------------------------------------------------------------- |
-| One-shot full converge                  | `ansible-navigator run playbooks/site.yml -i inventories/homelab` |
-| Desktop GUI tweaks only                 | `ansible-playbook playbooks/site.yml --tags gui --limit desktops` |
+| One-shot full converge                  | `ansible-playbook -i inventories/hosts.yml site.yml`              |
+| Desktop GUI tweaks only                 | `ansible-playbook site.yml --tags gui --limit desktops`           |
 | Patch Tuesday                           | `ansible-playbook playbooks/maintenance.yml --tags updates`       |
-| Redeploy apps after editing Helm values | `ansible-playbook playbooks/k8s.yml --tags apps`                  |
+| Redeploy apps after editing Helm values | `ansible-playbook site.yml --tags apps`                           |
 
 Because roles carry their own tags, you stay flexible without bloating the playbooks.
 
@@ -135,10 +168,10 @@ Because roles carry their own tags, you stay flexible without bloating the playb
 
 ### Why this tends to scale
 
-* **Separation of concerns** – inventory = *where*, roles = *what*, playbooks = *when/which*.
-* **Predictable overrides** – `group_vars` hierarchy means a workstation can inherit `common` defaults but override `dnf_automatic: true`.
-* **Idempotence tests** – each role is unit-testable with Molecule (Docker or Vagrant driver) before it ever touches the homelab.
-* **Secrets-aware** – 1Password lookup lives only in `group_vars/all/vault.yml`; roles stay secrets-agnostic.
+- **Separation of concerns** – inventory = *where*, roles = *what*, playbooks = *when/which*.
+- **Predictable overrides** – `group_vars` hierarchy means a workstation can inherit `common` defaults but override `dnf_automatic: true`.
+- **Idempotence tests** – each role is unit-testable with Molecule (Docker or Vagrant driver) before it ever touches the homelab.
+- **Secrets-aware** – 1Password lookup lives only in `group_vars/all/vault.yml`; roles stay secrets-agnostic.
 
 Adopt or drop pieces to taste, but sticking to this pattern will keep “desktop tweaks” from leaking into your hypervisor config and vice-versa—no more *sauce* mixing.
 

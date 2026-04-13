@@ -135,3 +135,10 @@
 - name: Deploy Coachlight HomeLab Infra Stack
   import_playbook: playbooks/coachlight-infra-stack.yml
   when: "'coachlight_infra_stack_deploy' in ansible_run_tags"
+
+- name: Connect control node to k3s clusters
+  import_playbook: playbooks/cluster-connector.yml
+  when: >-
+    'cluster_connector' in ansible_run_tags or
+    'cluster_connector_homelab' in ansible_run_tags or
+    'cluster_connector_hetzner' in ansible_run_tags
