@@ -10,9 +10,10 @@
 #   2. Add your control-host public key to admin's ~/.ssh/authorized_keys
 #      (or /root/.ssh/authorized_keys if using root directly)
 #
-ansible_user: admin
+ansible_user: stephenfroeber
 ansible_become: true
 ansible_become_method: sudo
+ansible_become_password: "{{ lookup('community.general.onepassword', 'oattlsmrtkwf6ppnvvo24shk24', field='password', vault='HomeLab') }}"
 
 # DSM 7 ships Python 3 at this path when the "Python 3.x" package is installed
 # via Synology Package Center. Install it before running this playbook.

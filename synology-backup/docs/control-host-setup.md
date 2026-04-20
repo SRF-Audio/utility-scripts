@@ -71,42 +71,44 @@ All items must exist in the **HomeLab** vault before the playbook is run.
 | Item title | Type | Fields required |
 |---|---|---|
 | `Synology Restic Repository` | Login or Secure Note | `password` — restic repo encryption password |
+| `Synology 1813 SSH Key` | SSH Key | `private key` — ed25519 key for control-host → NAS SSH; served via 1Password SSH agent |
 | `Hetzner Storage Box SSH Key` | SSH Key | `private key` — ed25519 private key (OpenSSH format) |
-| `Hetzner` | Login | Section `add more`: `storagebox_host`, `storagebox_username`, `storagebox_host_key` |
-
-### Capturing the Storage Box host key (one-time)
-
-Run this from any machine that can reach the Storage Box on port 23:
-
-```bash
-ssh-keyscan -p 23 u579903.your-storagebox.de
-```
-
-Copy the **ed25519** line (starts with `ssh-ed25519 AAAA...`) and store the portion after the hostname — i.e., `ssh-ed25519 AAAA...` — as the `storagebox_host_key` field value in the `Hetzner` 1Password item.
-
-> The `ansible.builtin.known_hosts` task formats the entry as
-> `[host]:port key-type key-data`, so store only the `key-type key-data`
-> portion (e.g. `ssh-ed25519 AAAAC3Nza...`).
+| `Hetzner` | Login | Section `add more`: `storagebox_host`, `storagebox_username` |
 
 ---
 
 ## 4. SSH Access to the Synology NAS
 
-The control-host user's public key must be in `/var/services/homes/admin/.ssh/authorized_keys` on the NAS.
+Ansible connects via the **1Password SSH agent** — no key file on disk required.
 
-On the NAS (one-time, via DSM web UI or direct SSH):
+### Enable the 1Password SSH agent (one-time, control host)
+
+1Password desktop app → Settings → Developer → enable **"Use the SSH agent"**
+
+The agent socket will be at `~/.1password/agent.sock`. The `Synology 1813 SSH Key` item in the HomeLab vault is served automatically.
+
+### Authorize the key on the NAS (one-time)
+
+The public key from `op://HomeLab/Synology 1813 SSH Key/public key` must be in `/var/services/homes/stephenfroeber/.ssh/authorized_keys` on the NAS.
 
 ```bash
-mkdir -p /var/services/homes/admin/.ssh
-chmod 700 /var/services/homes/admin/.ssh
-echo "<your-control-host-pubkey>" >> /var/services/homes/admin/.ssh/authorized_keys
-chmod 600 /var/services/homes/admin/.ssh/authorized_keys
+# Get the public key from 1Password
+op item get "Synology 1813 SSH Key" --vault HomeLab --fields "public key"
 ```
 
-Verify connectivity:
+Then on the NAS (via DSM web UI terminal or direct SSH):
 
 ```bash
-ssh -p 22 admin@<nas-tailscale-ip> 'echo ok'
+mkdir -p /var/services/homes/stephenfroeber/.ssh
+chmod 700 /var/services/homes/stephenfroeber/.ssh
+echo "<public key from above>" >> /var/services/homes/stephenfroeber/.ssh/authorized_keys
+chmod 600 /var/services/homes/stephenfroeber/.ssh/authorized_keys
+```
+
+### Verify connectivity
+
+```bash
+SSH_AUTH_SOCK=~/.1password/agent.sock ssh -o IdentitiesOnly=yes stephenfroeber@srfaudio.rohu-shark.ts.net 'echo ok'
 ```
 
 ---

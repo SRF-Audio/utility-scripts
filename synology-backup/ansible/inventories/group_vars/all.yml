@@ -14,6 +14,9 @@ ansible_host: >-
       )
   }}
 
-ansible_ssh_private_key_file: "~/.ssh/coachlight-homelab.pem"
+# Use the 1Password SSH agent exclusively. Set SSH_AUTH_SOCK or ensure
+# ~/.1password/agent.sock exists (1Password desktop app, SSH agent enabled).
 ansible_ssh_common_args: >-
-  -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new
+  -o IdentityAgent=~/.1password/agent.sock
+  -o IdentitiesOnly=yes
+  -o StrictHostKeyChecking=accept-new
