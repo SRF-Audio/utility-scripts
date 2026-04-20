@@ -4,6 +4,7 @@ version: {{ proxmox_fcos_version }}
 kernel_arguments:
   should_exist:
     - selinux=0
+    - clocksource=kvm-clock
 
 {% set is_control_plane = proxmox_k3s_role in ['bootstrap', 'join'] %}
 {% set is_bootstrap = proxmox_k3s_role == 'bootstrap' %}
