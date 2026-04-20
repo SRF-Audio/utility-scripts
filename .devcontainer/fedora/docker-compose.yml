@@ -1,0 +1,24 @@
+---
+services:
+  coachlight-homelab:
+    container_name: coachlight-homelab
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - USER_UID=${UID:-1000}
+        - USER_GID=${GID:-1000}
+    userns_mode: "keep-id"
+    security_opt:
+      - label=disable
+    stdin_open: true
+    tty: true
+    volumes:
+      - ${HOME}/.1password/agent.sock:/ssh-agent
+      - ../../:/workspace
+      - ${HOME}/.ssh/known_hosts:/home/vscode/.ssh/known_hosts:ro
+      - ${HOME}/.ssh/config:/home/vscode/.ssh/config:ro
+      - ${HOME}/.aws:/home/vscode/.aws:ro
+      - ${HOME}/.config/hcloud:/home/vscode/.config/hcloud:ro
+    environment:
+      - SSH_AUTH_SOCK=/ssh-agent
