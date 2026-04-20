@@ -47,9 +47,6 @@
           Port {{ synology_restic_backup_storagebox_port }}
           IdentityFile {{ synology_restic_backup_config_dir }}/storagebox-key
           IdentitiesOnly yes
-          # accept-new records the host key on first connection; subsequent
-          # connections verify against it. Set to "yes" after the first
-          # successful backup to harden further.
           StrictHostKeyChecking accept-new
           ServerAliveInterval 60
           ServerAliveCountMax 240

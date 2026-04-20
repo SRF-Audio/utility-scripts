@@ -2,6 +2,52 @@
 # synology_restic_backup/tasks/main.yml
 
 # ---------------------------------------------------------------------------
+# Preflight: verify 1Password CLI is available and authenticated (B3)
+# Both checks run on the control host; the role fails immediately with an
+# actionable message rather than producing a cryptic lookup error later.
+# ---------------------------------------------------------------------------
+- name: Assert op CLI is installed on the control host
+  ansible.builtin.command:
+    cmd: op --version
+  changed_when: false
+  delegate_to: localhost
+  become: false
+  register: _srb_op_version_check
+  failed_when: _srb_op_version_check.rc != 0
+  ignore_errors: false
+
+- name: Assert op CLI session is active on the control host
+  ansible.builtin.command:
+    cmd: op account list
+  changed_when: false
+  delegate_to: localhost
+  become: false
+  register: _srb_op_session_check
+  failed_when: _srb_op_session_check.rc != 0
+  ignore_errors: false
+
+- name: Fail with actionable message if op CLI is not ready
+  ansible.builtin.fail:
+    msg: >-
+      The 1Password CLI (op) is not installed or not authenticated on the
+      control host. Resolve before running this playbook:
+
+        1. Install:    https://developer.1password.com/docs/cli/get-started/
+        2. Authenticate: op signin
+           or set OP_SERVICE_ACCOUNT_TOKEN in your environment.
+
+      op --version exit code: {{ _srb_op_version_check.rc }}
+      op account list exit code: {{ _srb_op_session_check.rc }}
+  when: >-
+    _srb_op_version_check.rc != 0 or _srb_op_session_check.rc != 0
+
+# ---------------------------------------------------------------------------
+# Restic version currency check (I4) — advisory only, never blocks execution.
+# ---------------------------------------------------------------------------
+- name: Check restic version against upstream
+  ansible.builtin.import_tasks: check_restic_version.yml
+
+# ---------------------------------------------------------------------------
 # Storage Box connection details — read from 1Password on the control host.
 # ---------------------------------------------------------------------------
 - name: Read Storage Box hostname from 1Password
@@ -55,7 +101,7 @@
 # ---------------------------------------------------------------------------
 - name: Read restic repository password from 1Password
   ansible.builtin.set_fact:
-    _srb_repo_password: >-
+    synology_restic_backup_repo_password: >-
       {{ lookup('community.general.onepassword',
                 synology_restic_backup_op_restic_repo_item,
                 field=synology_restic_backup_op_restic_repo_password_field,
@@ -64,7 +110,7 @@
 
 - name: Read Storage Box SSH private key from 1Password
   ansible.builtin.set_fact:
-    _srb_storagebox_ssh_key: >-
+    synology_restic_backup_storagebox_ssh_key: >-
       {{ lookup('community.general.onepassword',
                 synology_restic_backup_op_storagebox_ssh_key_item,
                 field=synology_restic_backup_op_storagebox_ssh_key_field,
@@ -114,7 +160,7 @@
 - name: Write restic repository password file
   ansible.builtin.copy:
     dest: "{{ synology_restic_backup_config_dir }}/.restic-password"
-    content: "{{ _srb_repo_password }}"
+    content: "{{ synology_restic_backup_repo_password }}"
     owner: root
     group: root
     mode: "0400"
@@ -124,7 +170,7 @@
 - name: Write Storage Box SSH private key
   ansible.builtin.copy:
     dest: "{{ synology_restic_backup_config_dir }}/storagebox-key"
-    content: "{{ _srb_storagebox_ssh_key }}"
+    content: "{{ synology_restic_backup_storagebox_ssh_key }}"
     owner: root
     group: root
     mode: "0400"
@@ -136,6 +182,13 @@
 # ---------------------------------------------------------------------------
 - name: Configure SSH for Storage Box
   ansible.builtin.import_tasks: configure_ssh.yml
+
+# ---------------------------------------------------------------------------
+# Alerting — must run before wrapper scripts so alert_command is set
+# ---------------------------------------------------------------------------
+- name: Configure Trello alerting
+  ansible.builtin.import_tasks: configure_trello_alerts.yml
+  when: synology_restic_backup_trello_alerts_enabled | bool
 
 # ---------------------------------------------------------------------------
 # Wrapper scripts

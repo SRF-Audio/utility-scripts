@@ -1,0 +1,53 @@
+---
+# synology_restic_backup/tasks/check_restic_version.yml
+#
+# Queries the GitHub releases API from the control host and warns (does not
+# fail) if the configured restic version is behind the current upstream release.
+# Runs on the control host so no NAS connectivity is required.
+# Network errors are non-fatal — the version check degrades gracefully.
+
+- name: Query latest restic release from GitHub API
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/restic/restic/releases/latest
+    method: GET
+    headers:
+      Accept: application/vnd.github+json
+    return_content: true
+    status_code: [200]
+    timeout: 10
+  register: _srb_github_latest_release
+  delegate_to: localhost
+  become: false
+  failed_when: false
+  changed_when: false
+
+- name: Parse latest restic version tag
+  ansible.builtin.set_fact:
+    synology_restic_backup_restic_latest_version: >-
+      {{
+        (_srb_github_latest_release.json.tag_name | default(''))
+        | regex_replace('^v', '')
+      }}
+  when: _srb_github_latest_release.status == 200
+
+- name: Warn if configured restic version is behind upstream
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: Configured restic version ({{ synology_restic_backup_restic_version }})
+      is behind the current upstream release
+      ({{ synology_restic_backup_restic_latest_version }}).
+      Review https://github.com/restic/restic/releases for changelog and
+      security advisories, then update synology_restic_backup_restic_version
+      in defaults/main.yml.
+  when:
+    - _srb_github_latest_release.status == 200
+    - synology_restic_backup_restic_latest_version | length > 0
+    - synology_restic_backup_restic_version is version(synology_restic_backup_restic_latest_version, '<')
+
+- name: Note if restic version check could not reach GitHub
+  ansible.builtin.debug:
+    msg: >-
+      NOTE: Could not reach GitHub API to check for restic updates
+      (HTTP {{ _srb_github_latest_release.status | default('no response') }}).
+      Continuing with configured version {{ synology_restic_backup_restic_version }}.
+  when: _srb_github_latest_release.status | default(0) != 200

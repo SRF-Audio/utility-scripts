@@ -10,17 +10,26 @@ readonly LOCK_DIR="/var/lock/restic-backup-backup.lock"
 readonly LOG_FILE="{{ synology_restic_backup_log_dir }}/backup.log"
 readonly RESTIC="{{ synology_restic_backup_restic_install_dir }}/restic"
 readonly PASSWORD_FILE="{{ synology_restic_backup_config_dir }}/.restic-password"
+readonly ALERT_CMD="{{ synology_restic_backup_alert_command }}"
+readonly JOB="backup"
+
+_alert() {
+    local message="$1"
+    echo "$(date -Iseconds) [${JOB}] ALERT: ${message}" >> "${LOG_FILE}"
+    if [[ -n "${ALERT_CMD}" ]]; then
+        eval "${ALERT_CMD}" <<< "${message}" 2>> "${LOG_FILE}" || true
+    fi
+}
 
 # Acquire lock — mkdir is atomic on all DSM-supported filesystems.
 if ! mkdir "${LOCK_DIR}" 2>/dev/null; then
-    echo "$(date -Iseconds) [backup] Lock exists at ${LOCK_DIR}; another instance is running. Exiting." \
-        >> "${LOG_FILE}"
-    exit 0
+    _alert "Lock contention: another ${JOB} instance is running (${LOCK_DIR} exists). This run was skipped."
+    exit 1
 fi
 trap 'rmdir "${LOCK_DIR}" 2>/dev/null || true' EXIT INT TERM
 
 {
-    echo "=== $(date -Iseconds) [backup] START ==="
+    echo "=== $(date -Iseconds) [${JOB}] START ==="
 
     export RESTIC_REPOSITORY="sftp:storagebox:{{ synology_restic_backup_storagebox_repo_path }}"
     export RESTIC_PASSWORD
@@ -38,12 +47,20 @@ trap 'rmdir "${LOCK_DIR}" 2>/dev/null || true' EXIT INT TERM
 {% endfor %}
     )
 
+    set +e
     "${RESTIC}" backup \
         --one-file-system \
         --tag "{{ synology_restic_backup_snapshot_tag }}" \
         --verbose \
         "${EXCLUDES[@]}" \
         "${SOURCES[@]}"
+    rc=$?
+    set -e
 
-    echo "=== $(date -Iseconds) [backup] END rc=$? ==="
+    echo "=== $(date -Iseconds) [${JOB}] END rc=${rc} ==="
+
+    if [[ ${rc} -ne 0 ]]; then
+        _alert "${JOB} failed with exit code ${rc}. Check ${LOG_FILE} for details."
+        exit ${rc}
+    fi
 } >> "${LOG_FILE}" 2>&1

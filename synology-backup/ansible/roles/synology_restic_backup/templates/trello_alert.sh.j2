@@ -1,0 +1,34 @@
+#!/bin/bash
+# Managed by Ansible role synology_restic_backup — do not edit by hand.
+# Re-run the Ansible playbook to update this file.
+#
+# Reads the alert message from stdin and creates a Trello card on the
+# configured list. Called by backup.sh, forget.sh, and check.sh on failure.
+set -euo pipefail
+
+readonly API_KEY_FILE="{{ synology_restic_backup_config_dir }}/.trello-api-key"
+readonly TOKEN_FILE="{{ synology_restic_backup_config_dir }}/.trello-token"
+readonly LIST_ID_FILE="{{ synology_restic_backup_config_dir }}/.trello-alert-list-id"
+
+API_KEY=$(cat "${API_KEY_FILE}")
+TOKEN=$(cat "${TOKEN_FILE}")
+LIST_ID=$(cat "${LIST_ID_FILE}")
+
+MESSAGE=$(cat)
+HOSTNAME=$(hostname)
+TIMESTAMP=$(date -Iseconds)
+
+CARD_NAME="Restic backup alert — ${HOSTNAME} — ${TIMESTAMP}"
+
+curl -fsS \
+    --max-time 15 \
+    --retry 3 \
+    --retry-delay 5 \
+    -X POST \
+    "https://api.trello.com/1/cards" \
+    -d "key=${API_KEY}" \
+    -d "token=${TOKEN}" \
+    -d "idList=${LIST_ID}" \
+    --data-urlencode "name=${CARD_NAME}" \
+    --data-urlencode "desc=${MESSAGE}" \
+    -o /dev/null

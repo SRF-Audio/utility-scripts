@@ -17,3 +17,5 @@ ansible_become_method: sudo
 # DSM 7 ships Python 3 at this path when the "Python 3.x" package is installed
 # via Synology Package Center. Install it before running this playbook.
 ansible_python_interpreter: /usr/bin/python3
+
+synology_restic_backup_trello_alerts_enabled: true

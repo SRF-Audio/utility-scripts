@@ -132,6 +132,45 @@ argument_specs:
         type: str
         required: false
         description: Field name within the restic repository item that contains the password.
+      # --- Alerting ---
+      synology_restic_backup_alert_command:
+        type: str
+        required: false
+        description: >-
+          Shell command that receives the alert message on stdin.
+          Executed via eval inside each wrapper script on failure or lock contention.
+          Empty string (default) disables alerting. Set automatically when
+          synology_restic_backup_trello_alerts_enabled is true.
+      synology_restic_backup_trello_alerts_enabled:
+        type: bool
+        required: false
+        description: >-
+          When true, reads Trello credentials from 1Password, writes them to the NAS,
+          deploys trello_alert.sh, and sets synology_restic_backup_alert_command to it.
+      synology_restic_backup_op_trello_item:
+        type: str
+        required: false
+        description: Title of the 1Password item holding the Trello API credentials.
+      synology_restic_backup_op_trello_api_key_field:
+        type: str
+        required: false
+        description: Field name for the Trello API key within the 1Password item.
+      synology_restic_backup_op_trello_token_field:
+        type: str
+        required: false
+        description: Field name for the Trello token within the 1Password item.
+      synology_restic_backup_op_trello_alert_list_id_field:
+        type: str
+        required: false
+        description: Field name for the target Trello list ID within the 1Password item.
+
+      # --- Storage monitoring ---
+      synology_restic_backup_storage_warn_gib:
+        type: int
+        required: false
+        description: >-
+          Emit an alert during the weekly check job when the restic repository
+          size exceeds this threshold. Unit: GiB (integer). 0 disables the check.
 
       # --- Schedule ---
       synology_restic_backup_cron_backup_minute:

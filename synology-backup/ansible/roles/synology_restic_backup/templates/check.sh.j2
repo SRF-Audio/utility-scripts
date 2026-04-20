@@ -6,6 +6,8 @@
 # Reading 5% of random pack files on each run provides meaningful coverage
 # without an I/O window that would conflict with large-volume weekly backups.
 # A full --read-data pass can be triggered manually when needed.
+# Also logs repo size stats and warns if Storage Box usage exceeds the
+# configured threshold (synology_restic_backup_storage_warn_gb).
 # Safe to invoke manually; concurrent runs are prevented via a lock directory.
 set -euo pipefail
 
@@ -13,22 +15,63 @@ readonly LOCK_DIR="/var/lock/restic-backup-check.lock"
 readonly LOG_FILE="{{ synology_restic_backup_log_dir }}/check.log"
 readonly RESTIC="{{ synology_restic_backup_restic_install_dir }}/restic"
 readonly PASSWORD_FILE="{{ synology_restic_backup_config_dir }}/.restic-password"
+readonly ALERT_CMD="{{ synology_restic_backup_alert_command }}"
+readonly STORAGE_WARN_GIB="{{ synology_restic_backup_storage_warn_gib }}"
+readonly JOB="check"
+
+_alert() {
+    local message="$1"
+    echo "$(date -Iseconds) [${JOB}] ALERT: ${message}" >> "${LOG_FILE}"
+    if [[ -n "${ALERT_CMD}" ]]; then
+        eval "${ALERT_CMD}" <<< "${message}" 2>> "${LOG_FILE}" || true
+    fi
+}
 
 if ! mkdir "${LOCK_DIR}" 2>/dev/null; then
-    echo "$(date -Iseconds) [check] Lock exists at ${LOCK_DIR}; another instance is running. Exiting." \
-        >> "${LOG_FILE}"
-    exit 0
+    _alert "Lock contention: another ${JOB} instance is running (${LOCK_DIR} exists). This run was skipped."
+    exit 1
 fi
 trap 'rmdir "${LOCK_DIR}" 2>/dev/null || true' EXIT INT TERM
 
 {
-    echo "=== $(date -Iseconds) [check] START ==="
+    echo "=== $(date -Iseconds) [${JOB}] START ==="
 
     export RESTIC_REPOSITORY="sftp:storagebox:{{ synology_restic_backup_storagebox_repo_path }}"
     export RESTIC_PASSWORD
     RESTIC_PASSWORD=$(cat "${PASSWORD_FILE}")
 
+    # Integrity check
+    set +e
     "${RESTIC}" check --read-data-subset=5%
+    rc=$?
+    set -e
 
-    echo "=== $(date -Iseconds) [check] END rc=$? ==="
+    echo "=== $(date -Iseconds) [${JOB}] check rc=${rc} ==="
+
+    if [[ ${rc} -ne 0 ]]; then
+        _alert "${JOB} integrity check failed with exit code ${rc}. Check ${LOG_FILE} for details."
+        exit ${rc}
+    fi
+
+    # Storage space audit (I2) — parse total_size_bytes from restic stats JSON output.
+    set +e
+    stats_json=$("${RESTIC}" stats --json --mode restore-size 2>&1)
+    stats_rc=$?
+    set -e
+
+    if [[ ${stats_rc} -eq 0 ]]; then
+        total_bytes=$(echo "${stats_json}" | grep -o '"total_size":[0-9]*' | grep -o '[0-9]*' || echo "0")
+        total_gib=$(( total_bytes / 1073741824 ))
+        echo "$(date -Iseconds) [${JOB}] Repository size: ${total_gib} GiB (raw bytes: ${total_bytes})"
+
+        if [[ -n "${STORAGE_WARN_GIB}" && "${STORAGE_WARN_GIB}" -gt 0 ]]; then
+            if [[ ${total_gib} -ge ${STORAGE_WARN_GIB} ]]; then
+                _alert "Storage Box usage has reached ${total_gib} GiB, at or above the ${STORAGE_WARN_GIB} GiB warning threshold."
+            fi
+        fi
+    else
+        echo "$(date -Iseconds) [${JOB}] WARNING: restic stats failed (rc=${stats_rc}); storage audit skipped."
+    fi
+
+    echo "=== $(date -Iseconds) [${JOB}] END ==="
 } >> "${LOG_FILE}" 2>&1

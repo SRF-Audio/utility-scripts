@@ -103,6 +103,30 @@ synology_restic_backup_cron_check_hour: "4"
 synology_restic_backup_cron_check_weekday: "3"
 
 # ---------------------------------------------------------------------------
+# Alerting
+# ---------------------------------------------------------------------------
+# Shell command that receives the alert message on stdin. Empty string = no-op.
+# The command is eval'd inside the wrapper scripts so compound commands work.
+# Populated automatically when synology_restic_backup_trello_alerts_enabled: true.
+synology_restic_backup_alert_command: ""
+
+# Trello alerting — creates a card on a configured list when a job fails.
+# Credentials are read from 1Password and written to the NAS at playbook time.
+synology_restic_backup_trello_alerts_enabled: false
+synology_restic_backup_op_trello_item: "Atlassian"
+synology_restic_backup_op_trello_api_key_field: "api_key"
+synology_restic_backup_op_trello_token_field: "token"
+synology_restic_backup_op_trello_alert_list_id_field: "alert_list_id"
+
+# ---------------------------------------------------------------------------
+# Storage space monitoring (I2)
+# ---------------------------------------------------------------------------
+# Emit an alert when the restic repository size on the Storage Box exceeds
+# this threshold. 0 = disabled. Unit: GiB (integer).
+# BX61 = 20TB ≈ 18628 GiB; warn at 16000 GiB (~86% of 18.6 TiB).
+synology_restic_backup_storage_warn_gib: 16000
+
+# ---------------------------------------------------------------------------
 # Restore documentation
 # ---------------------------------------------------------------------------
 synology_restic_backup_restore_doc_path: "{{ synology_restic_backup_config_dir }}/RESTORE_PROCEDURE.txt"

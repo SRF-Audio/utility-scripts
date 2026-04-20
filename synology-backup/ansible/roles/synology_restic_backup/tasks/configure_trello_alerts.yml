@@ -1,0 +1,76 @@
+---
+# synology_restic_backup/tasks/configure_trello_alerts.yml
+#
+# Reads Trello credentials from 1Password and writes them to the NAS.
+# Deploys trello_alert.sh and sets synology_restic_backup_alert_command
+# so the wrapper scripts call it on failure.
+# Only runs when synology_restic_backup_trello_alerts_enabled is true.
+
+- name: Read Trello API key from 1Password
+  ansible.builtin.set_fact:
+    synology_restic_backup_trello_api_key: >-
+      {{ lookup('community.general.onepassword',
+                synology_restic_backup_op_trello_item,
+                field=synology_restic_backup_op_trello_api_key_field,
+                vault=synology_restic_backup_op_vault) }}
+  no_log: true
+
+- name: Read Trello token from 1Password
+  ansible.builtin.set_fact:
+    synology_restic_backup_trello_token: >-
+      {{ lookup('community.general.onepassword',
+                synology_restic_backup_op_trello_item,
+                field=synology_restic_backup_op_trello_token_field,
+                vault=synology_restic_backup_op_vault) }}
+  no_log: true
+
+- name: Read Trello alert list ID from 1Password
+  ansible.builtin.set_fact:
+    synology_restic_backup_trello_alert_list_id: >-
+      {{ lookup('community.general.onepassword',
+                synology_restic_backup_op_trello_item,
+                field=synology_restic_backup_op_trello_alert_list_id_field,
+                vault=synology_restic_backup_op_vault) }}
+  no_log: false
+
+- name: Write Trello API key to NAS
+  ansible.builtin.copy:
+    dest: "{{ synology_restic_backup_config_dir }}/.trello-api-key"
+    content: "{{ synology_restic_backup_trello_api_key }}"
+    owner: root
+    group: root
+    mode: "0400"
+  become: true
+  no_log: true
+
+- name: Write Trello token to NAS
+  ansible.builtin.copy:
+    dest: "{{ synology_restic_backup_config_dir }}/.trello-token"
+    content: "{{ synology_restic_backup_trello_token }}"
+    owner: root
+    group: root
+    mode: "0400"
+  become: true
+  no_log: true
+
+- name: Write Trello alert list ID to NAS
+  ansible.builtin.copy:
+    dest: "{{ synology_restic_backup_config_dir }}/.trello-alert-list-id"
+    content: "{{ synology_restic_backup_trello_alert_list_id }}"
+    owner: root
+    group: root
+    mode: "0400"
+  become: true
+
+- name: Deploy Trello alert script
+  ansible.builtin.template:
+    src: trello_alert.sh.j2
+    dest: "{{ synology_restic_backup_scripts_dir }}/trello_alert.sh"
+    owner: root
+    group: root
+    mode: "0750"
+  become: true
+
+- name: Set alert command to use Trello alert script
+  ansible.builtin.set_fact:
+    synology_restic_backup_alert_command: "{{ synology_restic_backup_scripts_dir }}/trello_alert.sh"
