@@ -108,13 +108,19 @@
                 vault=synology_restic_backup_op_vault) }}
   no_log: true
 
-- name: Read Storage Box SSH private key from 1Password
+- name: Read Storage Box SSH private key from 1Password (OpenSSH format)
+  ansible.builtin.command:
+    cmd: op read "op://{{ synology_restic_backup_op_vault }}/{{ synology_restic_backup_op_storagebox_ssh_key_item }}/{{
+      synology_restic_backup_op_storagebox_ssh_key_field }}?ssh-format=openssh"
+  delegate_to: localhost
+  become: false
+  register: _srb_ssh_key_raw
+  changed_when: false
+  no_log: true
+
+- name: Set Storage Box SSH private key fact
   ansible.builtin.set_fact:
-    synology_restic_backup_storagebox_ssh_key: >-
-      {{ lookup('community.general.onepassword',
-                synology_restic_backup_op_storagebox_ssh_key_item,
-                field=synology_restic_backup_op_storagebox_ssh_key_field,
-                vault=synology_restic_backup_op_vault) }}
+    synology_restic_backup_storagebox_ssh_key: "{{ _srb_ssh_key_raw.stdout }}"
   no_log: true
 
 # ---------------------------------------------------------------------------
@@ -170,7 +176,7 @@
 - name: Write Storage Box SSH private key
   ansible.builtin.copy:
     dest: "{{ synology_restic_backup_config_dir }}/storagebox-key"
-    content: "{{ synology_restic_backup_storagebox_ssh_key }}"
+    content: "{{ synology_restic_backup_storagebox_ssh_key }}\n"
     owner: root
     group: root
     mode: "0400"

@@ -22,7 +22,15 @@ synology_restic_backup_scripts_dir: "/usr/local/bin/restic-backup"
 # Full paths passed directly to restic backup as sources.
 # Restic recurses into each path, so a single volume entry is sufficient.
 synology_restic_backup_backup_paths:
-  - /volume2
+  - /volume2/docker
+  - /volume2/home-assistant-backup
+  - /volume2/homes
+  - /volume2/k3s-cluster-storage
+  - /volume2/NetBackup
+  - /volume2/paperless
+  - /volume2/proxmox-backup
+  - /volume2/proxmox-cluster-storage
+  - /volume2/time-machine
 
 # DSM-specific noise directories excluded unconditionally from every source path.
 synology_restic_backup_excludes:

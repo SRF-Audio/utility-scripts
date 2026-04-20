@@ -14,16 +14,16 @@ argument_specs:
       # --- Required (no defaults) ---
       synology_restic_backup_storagebox_host:
         type: str
-        required: true
+        required: false
         description: >-
           SFTP hostname of the Hetzner Storage Box (e.g. uXXXXXX.your-storagebox.de).
-          Used in the SSH config Host block written to /root/.ssh/config on the NAS.
+          Resolved at runtime from 1Password; validated by an assert in tasks/main.yml.
       synology_restic_backup_storagebox_user:
         type: str
-        required: true
+        required: false
         description: >-
           SFTP username for the Hetzner Storage Box (e.g. uXXXXXX).
-          Used in the SSH config Host block and documented in the restore procedure.
+          Resolved at runtime from 1Password; validated by an assert in tasks/main.yml.
 
       # --- Binary ---
       synology_restic_backup_restic_version:

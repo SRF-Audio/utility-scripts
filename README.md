@@ -41,58 +41,105 @@ ansible-playbook -i inventories/hosts.yml playbooks/cluster-connector.yml --tags
 
 ## Synology NAS → Hetzner Backup
 
-Backs up a Synology DS1813+ (9.7TB, `/volume2`) to a Hetzner Storage Box using restic over SFTP. Intended as a disaster-recovery copy for a family move — see [`synology-backup/docs/status.md`](synology-backup/docs/status.md) for full project status.
+Backs up a Synology DS1813+ (9.7TB, `/volume2`) to a Hetzner Storage Box using restic over SFTP. Disaster-recovery copy for a family move — see [`synology-backup/docs/status.md`](synology-backup/docs/status.md) for full project status.
+
+**What gets backed up:** `/volume2/docker`, `/volume2/home-assistant-backup`, `/volume2/homes`, `/volume2/k3s-cluster-storage`, `/volume2/NetBackup`, `/volume2/paperless`, `/volume2/proxmox-backup`, `/volume2/proxmox-cluster-storage`, `/volume2/time-machine`
 
 ### Prerequisites
 
-**On the host machine (before opening the devcontainer):**
-
-1. **1Password SSH agent running** — the devcontainer mounts `~/.1password/agent.sock`. Ensure the 1Password desktop app is open and the SSH agent is enabled in Settings → Developer.
-
-2. **`op` CLI authenticated** — the devcontainer passes through `OP_SERVICE_ACCOUNT_TOKEN` if set, otherwise you must run `op signin` inside the container after it starts. To avoid this every session, export it in your host shell before opening VS Code:
+1. **`op` CLI authenticated:**
 
    ```zsh
-   export OP_SERVICE_ACCOUNT_TOKEN=$(op read "op://HomeLab/...")
+   op signin  # or: export OP_SERVICE_ACCOUNT_TOKEN=<token>
+   op vault list  # HomeLab must appear
    ```
 
-   Or sign in interactively after attaching to the container:
+2. **Ansible collections installed:**
 
    ```zsh
-   op signin
+   cd synology-backup/ansible
+   ansible-galaxy collection install -r requirements.yml
    ```
 
-3. **hcloud context configured** — `~/.config/hcloud` is mounted read-only. Ensure your `Paperless-NGX` context is active on the host:
+3. **NAS reachable via Tailscale** — `ping srfaudio.rohu-shark.ts.net`
 
-   ```zsh
-   hcloud context use Paperless-NGX
-   ```
-
-**Inside the devcontainer (automatic):**
-
-Ansible collections (`community.general`, `ansible.posix`) are installed automatically via `postCreateCommand` when the container is created.
-
-### Running the backup playbook
+### Deploy / update
 
 ```zsh
-cd /workspace/synology-backup/ansible
+cd synology-backup/ansible
 ansible-playbook -i inventories/hosts.yml playbooks/synology-backup.yml
 ```
 
-All secrets (restic repo password, Storage Box SSH key, Storage Box hostname/username) are fetched from 1Password at runtime — no manual variable substitution required.
+Idempotent — safe to re-run. Deploys restic, scripts, credentials, SSH config, cron jobs. All secrets fetched from 1Password at runtime.
+
+### Start a backup manually
+
+```zsh
+ssh stephenfroeber@srfaudio.rohu-shark.ts.net \
+  'nohup sudo /usr/local/bin/restic-backup/backup.sh > /dev/null 2>&1 &'
+```
+
+### Monitor a running backup
+
+```zsh
+# Tail the live log
+ssh stephenfroeber@srfaudio.rohu-shark.ts.net \
+  'sudo tail -f /var/log/restic-backup/backup.log'
+
+# Check if backup process is running
+ssh stephenfroeber@srfaudio.rohu-shark.ts.net \
+  'pgrep -a restic'
+```
+
+A completed backup ends with a line like:
+
+```text
+snapshot abc12345 saved
+=== 2026-04-20T14:51:06 [backup] END rc=0 ===
+```
+
+### Verify snapshots
+
+```zsh
+ssh stephenfroeber@srfaudio.rohu-shark.ts.net \
+  'sudo RESTIC_REPOSITORY=sftp:storagebox:restic \
+   RESTIC_PASSWORD_FILE=/etc/restic-backup/.restic-password \
+   /usr/local/bin/restic snapshots'
+```
+
+### Stop a running backup
+
+```zsh
+ssh stephenfroeber@srfaudio.rohu-shark.ts.net 'sudo pkill restic'
+```
+
+Restic is safe to interrupt — it will not leave a corrupt repository. The next run picks up where it left off (deduplication means already-uploaded data is skipped).
+
+### Schedule
+
+Cron jobs run automatically on the NAS:
+
+| Job             | Schedule           |
+| --------------- | ------------------ |
+| Backup          | Daily at 02:00     |
+| Forget / prune  | Sunday at 03:00    |
+| Integrity check | Wednesday at 04:00 |
 
 ### 1Password items required
 
-| Item                          | Vault   | Fields used                                                |
-| ----------------------------- | ------- | ---------------------------------------------------------- |
-| `Hetzner`                     | HomeLab | `add more/storagebox_host`, `add more/storagebox_username` |
-| `Hetzner Storage Box SSH Key` | HomeLab | `private key` (SSH Key item)                               |
-| `Synology Restic Repository`  | HomeLab | `password`                                                 |
+| Item                                                    | Vault   | Fields used                                                |
+| ------------------------------------------------------- | ------- | ---------------------------------------------------------- |
+| `Synology 1813 SSH Key`                                 | HomeLab | SSH agent key for control host → NAS                       |
+| `Hetzner`                                               | HomeLab | `add more/storagebox_host`, `add more/storagebox_username` |
+| `Hetzner Storage Box SSH Key`                           | HomeLab | `private key` (SSH Key item, OpenSSH format)               |
+| `Synology Restic Repository`                            | HomeLab | `password`                                                 |
+| `Synology NAS` (item ID: `oattlsmrtkwf6ppnvvo24shk24`)  | HomeLab | `password` — stephenfroeber sudo password                  |
 
 ### Storage Box
 
-- **Host:** `u579903.your-storagebox.de` (BX41, 20TB, fsn1)
+- **Host:** `u579903.your-storagebox.de` (BX61, 20TB, fsn1)
 - **User:** `u579903`
-- SSH key auth configured; public key uploaded to `~/.ssh/authorized_keys` on the Storage Box
+- SSH key auth configured; public key in `~/.ssh/authorized_keys` on the Storage Box
 
 ---
 

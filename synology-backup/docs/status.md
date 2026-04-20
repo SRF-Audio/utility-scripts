@@ -1,6 +1,6 @@
 # Synology NAS → Hetzner Backup: Project Status
 
-**Last updated:** 2026-04-20 (session 3 — Trello alerting implemented)
+**Last updated:** 2026-04-20 (session 4 — first backup running; all blockers resolved)
 
 **Agent context:** This document is the authoritative state of this project. Read it before doing anything else. It captures findings, decisions, and outstanding work so any new agent or conversation can pick up without re-auditing the codebase.
 
@@ -59,7 +59,7 @@ Create a bit-for-bit backup of a Synology DS1813+ NAS (9.7TB used, /volume2) to 
 ### Blockers — must resolve before first run
 
 | # | Finding | Status |
-|---|---------|--------|
+| - | ------- | ------ |
 | B1 | Hetzner Storage Box not yet created | ✅ Done 2026-04-20 — BX41 created in fsn1, ID 562357, host u579903.your-storagebox.de, user u579903 |
 | B2 | Placeholder credentials hardcoded in playbook vars | ✅ Done 2026-04-20 — hostname + username stored in 1Password; playbook looks them up via community.general.onepassword |
 | B3 | No `op` CLI preflight assertion — fails mid-run with cryptic error if 1Password unavailable | ✅ Done 2026-04-20 — two-step preflight in tasks/main.yml: `op --version` + `op account list`, both delegated to localhost; fail with actionable message if either fails |
@@ -68,7 +68,7 @@ Create a bit-for-bit backup of a Synology DS1813+ NAS (9.7TB used, /volume2) to 
 ### Critical — must resolve before NAS is packed (late June 2026)
 
 | # | Finding | Status |
-|---|---------|--------|
+| - | ------- | ------ |
 | C1 | No failure alerting on cron jobs — backup could fail for weeks silently | ✅ Done 2026-04-20 — all three wrapper scripts rewritten: exit codes captured cleanly, failures call `_alert()`; Trello card creation implemented via `trello_alert.sh`; enable with `synology_restic_backup_trello_alerts_enabled: true` |
 | C2 | Restore has never been tested — backup is unverified until at least one restore test is run | ❌ Open — requires first successful backup run |
 | C3 | Retention policy is irrelevant for transit use case | ✅ Resolved (decision: keep defaults, no change needed) |
@@ -76,7 +76,7 @@ Create a bit-for-bit backup of a Synology DS1813+ NAS (9.7TB used, /volume2) to 
 ### Important — lower urgency but worth addressing
 
 | # | Finding | Status |
-|---|---------|--------|
+| - | ------- | ------ |
 | I1 | Lock contention is silent — overlapping runs exit 0 without alerting | ✅ Done 2026-04-20 — lock contention now calls `_alert()` and exits 1 in all three scripts |
 | I2 | Storage Box free space not monitored | ✅ Done 2026-04-20 — check.sh runs `restic stats --json` after integrity check; alerts when usage exceeds `synology_restic_backup_storage_warn_gib` (default: 16000 GiB ≈ 86% of BX61) |
 | I3 | No control-host prerequisites doc/runbook | ✅ Done 2026-04-20 — see `docs/control-host-setup.md` |
@@ -87,7 +87,7 @@ Create a bit-for-bit backup of a Synology DS1813+ NAS (9.7TB used, /volume2) to 
 ## Decisions Made
 
 | Date | Decision | Rationale |
-|------|----------|-----------|
+| ---- | -------- | --------- |
 | 2026-04-20 | Use BX61 (20TB) Storage Box, not BX10 (10TB) | Source is 9.7TB of pre-compressed media; restic compression will be <5%, leaving ~300MB headroom on 10TB — unacceptably tight for a once-in-a-move backup. 20TB gives safe margin. Cost difference is trivial vs. risk. |
 | 2026-04-20 | Move Storage Box hostname/username to 1Password instead of hardcoding in playbook | Keeps all secrets in one place; consistent with how repo password and SSH key are already managed |
 | 2026-04-20 | Retention policy is correct as-is for transit | NAS will be off during move — no new snapshots will accumulate. The daily/weekly/monthly retention only matters post-arrival. |
