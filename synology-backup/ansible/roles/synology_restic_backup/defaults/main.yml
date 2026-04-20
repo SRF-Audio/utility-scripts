@@ -74,6 +74,15 @@ synology_restic_backup_op_storagebox_ssh_key_field: "private key"
 synology_restic_backup_op_restic_repo_item: "Synology Restic Repository"
 synology_restic_backup_op_restic_repo_password_field: "password"
 
+# Hetzner account item holding Storage Box connection details.
+# Fields live in the "add more" section of the "Hetzner" item in HomeLab vault.
+synology_restic_backup_op_storagebox_host_item: "Hetzner"
+synology_restic_backup_op_storagebox_host_field: "storagebox_host"
+synology_restic_backup_op_storagebox_host_section: "add more"
+synology_restic_backup_op_storagebox_username_item: "Hetzner"
+synology_restic_backup_op_storagebox_username_field: "storagebox_username"
+synology_restic_backup_op_storagebox_username_section: "add more"
+
 # ---------------------------------------------------------------------------
 # Cron schedule
 # ---------------------------------------------------------------------------

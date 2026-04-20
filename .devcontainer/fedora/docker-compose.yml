@@ -22,3 +22,4 @@ services:
       - ${HOME}/.config/hcloud:/home/vscode/.config/hcloud:ro
     environment:
       - SSH_AUTH_SOCK=/ssh-agent
+      - OP_SERVICE_ACCOUNT_TOKEN=${OP_SERVICE_ACCOUNT_TOKEN:-}

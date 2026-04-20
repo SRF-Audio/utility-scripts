@@ -1,6 +1,29 @@
 ---
 # synology_restic_backup/tasks/main.yml
 
+# ---------------------------------------------------------------------------
+# Storage Box connection details — read from 1Password on the control host.
+# ---------------------------------------------------------------------------
+- name: Read Storage Box hostname from 1Password
+  ansible.builtin.set_fact:
+    synology_restic_backup_storagebox_host: >-
+      {{ lookup('community.general.onepassword',
+                synology_restic_backup_op_storagebox_host_item,
+                field=synology_restic_backup_op_storagebox_host_field,
+                section=synology_restic_backup_op_storagebox_host_section,
+                vault=synology_restic_backup_op_vault) }}
+  no_log: false
+
+- name: Read Storage Box username from 1Password
+  ansible.builtin.set_fact:
+    synology_restic_backup_storagebox_user: >-
+      {{ lookup('community.general.onepassword',
+                synology_restic_backup_op_storagebox_username_item,
+                field=synology_restic_backup_op_storagebox_username_field,
+                section=synology_restic_backup_op_storagebox_username_section,
+                vault=synology_restic_backup_op_vault) }}
+  no_log: false
+
 - name: Assert required variables are defined and non-empty
   ansible.builtin.assert:
     that:
@@ -10,14 +33,14 @@
       - synology_restic_backup_storagebox_user | length > 0
     fail_msg: >-
       synology_restic_backup_storagebox_host and
-      synology_restic_backup_storagebox_user must both be set.
-      See meta/argument_specs.yml for the full variable reference.
+      synology_restic_backup_storagebox_user could not be resolved from
+      1Password. Check that the Hetzner item in HomeLab vault has
+      storagebox_host and storagebox_username fields in the "add more" section.
 
 - name: Assert forget and check weekdays differ
   ansible.builtin.assert:
     that:
-      - synology_restic_backup_cron_forget_weekday !=
-        synology_restic_backup_cron_check_weekday
+      - synology_restic_backup_cron_forget_weekday != synology_restic_backup_cron_check_weekday
     fail_msg: >-
       synology_restic_backup_cron_forget_weekday and
       synology_restic_backup_cron_check_weekday must be different days to

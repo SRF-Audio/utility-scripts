@@ -37,6 +37,65 @@ ansible-playbook -i inventories/hosts.yml playbooks/cluster-connector.yml --tags
 ansible-playbook -i inventories/hosts.yml playbooks/cluster-connector.yml --tags cluster_connector_hetzner
 ```
 
+---
+
+## Synology NAS → Hetzner Backup
+
+Backs up a Synology DS1813+ (9.7TB, `/volume2`) to a Hetzner Storage Box using restic over SFTP. Intended as a disaster-recovery copy for a family move — see [`synology-backup/docs/status.md`](synology-backup/docs/status.md) for full project status.
+
+### Prerequisites
+
+**On the host machine (before opening the devcontainer):**
+
+1. **1Password SSH agent running** — the devcontainer mounts `~/.1password/agent.sock`. Ensure the 1Password desktop app is open and the SSH agent is enabled in Settings → Developer.
+
+2. **`op` CLI authenticated** — the devcontainer passes through `OP_SERVICE_ACCOUNT_TOKEN` if set, otherwise you must run `op signin` inside the container after it starts. To avoid this every session, export it in your host shell before opening VS Code:
+
+   ```zsh
+   export OP_SERVICE_ACCOUNT_TOKEN=$(op read "op://HomeLab/...")
+   ```
+
+   Or sign in interactively after attaching to the container:
+
+   ```zsh
+   op signin
+   ```
+
+3. **hcloud context configured** — `~/.config/hcloud` is mounted read-only. Ensure your `Paperless-NGX` context is active on the host:
+
+   ```zsh
+   hcloud context use Paperless-NGX
+   ```
+
+**Inside the devcontainer (automatic):**
+
+Ansible collections (`community.general`, `ansible.posix`) are installed automatically via `postCreateCommand` when the container is created.
+
+### Running the backup playbook
+
+```zsh
+cd /workspace/synology-backup/ansible
+ansible-playbook -i inventories/hosts.yml playbooks/synology-backup.yml
+```
+
+All secrets (restic repo password, Storage Box SSH key, Storage Box hostname/username) are fetched from 1Password at runtime — no manual variable substitution required.
+
+### 1Password items required
+
+| Item                          | Vault   | Fields used                                                |
+| ----------------------------- | ------- | ---------------------------------------------------------- |
+| `Hetzner`                     | HomeLab | `add more/storagebox_host`, `add more/storagebox_username` |
+| `Hetzner Storage Box SSH Key` | HomeLab | `private key` (SSH Key item)                               |
+| `Synology Restic Repository`  | HomeLab | `password`                                                 |
+
+### Storage Box
+
+- **Host:** `u579903.your-storagebox.de` (BX41, 20TB, fsn1)
+- **User:** `u579903`
+- SSH key auth configured; public key uploaded to `~/.ssh/authorized_keys` on the Storage Box
+
+---
+
 ## Contributing
 
 If you find these useful, but see a way to make them better, or more efficient, feel free to open an issue. I appreciate the contribution.
@@ -51,7 +110,7 @@ Below is a pattern I’ve had good luck with on mixed-environment homelabs.  It 
 
 ## 1  Inventory: model the *hardware & OS* first
 
-```
+```text
 inventories/
 └── homelab/
     ├── hosts.ini
@@ -133,7 +192,7 @@ Keep playbooks thin—just “which hosts, which roles, in what order”.  Examp
 
 ### Useful siblings
 
-```
+```text
 playbooks/
 ├── site.yml           # full convergence
 ├── maintenance.yml    # just updates & reboots

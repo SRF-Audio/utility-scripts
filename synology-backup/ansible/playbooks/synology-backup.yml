@@ -12,10 +12,13 @@
 #       # or: export OP_SERVICE_ACCOUNT_TOKEN=<token>
 #   - The following 1Password items must exist in the vault specified by
 #     synology_restic_backup_op_vault (default: "HomeLab"):
-#       - "{{ synology_restic_backup_op_restic_repo_item }}"
+#       - "Synology Restic Repository"
 #             (Login or Secure Note, field "password" holds the restic repo password)
-#       - "{{ synology_restic_backup_op_storagebox_ssh_key_item }}"
+#       - "Hetzner Storage Box SSH Key"
 #             (SSH Key item, field "private key" holds the Storage Box private key)
+#       - "Hetzner" (Login item, "add more" section)
+#             field "storagebox_host"     → u579903.your-storagebox.de
+#             field "storagebox_username" → u579903
 #   - SSH access to the Synology NAS (admin user with sudo, or root directly).
 #     The control-host public key must be in the NAS admin's authorized_keys.
 #
@@ -34,26 +37,12 @@
   hosts: synology_nas
   gather_facts: true
 
-  vars:
-    # Storage Box connection — REQUIRED, no defaults in the role.
-    # Replace these values for your environment.
-    synology_restic_backup_storagebox_host: "uXXXXXX.your-storagebox.de"
-    synology_restic_backup_storagebox_user: "uXXXXXX"
-
-    # Override retention policy here if the defaults don't suit your window.
-    # synology_restic_backup_retention_keep_daily: 7
-    # synology_restic_backup_retention_keep_weekly: 4
-    # synology_restic_backup_retention_keep_monthly: 3
-
-    # Override 1Password item names here if they differ from the role defaults.
-    # synology_restic_backup_op_vault: "HomeLab"
-    # synology_restic_backup_op_restic_repo_item: "Synology Restic Repository"
-    # synology_restic_backup_op_storagebox_ssh_key_item: "Hetzner Storage Box SSH Key"
-
-    # Override schedule here if needed.
-    # synology_restic_backup_cron_backup_hour: "2"
-    # synology_restic_backup_cron_forget_weekday: "0"   # Sunday
-    # synology_restic_backup_cron_check_weekday: "3"    # Wednesday
+  # vars: — all connection details and secrets are resolved from 1Password at
+  # runtime. Override role defaults here if needed, e.g.:
+  #   vars:
+  #     synology_restic_backup_op_vault: "HomeLab"
+  #     synology_restic_backup_retention_keep_daily: 7
+  #     synology_restic_backup_cron_backup_hour: "2"
 
   roles:
     - role: synology_restic_backup
