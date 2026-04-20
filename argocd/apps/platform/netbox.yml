@@ -60,6 +60,10 @@ spec:
           existingSecretName: netbox-redis-credentials
           existingSecretKey: password
 
+        # Initial DB migration on a fresh schema takes >100s — extend startup probe
+        startupProbe:
+          failureThreshold: 30
+
         service:
           type: ClusterIP
 
