@@ -1,3 +1,4 @@
+---
 name: Ansible – Lint and Test
 
 on:
@@ -16,7 +17,6 @@ on:
       - "!ansible/**/README*"
       - ".github/workflows/ansible-lint-and-test.yml"
   workflow_dispatch:
-
 jobs:
   detect-changes:
     if: github.event_name != 'workflow_dispatch'
@@ -50,23 +50,23 @@ jobs:
         id: normalize
         run: |
           set -euo pipefail
-          
+
           ROLES_FILES='${{ steps.filter.outputs.roles_files }}'
           PLAYBOOKS_FILES='${{ steps.filter.outputs.playbooks_files }}'
-          
+
           # Extract unique role directories using jq only
           ROLES_JSON=$(echo "$ROLES_FILES" | jq -c '[.[] | select(startswith("ansible/roles/")) | split("/") | "ansible/roles/" + .[2]] | unique')
-          
+
           # Extract unique playbook files
           PLAYBOOKS_JSON=$(echo "$PLAYBOOKS_FILES" | jq -c 'unique')
-          
+
           # Combine roles + playbooks for targets
           TARGETS_JSON=$(jq -nc --argjson r "$ROLES_JSON" --argjson p "$PLAYBOOKS_JSON" '$r + $p | unique')
-          
+
           # Boolean flags
           HAS_TARGETS=$(echo "$TARGETS_JSON" | jq -r 'length > 0')
           HAS_PLAYBOOKS=$(echo "$PLAYBOOKS_JSON" | jq -r 'length > 0')
-          
+
           {
             echo "roles_json=$ROLES_JSON"
             echo "playbooks_json=$PLAYBOOKS_JSON"
@@ -74,7 +74,7 @@ jobs:
             echo "has_targets=$HAS_TARGETS"
             echo "has_playbooks=$HAS_PLAYBOOKS"
           } >> "$GITHUB_OUTPUT"
-          
+
           echo "Changed roles: $ROLES_JSON"
           echo "Changed playbooks: $PLAYBOOKS_JSON"
           echo "Combined targets: $TARGETS_JSON"
