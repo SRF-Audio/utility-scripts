@@ -1,0 +1,36 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: netbox
+  namespace: infra-netbox
+  labels:
+    app.kubernetes.io/name: netbox
+    app.kubernetes.io/managed-by: argocd
+  annotations:
+    tailscale.com/tags: "tag:k8s,tag:server-apps"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: "NetBox"
+    gethomepage.dev/description: "IPAM and datacenter infrastructure management"
+    gethomepage.dev/group: "Platform"
+    gethomepage.dev/icon: "netbox.png"
+    gethomepage.dev/pod-selector: "app.kubernetes.io/name=netbox"
+    gethomepage.dev/href: "https://netbox-hetzner.rohu-shark.ts.net"
+    gethomepage.dev/url: "http://netbox.infra-netbox.svc.cluster.local:80"
+    gethomepage.dev/siteMonitor: "http://netbox.infra-netbox.svc.cluster.local:80"
+spec:
+  ingressClassName: tailscale
+  rules:
+    - host: netbox-hetzner.rohu-shark.ts.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: netbox
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - netbox-hetzner.rohu-shark.ts.net
