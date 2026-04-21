@@ -13,6 +13,15 @@ metadata:
     app.kubernetes.io/part-of: argocd
   annotations:
     tailscale.com/tags: "tag:k8s,tag:server-apps"
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: "ArgoCD"
+    gethomepage.dev/description: "GitOps continuous delivery"
+    gethomepage.dev/group: "Infrastructure"
+    gethomepage.dev/icon: "argocd.png"
+    gethomepage.dev/url: "https://argocd-hetzner.rohu-shark.ts.net"
+    gethomepage.dev/widget.type: "argocd"
+    gethomepage.dev/widget.url: "https://argocd-hetzner.rohu-shark.ts.net"
+    gethomepage.dev/widget.key: "{{HOMEPAGE_VAR_ARGOCD_TOKEN}}"
 spec:
   ingressClassName: tailscale
   rules:

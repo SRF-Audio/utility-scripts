@@ -35,7 +35,7 @@ spec:
                     widget:
                       type: nextdns
                       profile: 62778c
-                      key: ""  # TODO: Configure via OnePassword
+                      key: "" # TODO: Configure via OnePassword
 
                 - Proxmox:
                     href: https://192.168.226.90:8006
@@ -43,7 +43,7 @@ spec:
                       type: proxmox
                       url: https://192.168.226.90:8006
                       username: sfroeber
-                      password: ""  # TODO: Configure via OnePassword
+                      password: "" # TODO: Configure via OnePassword
 
           widgets:
             - datetime:
@@ -65,12 +65,10 @@ spec:
                   memory: true
                   showLabel: true
 
-
           kubernetes:
             mode: cluster
 
           settings: {}
-
         serviceAccount:
           create: true
           name: homepage

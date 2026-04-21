@@ -7,3 +7,4 @@ namespace: observability-minio
 resources:
   - namespace.yml
   - onepassword-minio.yml
+  - ingress.yml

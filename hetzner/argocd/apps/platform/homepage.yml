@@ -1,0 +1,81 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hetzner-homepage
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  project: hetzner-infra
+  sources:
+    - repoURL: https://jameswynn.github.io/helm-charts
+      chart: homepage
+      targetRevision: 2.1.0
+      helm:
+        valuesObject:
+          service:
+            main:
+              ports:
+                http:
+                  port: 80
+                  targetPort: 3000
+
+          config:
+            widgets:
+              - datetime:
+                  format:
+                    dateStyle: short
+                    timeStyle: short
+                    hourCycle: h23
+
+              - kubernetes:
+                  cluster:
+                    show: true
+                    cpu: true
+                    memory: true
+                    showLabel: true
+                    label: "hetzner"
+                  nodes:
+                    show: true
+                    cpu: true
+                    memory: true
+                    showLabel: true
+
+            kubernetes:
+              mode: cluster
+
+            settings: {}
+
+          serviceAccount:
+            create: true
+            name: homepage
+
+          enableRbac: true
+
+          ingress:
+            main:
+              enabled: false
+
+          env:
+            - name: HOMEPAGE_ALLOWED_HOSTS
+              value: "homepage-hetzner.rohu-shark.ts.net"
+            - name: HOMEPAGE_VAR_ARGOCD_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secrets
+                  key: token
+
+    - repoURL: https://github.com/SRF-Audio/utility-scripts
+      targetRevision: main
+      path: hetzner/k8s/homepage
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: infra-homepage
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

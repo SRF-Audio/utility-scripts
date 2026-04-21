@@ -1,0 +1,27 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: homepage
+  namespace: infra-homepage
+  labels:
+    app.kubernetes.io/name: homepage
+    app.kubernetes.io/managed-by: argocd
+  annotations:
+    tailscale.com/tags: "tag:k8s,tag:server-apps"
+spec:
+  ingressClassName: tailscale
+  rules:
+    - host: homepage-hetzner.rohu-shark.ts.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: homepage
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - homepage-hetzner.rohu-shark.ts.net

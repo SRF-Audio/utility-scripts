@@ -6,7 +6,6 @@
 # Key differences from homelab argocd-cm:
 # - url points to argocd-hetzner.rohu-shark.ts.net
 # - dex.config is omitted (no GitHub OAuth — use admin password, it's Tailscale-only)
-# - accounts.homepage kept for consistency but homepage is not deployed on Hetzner
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -14,6 +13,7 @@ metadata:
   namespace: argocd
 data:
   url: https://argocd-hetzner.rohu-shark.ts.net
+  accounts.homepage: apiKey
   exec.enabled: "true"
   resource.customizations.health.networking.k8s.io_Ingress: |
     hs = {}

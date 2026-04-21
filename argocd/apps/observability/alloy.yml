@@ -144,7 +144,6 @@ spec:
               protocol: "TCP"
 
           extraEnv: []
-
           securityContext:
             privileged: false
             runAsUser: 0
