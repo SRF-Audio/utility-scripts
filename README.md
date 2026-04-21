@@ -39,6 +39,45 @@ ansible-playbook -i inventories/hosts.yml playbooks/cluster-connector.yml --tags
 
 ---
 
+## Hetzner k3s Cluster
+
+Single-node k3s cluster on Hetzner Cloud. All services are Tailscale-only — no public ingress.
+
+**Dashboard:** `https://homepage-hetzner.rohu-shark.ts.net`
+
+| Service       | URL                                    | Notes                               |
+| ------------- | -------------------------------------- | ----------------------------------- |
+| Homepage      | `homepage-hetzner.rohu-shark.ts.net`   | Dashboard with k8s widget           |
+| ArgoCD        | `argocd-hetzner.rohu-shark.ts.net`     | GitOps — `hetzner/argocd/apps/`     |
+| Grafana       | `grafana-hetzner.rohu-shark.ts.net`    | Prometheus + Loki dashboards        |
+| Prometheus    | `prometheus-hetzner.rohu-shark.ts.net` | 30d retention, kube-prometheus-stack|
+| MinIO         | `minio-hetzner.rohu-shark.ts.net`      | S3 backend for Loki                 |
+| Paperless-NGX | `paperless-hetzner.rohu-shark.ts.net`  | Document management                 |
+
+**Bootstrap a fresh cluster:**
+
+```bash
+cd ansible/
+ansible-playbook -i inventories/hosts.yml playbooks/hetzner-bootstrap.yml
+```
+
+**GitOps layout:**
+
+```text
+hetzner/argocd/apps/      # ArgoCD Applications (root app recurses this)
+hetzner/k8s/              # Raw k8s resources (kustomize, applied by ArgoCD apps)
+```
+
+**Ingress annotation pattern** (for Homepage service discovery):
+
+```yaml
+gethomepage.dev/enabled: "true"
+gethomepage.dev/href: "https://<service>-hetzner.rohu-shark.ts.net"   # clickable link
+gethomepage.dev/url: "http://<svc>.<namespace>.svc.cluster.local:<port>"  # ping target
+```
+
+---
+
 ## Synology NAS → Hetzner Backup
 
 Backs up a Synology DS1813+ (9.7TB, `/volume2`) to a Hetzner Storage Box using restic over SFTP. Disaster-recovery copy for a family move — see [`synology-backup/docs/status.md`](synology-backup/docs/status.md) for full project status.
