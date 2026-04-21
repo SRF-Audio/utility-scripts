@@ -15,9 +15,7 @@ spec:
     helm:
       valuesObject:
         superuser:
-          email: "admin@netbox.local"
           existingSecret: netbox
-          existingSecretKey: password
 
         existingSecret: netbox
 
