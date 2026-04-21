@@ -5,3 +5,4 @@ resources:
   - local-path-config.yml
   - storageclasses/local-path-retain.yml
   - storageclasses/local-path-delete.yml
+  - sysctl-inotify.yml

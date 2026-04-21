@@ -16,6 +16,7 @@ metadata:
     gethomepage.dev/group: "Observability"
     gethomepage.dev/icon: "minio.png"
     gethomepage.dev/url: "https://minio-hetzner.rohu-shark.ts.net"
+    gethomepage.dev/ping: "http://hetzner-minio-console.observability-minio.svc.cluster.local:9001"
 spec:
   ingressClassName: tailscale
   rules:

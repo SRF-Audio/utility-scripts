@@ -22,6 +22,12 @@ spec:
                   targetPort: 3000
 
           config:
+            # Empty lists prevent the chart's default placeholder groups from
+            # rendering. Real service entries come from gethomepage.dev/*
+            # annotations on Ingress resources.
+            services: []
+            bookmarks: []
+
             widgets:
               - datetime:
                   format:

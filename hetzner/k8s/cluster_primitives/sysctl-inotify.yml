@@ -1,0 +1,45 @@
+---
+# Raises fs.inotify.max_user_instances from the kernel default of 128 to 512.
+# ArgoCD application-controller exhausts the default when watching many
+# resources, causing "failed to create fsnotify watcher: too many open files".
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: sysctl-inotify
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: sysctl-inotify
+    app.kubernetes.io/managed-by: argocd
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sysctl-inotify
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sysctl-inotify
+    spec:
+      hostPID: true
+      hostNetwork: true
+      tolerations:
+        - operator: Exists
+      initContainers:
+        - name: sysctl
+          image: busybox:1.37.0
+          command:
+            - sysctl
+            - -w
+            - fs.inotify.max_user_instances=512
+            - fs.inotify.max_user_watches=524288
+          securityContext:
+            privileged: true
+      containers:
+        - name: pause
+          image: gcr.io/google_containers/pause:3.1
+          resources:
+            requests:
+              cpu: 1m
+              memory: 1Mi
+            limits:
+              cpu: 10m
+              memory: 8Mi

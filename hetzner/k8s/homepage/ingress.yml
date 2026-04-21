@@ -9,7 +9,8 @@ metadata:
     app.kubernetes.io/managed-by: argocd
   annotations:
     tailscale.com/tags: "tag:k8s,tag:server-apps"
-    gethomepage.dev/enabled: "true"
+    # gethomepage.dev/enabled intentionally omitted — homepage should not
+    # discover itself and create a self-referential entry in the Kubernetes group.
 spec:
   ingressClassName: tailscale
   rules:

@@ -17,7 +17,8 @@ metadata:
     gethomepage.dev/description: "Document management and archive"
     gethomepage.dev/group: "Documents"
     gethomepage.dev/icon: "paperless-ngx.png"
-    gethomepage.dev/url: "paperless-hetzner.rohu-shark.ts.net"
+    gethomepage.dev/url: "https://paperless-hetzner.rohu-shark.ts.net"
+    gethomepage.dev/ping: "http://paperless-ngx-webserver.apps-paperless-ngx.svc.cluster.local:80"
 spec:
   ingressClassName: tailscale
   rules:
