@@ -51,7 +51,11 @@ spec:
             kubernetes:
               mode: cluster
 
-            settings: {}
+            settings:
+              title: "Hetzner"
+              # Empty layout so the chart doesn't render its default
+              # "My First/Second/Third Group" placeholders.
+              layout: {}
 
           serviceAccount:
             create: true
