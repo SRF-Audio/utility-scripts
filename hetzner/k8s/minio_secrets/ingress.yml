@@ -15,6 +15,7 @@ metadata:
     gethomepage.dev/description: "S3-compatible object storage"
     gethomepage.dev/group: "Observability"
     gethomepage.dev/icon: "minio.png"
+    gethomepage.dev/pod-selector: "app=minio,release=hetzner-minio"
     gethomepage.dev/href: "https://minio-hetzner.rohu-shark.ts.net"
     gethomepage.dev/url: "http://hetzner-minio-console.observability-minio.svc.cluster.local:9001"
     gethomepage.dev/siteMonitor: "http://hetzner-minio-console.observability-minio.svc.cluster.local:9001"
