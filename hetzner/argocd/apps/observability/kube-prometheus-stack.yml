@@ -84,6 +84,8 @@ spec:
           enabled: false
         kubeProxy:
           enabled: false
+        kubeCoreDns:
+          enabled: false
 
   destination:
     server: https://kubernetes.default.svc

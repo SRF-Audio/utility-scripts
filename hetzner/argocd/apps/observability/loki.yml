@@ -24,12 +24,12 @@ spec:
 
           storage:
             type: s3
+            bucketNames:
+              chunks: loki
+              ruler: loki
+              admin: loki
             s3:
               endpoint: http://minio.observability-minio.svc.cluster.local:9000
-              bucketNames:
-                chunks: loki
-                ruler: loki
-                admin: loki
               region: us-east-1
               secretAccessKey: ""
               accessKeyId: loki
