@@ -22,5 +22,10 @@ data:
       hs.status = "Healthy"
       return hs
     end
+    ingress = (obj.status and obj.status.loadBalancer and obj.status.loadBalancer.ingress) or {}
+    if #ingress > 0 then
+      hs.status = "Healthy"
+      return hs
+    end
     hs.status = "Progressing"
     return hs

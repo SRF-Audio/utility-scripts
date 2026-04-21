@@ -9,6 +9,7 @@ metadata:
     app.kubernetes.io/managed-by: argocd
   annotations:
     tailscale.com/tags: "tag:k8s,tag:server-apps"
+    gethomepage.dev/enabled: "true"
 spec:
   ingressClassName: tailscale
   rules:
