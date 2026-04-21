@@ -19,8 +19,7 @@ spec:
           existingSecret: netbox
           existingSecretKey: password
 
-        existingSecretName: netbox
-        existingSecretKey: secret-key
+        existingSecret: netbox
 
         persistence:
           enabled: true
