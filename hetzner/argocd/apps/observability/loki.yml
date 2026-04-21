@@ -31,8 +31,6 @@ spec:
             s3:
               endpoint: http://minio.observability-minio.svc.cluster.local:9000
               region: us-east-1
-              secretAccessKey: ""
-              accessKeyId: loki
               s3ForcePathStyle: true
               insecure: true
 
@@ -77,8 +75,10 @@ spec:
         test:
           enabled: false
 
-        # Loki user for MinIO — password from existing minio-credentials secret
+        # Loki credentials for MinIO — access key is static, secret from 1Password
         extraEnv:
+          - name: AWS_ACCESS_KEY_ID
+            value: loki
           - name: AWS_SECRET_ACCESS_KEY
             valueFrom:
               secretKeyRef:
