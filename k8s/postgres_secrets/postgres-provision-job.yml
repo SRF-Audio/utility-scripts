@@ -19,7 +19,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: provision
-          image: bitnami/postgresql:17
+          image: bitnamilegacy/postgresql:17
           command:
             - bash
             - -euo

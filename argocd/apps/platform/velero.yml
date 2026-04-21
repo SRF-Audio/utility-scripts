@@ -42,6 +42,13 @@ spec:
           #     config:
           #       region: <YOUR_REGION>
 
+        # Bitnami no longer publishes kubectl images matching k8s 1.34 to Docker Hub.
+        # Pin to bitnamilegacy/kubectl:1.33 — functionally identical for CRD upgrades.
+        kubectl:
+          image:
+            repository: bitnamilegacy/kubectl
+            tag: "1.33"
+
         snapshotsEnabled: true
         deployNodeAgent: false
         upgradeCRDs: true
