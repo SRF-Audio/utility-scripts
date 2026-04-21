@@ -20,6 +20,7 @@ metadata:
     gethomepage.dev/icon: "argocd.png"
     gethomepage.dev/href: "https://argocd-hetzner.rohu-shark.ts.net"
     gethomepage.dev/url: "http://argocd-server.argocd.svc.cluster.local:80"
+    gethomepage.dev/siteMonitor: "http://argocd-server.argocd.svc.cluster.local:80"
 spec:
   ingressClassName: tailscale
   rules:

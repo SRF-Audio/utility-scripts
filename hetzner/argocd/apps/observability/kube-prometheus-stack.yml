@@ -46,6 +46,7 @@ spec:
               gethomepage.dev/icon: "grafana.png"
               gethomepage.dev/href: "https://grafana-hetzner.rohu-shark.ts.net"
               gethomepage.dev/url: "http://hetzner-kube-prometheus-stack-grafana.observability-monitoring.svc.cluster.local:80"
+              gethomepage.dev/siteMonitor: "http://hetzner-kube-prometheus-stack-grafana.observability-monitoring.svc.cluster.local:80"
 
           additionalDataSources:
             - name: Loki

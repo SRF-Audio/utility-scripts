@@ -19,6 +19,7 @@ metadata:
     gethomepage.dev/icon: "paperless-ngx.png"
     gethomepage.dev/href: "https://paperless-hetzner.rohu-shark.ts.net"
     gethomepage.dev/url: "http://paperless-ngx-webserver.apps-paperless-ngx.svc.cluster.local:80"
+    gethomepage.dev/siteMonitor: "http://paperless-ngx-webserver.apps-paperless-ngx.svc.cluster.local:80"
 spec:
   ingressClassName: tailscale
   rules:

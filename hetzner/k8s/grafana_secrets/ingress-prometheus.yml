@@ -16,6 +16,7 @@ metadata:
     gethomepage.dev/icon: "prometheus.png"
     gethomepage.dev/href: "https://prometheus-hetzner.rohu-shark.ts.net"
     gethomepage.dev/url: "http://hetzner-kube-prometheus-st-prometheus.observability-monitoring.svc.cluster.local:9090"
+    gethomepage.dev/siteMonitor: "http://hetzner-kube-prometheus-st-prometheus.observability-monitoring.svc.cluster.local:9090"
 spec:
   ingressClassName: tailscale
   rules:
