@@ -1,0 +1,61 @@
+---
+# Dedicated PostgreSQL instance for NetBox.
+# Isolated from the paperless postgres (db-postgres) to avoid multi-user
+# provisioning complexity on the Bitnami chart.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: netbox-postgres
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  project: hetzner-db
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: postgresql
+    targetRevision: 18.1.1
+    helm:
+      valuesObject:
+        image:
+          repository: bitnamilegacy/postgresql
+
+        auth:
+          enablePostgresUser: false
+          username: netbox
+          database: netbox
+          existingSecret: netbox
+          secretKeys:
+            userPasswordKey: db-password
+
+        primary:
+          persistence:
+            enabled: true
+            storageClass: local-path-retain
+            size: 8Gi
+          podSecurityContext:
+            enabled: true
+            fsGroup: 1001
+            fsGroupChangePolicy: "OnRootMismatch"
+          containerSecurityContext:
+            enabled: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            runAsNonRoot: true
+          persistentVolumeClaimRetentionPolicy:
+            enabled: true
+            whenScaled: Retain
+            whenDeleted: Retain
+
+        volumePermissions:
+          enabled: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: db-netbox
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -66,5 +66,5 @@ spec:
             - name: NETBOX_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: netbox-db-credentials
-                  key: password
+                  name: netbox
+                  key: db-password

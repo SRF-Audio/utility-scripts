@@ -50,7 +50,7 @@ spec:
               existingSecret:
                 name: "leantime-app"
                 key: "smtp-password"
-              # password field left empty when using existingSecret
+        # password field left empty when using existingSecret
 
         # Configure MariaDB subchart to use 1Password-managed secret
         mariadb:

@@ -4,5 +4,3 @@ kind: Kustomization
 resources:
   - namespace.yml
   - netbox-credentials.yml
-  - netbox-db-credentials.yml
-  - netbox-redis-credentials.yml

@@ -1,0 +1,6 @@
+---
+# Deployed by netbox-secrets (hetzner-infra project → infra-netbox namespace).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - onepassword-netbox.yml

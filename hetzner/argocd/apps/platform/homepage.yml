@@ -27,7 +27,6 @@ spec:
             # annotations on Ingress resources.
             services: []
             bookmarks: []
-
             widgets:
               - datetime:
                   format:
@@ -56,7 +55,6 @@ spec:
               # Empty layout so the chart doesn't render its default
               # "My First/Second/Third Group" placeholders.
               layout: {}
-
           serviceAccount:
             create: true
             name: homepage

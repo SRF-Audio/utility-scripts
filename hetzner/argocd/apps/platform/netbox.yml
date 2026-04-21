@@ -5,9 +5,9 @@ metadata:
   name: netbox
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "20"
+    argocd.argoproj.io/sync-wave: "30"
 spec:
-  project: coachlight-k3s-infra
+  project: hetzner-infra
   source:
     repoURL: https://netbox-community.github.io/netbox-chart
     chart: netbox
@@ -24,7 +24,7 @@ spec:
 
         persistence:
           enabled: true
-          storageClass: "nfs-synology-retain"
+          storageClass: local-path-retain
 
         # Use existing PostgreSQL instance
         postgresql:
@@ -36,7 +36,7 @@ spec:
 
         # External database configuration
         externalDatabase:
-          host: postgres-postgresql.db-postgres.svc.cluster.local
+          host: netbox-postgres-postgresql.db-netbox.svc.cluster.local
           port: 5432
           database: netbox
           username: netbox
@@ -63,9 +63,29 @@ spec:
         service:
           type: ClusterIP
 
-        # Ingress managed as a standalone manifest in k8s/resources/ingresses/infra-netbox/
         ingress:
-          enabled: false
+          enabled: true
+          className: tailscale
+          hosts:
+            - host: netbox-hetzner.rohu-shark.ts.net
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - hosts:
+                - netbox-hetzner.rohu-shark.ts.net
+          annotations:
+            tailscale.com/tags: "tag:k8s,tag:server-apps"
+            app.kubernetes.io/managed-by: argocd
+            gethomepage.dev/enabled: "true"
+            gethomepage.dev/name: "NetBox"
+            gethomepage.dev/description: "IPAM and datacenter infrastructure management"
+            gethomepage.dev/group: "Platform"
+            gethomepage.dev/icon: "netbox.png"
+            gethomepage.dev/pod-selector: "app.kubernetes.io/name=netbox"
+            gethomepage.dev/href: "https://netbox-hetzner.rohu-shark.ts.net"
+            gethomepage.dev/url: "http://netbox.infra-netbox.svc.cluster.local:80"
+            gethomepage.dev/siteMonitor: "http://netbox.infra-netbox.svc.cluster.local:80"
 
   destination:
     server: https://kubernetes.default.svc
