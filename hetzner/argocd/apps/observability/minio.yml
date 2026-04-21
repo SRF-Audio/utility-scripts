@@ -1,0 +1,81 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hetzner-minio
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  project: hetzner-observability
+  source:
+    repoURL: https://charts.min.io/
+    chart: minio
+    targetRevision: "5.4.0"
+    helm:
+      valuesObject:
+        mode: standalone
+        replicas: 1
+
+        existingSecret: minio-credentials
+
+        persistence:
+          enabled: true
+          storageClass: local-path-retain
+          size: 20Gi
+
+        service:
+          type: ClusterIP
+
+        consoleService:
+          type: ClusterIP
+
+        ingress:
+          enabled: false
+
+        consoleIngress:
+          enabled: false
+
+        resources:
+          requests:
+            memory: 512Mi
+
+        buckets:
+          - name: loki
+            policy: none
+            purge: false
+            versioning: false
+
+        policies:
+          - name: loki-policy
+            statements:
+              - resources:
+                  - "arn:aws:s3:::loki/*"
+                actions:
+                  - "s3:AbortMultipartUpload"
+                  - "s3:GetObject"
+                  - "s3:DeleteObject"
+                  - "s3:PutObject"
+                  - "s3:ListMultipartUploadParts"
+              - resources:
+                  - "arn:aws:s3:::loki"
+                actions:
+                  - "s3:GetBucketLocation"
+                  - "s3:ListBucket"
+                  - "s3:ListBucketMultipartUploads"
+
+        users:
+          - accessKey: loki
+            existingSecret: minio-credentials
+            existingSecretKey: lokiSecretKey
+            policy: loki-policy
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability-minio
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

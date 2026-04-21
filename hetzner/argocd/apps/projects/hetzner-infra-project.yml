@@ -18,6 +18,7 @@ spec:
     - https://github.com/SRF-Audio/utility-scripts
     - https://github.com/SRF-Audio/utility-scripts.git
     - https://pkgs.tailscale.com/helmcharts
+    - https://1password.github.io/connect-helm-charts/
 
   destinations:
     - server: https://kubernetes.default.svc

@@ -1,0 +1,45 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: hetzner-observability
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: >
+    Observability stack for the Hetzner k3s cluster. Owns MinIO (Loki backend),
+    Loki (log aggregation), kube-prometheus-stack (Prometheus + Grafana +
+    Alertmanager), and Alloy (log/metric collection).
+
+  sourceRepos:
+    - https://github.com/SRF-Audio/utility-scripts
+    - https://github.com/SRF-Audio/utility-scripts.git
+    - https://charts.min.io/
+    - https://grafana.github.io/helm-charts
+    - https://prometheus-community.github.io/helm-charts
+
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: observability-*
+
+  orphanedResources:
+    warn: true
+
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+    - group: "rbac.authorization.k8s.io"
+      kind: ClusterRole
+    - group: "rbac.authorization.k8s.io"
+      kind: ClusterRoleBinding
+    - group: "apiextensions.k8s.io"
+      kind: CustomResourceDefinition
+    - group: "monitoring.coreos.com"
+      kind: "*"
+    - group: "admissionregistration.k8s.io"
+      kind: MutatingWebhookConfiguration
+    - group: "admissionregistration.k8s.io"
+      kind: ValidatingWebhookConfiguration
