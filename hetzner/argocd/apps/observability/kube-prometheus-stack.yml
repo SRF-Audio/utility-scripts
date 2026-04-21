@@ -44,8 +44,8 @@ spec:
               gethomepage.dev/description: "Metrics and log dashboards"
               gethomepage.dev/group: "Observability"
               gethomepage.dev/icon: "grafana.png"
-              gethomepage.dev/url: "https://grafana-hetzner.rohu-shark.ts.net"
-              gethomepage.dev/ping: "http://hetzner-kube-prometheus-stack-grafana.observability-monitoring.svc.cluster.local:80"
+              gethomepage.dev/href: "https://grafana-hetzner.rohu-shark.ts.net"
+              gethomepage.dev/url: "http://hetzner-kube-prometheus-stack-grafana.observability-monitoring.svc.cluster.local:80"
 
           additionalDataSources:
             - name: Loki

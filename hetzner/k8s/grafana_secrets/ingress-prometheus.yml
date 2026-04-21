@@ -14,8 +14,8 @@ metadata:
     gethomepage.dev/description: "Metrics collection and alerting"
     gethomepage.dev/group: "Observability"
     gethomepage.dev/icon: "prometheus.png"
-    gethomepage.dev/url: "https://prometheus-hetzner.rohu-shark.ts.net"
-    gethomepage.dev/ping: "http://hetzner-kube-prometheus-st-prometheus.observability-monitoring.svc.cluster.local:9090"
+    gethomepage.dev/href: "https://prometheus-hetzner.rohu-shark.ts.net"
+    gethomepage.dev/url: "http://hetzner-kube-prometheus-st-prometheus.observability-monitoring.svc.cluster.local:9090"
 spec:
   ingressClassName: tailscale
   rules:
