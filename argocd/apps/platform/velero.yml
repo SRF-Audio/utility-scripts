@@ -20,6 +20,11 @@ spec:
       valuesObject:
         # CSI support is built into Velero 1.14+ — no external plugin or feature flag needed.
 
+        # No backup or snapshot locations configured yet — suppress chart defaults
+        # to avoid invalid BSL/VSL CRs with empty required fields.
+        configuration:
+          backupStorageLocation: []
+          volumeSnapshotLocation: []
         # Bitnami no longer publishes kubectl images matching k8s 1.34 to Docker Hub.
         # Pin to bitnamilegacy/kubectl:1.33 — functionally identical for CRD upgrades.
         kubectl:
@@ -27,7 +32,7 @@ spec:
             repository: bitnamilegacy/kubectl
             tag: "1.33"
 
-        snapshotsEnabled: true
+        snapshotsEnabled: false
         deployNodeAgent: false
         upgradeCRDs: true
         cleanUpCRDs: false
