@@ -4,6 +4,11 @@
 #
 # Runs a restic backup of all configured shares to the Hetzner Storage Box.
 # Safe to invoke manually; concurrent runs are prevented via a lock directory.
+#
+# The SSH connection to the storage box can be silently killed by NAT session
+# timeouts mid-transfer (the local scan phase keeps the connection idle for
+# ~20 min before writing starts). On failure the script unlocks the repo and
+# retries — restic deduplication means each retry transfers only new data.
 set -euo pipefail
 
 readonly LOCK_DIR="/var/lock/restic-backup-backup.lock"
@@ -12,6 +17,8 @@ readonly RESTIC="{{ synology_restic_backup_restic_install_dir }}/restic"
 readonly PASSWORD_FILE="{{ synology_restic_backup_config_dir }}/.restic-password"
 readonly ALERT_CMD="{{ synology_restic_backup_alert_command }}"
 readonly JOB="backup"
+readonly MAX_ATTEMPTS=4
+readonly RETRY_DELAY=300  # 5 min — give the NAT table time to clear
 
 _alert() {
     local message="$1"
@@ -47,20 +54,37 @@ trap 'rmdir "${LOCK_DIR}" 2>/dev/null || true' EXIT INT TERM
 {% endfor %}
     )
 
-    set +e
-    "${RESTIC}" backup \
-        --one-file-system \
-        --tag "{{ synology_restic_backup_snapshot_tag }}" \
-        --verbose \
-        "${EXCLUDES[@]}" \
-        "${SOURCES[@]}"
-    rc=$?
-    set -e
+    attempt=1
+    rc=1
+    while [[ ${attempt} -le ${MAX_ATTEMPTS} ]]; do
+        if [[ ${attempt} -gt 1 ]]; then
+            echo "$(date -Iseconds) [${JOB}] Attempt ${attempt}/${MAX_ATTEMPTS} — unlocking repo and retrying in ${RETRY_DELAY}s"
+            "${RESTIC}" unlock 2>&1 || true
+            sleep "${RETRY_DELAY}"
+        fi
+
+        set +e
+        "${RESTIC}" backup \
+            --one-file-system \
+            --tag "{{ synology_restic_backup_snapshot_tag }}" \
+            --verbose \
+            "${EXCLUDES[@]}" \
+            "${SOURCES[@]}"
+        rc=$?
+        set -e
+
+        if [[ ${rc} -eq 0 ]]; then
+            break
+        fi
+
+        echo "$(date -Iseconds) [${JOB}] Attempt ${attempt}/${MAX_ATTEMPTS} failed with rc=${rc}"
+        attempt=$(( attempt + 1 ))
+    done
 
     echo "=== $(date -Iseconds) [${JOB}] END rc=${rc} ==="
 
     if [[ ${rc} -ne 0 ]]; then
-        _alert "${JOB} failed with exit code ${rc}. Check ${LOG_FILE} for details."
+        _alert "${JOB} failed after ${MAX_ATTEMPTS} attempts with exit code ${rc}. Check ${LOG_FILE} for details."
         exit ${rc}
     fi
 } >> "${LOG_FILE}" 2>&1
