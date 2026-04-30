@@ -4,6 +4,50 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Boopidoo HOTAS — Elite Dangerous Bindings</title>
+<!--
+  ============================================================
+  BOOPIDOO HOTAS — PHYSICAL-TO-JOYSTICK MAPPING REFERENCE
+  Device ID: 1B509206
+  ============================================================
+  AXES:
+    Left Stick X        = Joy_RXAxis   (X Rotation)
+    Left Stick Y        = Joy_RYAxis   (Y Rotation)
+    Left Stick Twist    = Joy_RZAxis   (Z Rotation)
+    Right Stick X       = Joy_XAxis    (X Axis)
+    Right Stick Y       = Joy_YAxis    (Y Axis)
+    Right Stick Twist   = Joy_ZAxis    (Z Axis)
+
+  BUTTONS:
+    Left Push Button    = Joy_1
+    Top Left  - Left    = Joy_2
+    Top Left  - Middle  = Joy_7
+    Top Left  - Right   = Joy_8
+    Top Right - Left    = Joy_13
+    Top Right - Middle  = Joy_14
+    Top Right - Right   = Joy_19
+    Right Push Button   = Joy_20
+    Left Stick Press    = Joy_25
+    Right Stick Press   = Joy_26
+    POV Hat Press       = Joy_32
+
+  KEYPAD:
+    Key 1 = Joy_3       Key 2 = Joy_4       Key 3 = Joy_5       Key A = Joy_6
+    Key 4 = Joy_9       Key 5 = Joy_10      Key 6 = Joy_11      Key B = Joy_12
+    Key 7 = Joy_15      Key 8 = Joy_16      Key 9 = Joy_17      Key C = Joy_18
+    Key * = Joy_21      Key 0 = Joy_22      Key # = Joy_23      Key D = Joy_24
+
+  POV HAT:
+    Up    = Joy_POV1Up      Down  = Joy_POV1Down
+    Left  = Joy_POV1Left    Right = Joy_POV1Right
+    Press = Joy_32
+
+  4-WAY SLIDE SWITCH (latching, always-on):
+    Position 1 (leftmost)  = Joy_30
+    Position 2             = Joy_29
+    Position 3             = Joy_28
+    Position 4 (rightmost) = Joy_27
+  ============================================================
+-->
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Barlow:wght@400;500;600;700&display=swap');
 
@@ -508,16 +552,16 @@
     <div>
       <div class="btn-group-label">LEFT BUTTONS</div>
       <div class="btn-group">
-        <div class="small-btn">
+        <div class="small-btn" data-joy="Joy_2">
           <div class="small-btn-circle b-flight"><span class="small-btn-id">2</span></div>
           <div class="small-btn-fn c-flight">SPD 0%</div>
           <div class="small-btn-fn2 c-ui">Prev Panel</div>
         </div>
-        <div class="small-btn">
+        <div class="small-btn" data-joy="Joy_7">
           <div class="small-btn-circle b-flight"><span class="small-btn-id">7</span></div>
           <div class="small-btn-fn c-flight">SPD 50%</div>
         </div>
-        <div class="small-btn">
+        <div class="small-btn" data-joy="Joy_8">
           <div class="small-btn-circle b-flight"><span class="small-btn-id">8</span></div>
           <div class="small-btn-fn c-flight">SPD 100%</div>
         </div>
@@ -526,16 +570,16 @@
     <div>
       <div class="btn-group-label">RIGHT BUTTONS</div>
       <div class="btn-group">
-        <div class="small-btn">
+        <div class="small-btn" data-joy="Joy_13">
           <div class="small-btn-circle b-flight"><span class="small-btn-id">13</span></div>
           <div class="small-btn-fn c-flight">FA Toggle</div>
         </div>
-        <div class="small-btn">
+        <div class="small-btn" data-joy="Joy_14">
           <div class="small-btn-circle b-nav"><span class="small-btn-id">14</span></div>
           <div class="small-btn-fn c-nav">S-Cruise</div>
           <div class="small-btn-fn2 c-ui">Next Panel</div>
         </div>
-        <div class="small-btn">
+        <div class="small-btn" data-joy="Joy_19">
           <div class="small-btn-circle b-nav"><span class="small-btn-id">19</span></div>
           <div class="small-btn-fn c-nav">FSD Jump</div>
         </div>
@@ -545,14 +589,14 @@
 
   <!-- Push buttons under each stick -->
   <div class="push-btn-section">
-    <div class="push-btn-info">
+    <div class="push-btn-info" data-joy="Joy_1">
       <div class="pbtn-label">BTN 1 &middot; LEFT PUSH</div>
       <div class="pbtn-fn c-ui">UI Back</div>
       <div class="dual">
         <div class="pbtn-fn c-ui" style="font-size:10px;">UI Focus</div>
       </div>
     </div>
-    <div class="push-btn-info">
+    <div class="push-btn-info" data-joy="Joy_20">
       <div class="pbtn-label">BTN 20 &middot; RIGHT PUSH</div>
       <div class="pbtn-fn c-flight">BOOST</div>
       <div class="dual">
@@ -565,24 +609,24 @@
   <div class="main-row">
 
     <!-- Left Stick -->
-    <div class="stick-panel">
+    <div class="stick-panel" data-joy-device="left-stick">
       <div class="stick-label">Left Stick</div>
       <div class="stick-visual"></div>
       <div class="axis-labels">
-        <div class="axis-row">
+        <div class="axis-row" data-joy="Joy_RXAxis">
           <span class="axis-dir">X (L/R)</span>
           <span class="axis-fn c-flight">Lateral Thrust</span>
         </div>
-        <div class="axis-row">
+        <div class="axis-row" data-joy="Joy_RYAxis">
           <span class="axis-dir">Y (F/B)</span>
           <span class="axis-fn c-flight">Vertical Thrust</span>
         </div>
-        <div class="axis-row">
+        <div class="axis-row" data-joy="Joy_RZAxis">
           <span class="axis-dir">Twist</span>
           <span class="axis-fn c-flight">Ahead Thrust</span>
         </div>
       </div>
-      <div class="stick-btn bg-combat b-combat" style="border:1px solid;">
+      <div class="stick-btn bg-combat b-combat" style="border:1px solid;" data-joy="Joy_25">
         <span class="btn-label">BTN 25 &middot; STICK PRESS</span>
         <span class="c-combat">Secondary Fire</span>
       </div>
@@ -593,70 +637,70 @@
       <div class="keypad-title">4×4 Keypad</div>
       <div class="keypad-grid">
         <!-- Row 1: 1 2 3 A -->
-        <div class="key bound bg-combat b-combat">
+        <div class="key bound bg-combat b-combat" data-joy="Joy_3">
           <div class="key-cap">1</div>
           <div class="key-fn c-combat">Hardpoints</div>
         </div>
-        <div class="key bound bg-combat b-combat">
+        <div class="key bound bg-combat b-combat" data-joy="Joy_4">
           <div class="key-cap">2</div>
           <div class="key-fn c-combat">Target Ahead</div>
         </div>
-        <div class="key bound bg-combat b-combat">
+        <div class="key bound bg-combat b-combat" data-joy="Joy_5">
           <div class="key-cap">3</div>
           <div class="key-fn c-combat">Prev Fire Grp</div>
         </div>
-        <div class="key bound bg-combat b-combat">
+        <div class="key bound bg-combat b-combat" data-joy="Joy_6">
           <div class="key-cap">A</div>
           <div class="key-fn c-combat">Next Fire Grp</div>
         </div>
         <!-- Row 2: 4 5 6 B -->
-        <div class="key bound bg-nav b-nav">
+        <div class="key bound bg-nav b-nav" data-joy="Joy_9">
           <div class="key-cap">4</div>
           <div class="key-fn c-nav">Galaxy Map</div>
         </div>
-        <div class="key bound bg-nav b-nav">
+        <div class="key bound bg-nav b-nav" data-joy="Joy_10">
           <div class="key-cap">5</div>
           <div class="key-fn c-nav">System Map</div>
         </div>
-        <div class="key bound bg-nav b-nav">
+        <div class="key bound bg-nav b-nav" data-joy="Joy_11">
           <div class="key-cap">6</div>
           <div class="key-fn c-nav">Next Route Sys</div>
         </div>
-        <div class="key bound bg-nav b-nav">
+        <div class="key bound bg-nav b-nav" data-joy="Joy_12">
           <div class="key-cap">B</div>
           <div class="key-fn c-nav">FSS Scanner</div>
         </div>
         <!-- Row 3: 7 8 9 C -->
-        <div class="key bound bg-camera b-camera">
+        <div class="key bound bg-camera b-camera" data-joy="Joy_15">
           <div class="key-cap">7</div>
           <div class="key-fn c-camera">Photo Cam</div>
         </div>
-        <div class="key bound bg-camera b-camera">
+        <div class="key bound bg-camera b-camera" data-joy="Joy_16">
           <div class="key-cap">8</div>
           <div class="key-fn c-camera">Vanity ◀</div>
         </div>
-        <div class="key bound bg-camera b-camera">
+        <div class="key bound bg-camera b-camera" data-joy="Joy_17">
           <div class="key-cap">9</div>
           <div class="key-fn c-camera">Vanity ▶</div>
         </div>
-        <div class="key bound bg-camera b-camera">
+        <div class="key bound bg-camera b-camera" data-joy="Joy_18">
           <div class="key-cap">C</div>
           <div class="key-fn c-camera">On-Foot Cam</div>
         </div>
         <!-- Row 4: * 0 # D -->
-        <div class="key bound bg-ship b-ship">
+        <div class="key bound bg-ship b-ship" data-joy="Joy_21">
           <div class="key-cap">*</div>
           <div class="key-fn c-ship">Cargo Scoop</div>
         </div>
-        <div class="key bound bg-flight b-flight">
+        <div class="key bound bg-flight b-flight" data-joy="Joy_22">
           <div class="key-cap">0</div>
           <div class="key-fn c-flight">Pips SYS</div>
         </div>
-        <div class="key bound bg-flight b-flight">
+        <div class="key bound bg-flight b-flight" data-joy="Joy_23">
           <div class="key-cap">#</div>
           <div class="key-fn c-flight">Pips ENG</div>
         </div>
-        <div class="key bound bg-ship b-ship">
+        <div class="key bound bg-ship b-ship" data-joy="Joy_24">
           <div class="key-cap">D</div>
           <div class="key-fn c-ship">Landing Gear</div>
         </div>
@@ -664,24 +708,24 @@
     </div>
 
     <!-- Right Stick -->
-    <div class="stick-panel">
+    <div class="stick-panel" data-joy-device="right-stick">
       <div class="stick-label">Right Stick</div>
       <div class="stick-visual"></div>
       <div class="axis-labels">
-        <div class="axis-row">
+        <div class="axis-row" data-joy="Joy_XAxis">
           <span class="axis-dir">X (L/R)</span>
           <span class="axis-fn c-flight">Roll</span>
         </div>
-        <div class="axis-row">
+        <div class="axis-row" data-joy="Joy_YAxis">
           <span class="axis-dir">Y (F/B)</span>
           <span class="axis-fn c-flight">Pitch ↕</span>
         </div>
-        <div class="axis-row">
+        <div class="axis-row" data-joy="Joy_ZAxis">
           <span class="axis-dir">Twist</span>
           <span class="axis-fn c-flight">Yaw</span>
         </div>
       </div>
-      <div class="stick-btn bg-combat b-combat" style="border:1px solid;">
+      <div class="stick-btn bg-combat b-combat" style="border:1px solid;" data-joy="Joy_26">
         <span class="btn-label">BTN 26 &middot; STICK PRESS</span>
         <span class="c-combat">Primary Fire</span>
         <div class="dual">
@@ -697,10 +741,10 @@
     <div class="switch-section">
       <div class="switch-label">4-Way Slide Switch</div>
       <div class="switch-positions">
-        <div class="switch-pos"><span class="sw-num">30</span>POS 1</div>
-        <div class="switch-pos"><span class="sw-num">29</span>POS 2</div>
-        <div class="switch-pos"><span class="sw-num">28</span>POS 3</div>
-        <div class="switch-pos"><span class="sw-num">27</span>POS 4</div>
+        <div class="switch-pos" data-joy="Joy_30"><span class="sw-num">30</span>POS 1</div>
+        <div class="switch-pos" data-joy="Joy_29"><span class="sw-num">29</span>POS 2</div>
+        <div class="switch-pos" data-joy="Joy_28"><span class="sw-num">28</span>POS 3</div>
+        <div class="switch-pos" data-joy="Joy_27"><span class="sw-num">27</span>POS 4</div>
       </div>
       <div style="font-size:10px;color:var(--text-muted);margin-top:8px;">Not bound — available for modifiers</div>
     </div>
@@ -709,14 +753,14 @@
       <div class="pov-label">POV Hat</div>
       <div class="pov-grid">
         <div class="pov-cell"></div>
-        <div class="pov-cell active c-ui">
+        <div class="pov-cell active c-ui" data-joy="Joy_POV1Up">
           <div><span class="pov-fn-label">↑</span>UI Up</div>
         </div>
         <div class="pov-cell"></div>
-        <div class="pov-cell active c-ui">
+        <div class="pov-cell active c-ui" data-joy="Joy_POV1Left">
           <div><span class="pov-fn-label">←</span>UI Left</div>
         </div>
-        <div class="pov-cell center">
+        <div class="pov-cell center" data-joy="Joy_32">
           <div>
             <span class="pov-fn-label">PRESS</span>
             <div class="c-ui" style="font-size:10px;font-weight:700;">UI Select</div>
@@ -725,11 +769,11 @@
             </div>
           </div>
         </div>
-        <div class="pov-cell active c-ui">
+        <div class="pov-cell active c-ui" data-joy="Joy_POV1Right">
           <div><span class="pov-fn-label">→</span>UI Right</div>
         </div>
         <div class="pov-cell"></div>
-        <div class="pov-cell active c-ui">
+        <div class="pov-cell active c-ui" data-joy="Joy_POV1Down">
           <div><span class="pov-fn-label">↓</span>UI Down</div>
         </div>
         <div class="pov-cell"></div>
