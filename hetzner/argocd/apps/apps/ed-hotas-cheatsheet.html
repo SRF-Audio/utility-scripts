@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boopidoo HOTAS — Elite Dangerous Bindings</title>
+<!--
+  ============================================================
+  BOOPIDOO HOTAS — PHYSICAL-TO-JOYSTICK MAPPING REFERENCE
+  Device ID: 1B509206
+  ============================================================
+  AXES:
+    Left Stick X        = Joy_RXAxis   (X Rotation)
+    Left Stick Y        = Joy_RYAxis   (Y Rotation)
+    Left Stick Twist    = Joy_RZAxis   (Z Rotation)
+    Right Stick X       = Joy_XAxis    (X Axis)
+    Right Stick Y       = Joy_YAxis    (Y Axis)
+    Right Stick Twist   = Joy_ZAxis    (Z Axis)
+
+  BUTTONS:
+    Left Push Button    = Joy_1
+    Top Left  - Left    = Joy_2
+    Top Left  - Middle  = Joy_7
+    Top Left  - Right   = Joy_8
+    Top Right - Left    = Joy_13
+    Top Right - Middle  = Joy_14
+    Top Right - Right   = Joy_19
+    Right Push Button   = Joy_20
+    Left Stick Press    = Joy_25
+    Right Stick Press   = Joy_26
+    POV Hat Press       = Joy_32
+
+  KEYPAD:
+    Key 1 = Joy_3       Key 2 = Joy_4       Key 3 = Joy_5       Key A = Joy_6
+    Key 4 = Joy_9       Key 5 = Joy_10      Key 6 = Joy_11      Key B = Joy_12
+    Key 7 = Joy_15      Key 8 = Joy_16      Key 9 = Joy_17      Key C = Joy_18
+    Key * = Joy_21      Key 0 = Joy_22      Key # = Joy_23      Key D = Joy_24
+
+  POV HAT:
+    Up    = Joy_POV1Up      Down  = Joy_POV1Down
+    Left  = Joy_POV1Left    Right = Joy_POV1Right
+    Press = Joy_32
+
+  4-WAY SLIDE SWITCH (latching, always-on):
+    Position 1 (leftmost)  = Joy_30
+    Position 2             = Joy_29
+    Position 3             = Joy_28
+    Position 4 (rightmost) = Joy_27
+  ============================================================
+-->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Barlow:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0a0e14;
+    --panel: #131920;
+    --panel-border: #1e2a36;
+    --accent-orange: #f59e0b;
+    --accent-blue: #38bdf8;
+    --accent-red: #ef4444;
+    --accent-green: #22c55e;
+    --accent-purple: #a78bfa;
+    --accent-cyan: #06b6d4;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --text-muted: #475569;
+    --keypad-bg: #1a1f28;
+    --key-bg: #0f1318;
+    --key-border: #2a3544;
+    --unbound: #334155;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    color: var(--accent-orange);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: center;
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  /* Main device layout */
+  .device {
+    max-width: 900px;
+    margin: 0 auto;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    padding: 28px 24px 24px;
+    position: relative;
+  }
+
+  .device::before {
+    content: 'BOOPIDOO HOTAS';
+    position: absolute;
+    top: -10px;
+    left: 24px;
+    background: var(--panel);
+    padding: 0 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+  }
+
+  /* Top row: buttons along the top edge */
+  .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 20px;
+    padding: 0 20px;
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 6px;
+    align-items: start;
+  }
+
+  .btn-group-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+  }
+
+  /* Main row: sticks + keypad */
+  .main-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  /* Joystick panels */
+  .stick-panel {
+    background: var(--key-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .stick-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent-orange);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+
+  .stick-visual {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 2px solid var(--panel-border);
+    margin: 0 auto 12px;
+    position: relative;
+    background: radial-gradient(circle at 40% 35%, #1e2a36, #0a0e14);
+  }
+
+  .stick-visual::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #2a3544;
+    border: 1px solid #3a4a5a;
+  }
+
+  .axis-labels {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+    margin-top: 8px;
+  }
+
+  .axis-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 10px;
+    background: var(--keypad-bg);
+    border-radius: 4px;
+    font-size: 13px;
+  }
+
+  .axis-dir {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    min-width: 55px;
+    text-align: left;
+  }
+
+  .axis-fn {
+    font-weight: 700;
+    text-align: right;
+  }
+
+  .stick-btn {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .stick-btn .btn-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  /* Keypad */
+  .keypad-section {
+    width: 260px;
+  }
+
+  .keypad-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent-orange);
+    letter-spacing: 2px;
+    text-align: center;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .keypad-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+  }
+
+  .key {
+    background: var(--key-bg);
+    border: 1px solid var(--key-border);
+    border-radius: 4px;
+    padding: 6px 4px;
+    text-align: center;
+    position: relative;
+    min-height: 52px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .key.bound { border-color: var(--panel-border); }
+  .key.unbound { border-color: var(--unbound); opacity: 0.5; }
+
+  .key-cap {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+  }
+
+  .key-fn {
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.3px;
+  }
+
+  /* Small buttons */
+  .small-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    min-width: 64px;
+  }
+
+  .small-btn-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--panel-border);
+    background: var(--key-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .small-btn-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--text-muted);
+  }
+
+  .small-btn-fn {
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.2;
+    max-width: 80px;
+  }
+
+  .small-btn-fn2 {
+    font-size: 10px;
+    text-align: center;
+    line-height: 1.1;
+    max-width: 80px;
+    opacity: 0.7;
+  }
+
+  /* POV Hat & 4-way switch */
+  .bottom-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-top: 20px;
+    padding: 0 20px;
+  }
+
+  .pov-section, .switch-section {
+    background: var(--key-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .pov-label, .switch-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent-orange);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  .pov-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    width: 156px;
+  }
+
+  .pov-cell {
+    padding: 6px 4px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 4px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pov-cell.active {
+    background: var(--keypad-bg);
+    border: 1px solid var(--panel-border);
+  }
+
+  .pov-cell.center {
+    background: var(--keypad-bg);
+    border: 1px solid var(--key-border);
+  }
+
+  .pov-fn-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 1px;
+  }
+
+  .switch-positions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .switch-pos {
+    padding: 6px 10px;
+    background: var(--keypad-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    text-align: center;
+  }
+  .switch-pos .sw-num { font-size: 9px; color: var(--text-muted); display: block; margin-bottom: 2px; }
+
+  /* Color classes */
+  .c-combat { color: var(--accent-red); }
+  .c-flight { color: var(--accent-blue); }
+  .c-nav { color: var(--accent-green); }
+  .c-ui { color: var(--accent-purple); }
+  .c-camera { color: var(--accent-cyan); }
+  .c-ship { color: var(--accent-orange); }
+  .c-unbound { color: var(--unbound); }
+
+  .b-combat { border-color: var(--accent-red) !important; }
+  .b-flight { border-color: var(--accent-blue) !important; }
+  .b-nav { border-color: var(--accent-green) !important; }
+  .b-ui { border-color: var(--accent-purple) !important; }
+  .b-camera { border-color: var(--accent-cyan) !important; }
+  .b-ship { border-color: var(--accent-orange) !important; }
+
+  .bg-combat { background: rgba(239,68,68,0.08); }
+  .bg-flight { background: rgba(56,189,248,0.08); }
+  .bg-nav { background: rgba(34,197,94,0.08); }
+  .bg-ui { background: rgba(167,139,250,0.08); }
+  .bg-camera { background: rgba(6,182,212,0.08); }
+  .bg-ship { background: rgba(245,158,11,0.08); }
+
+  /* Dual binding indicator */
+  .dual {
+    border-top: 1px dashed var(--panel-border);
+    margin-top: 3px;
+    padding-top: 3px;
+  }
+
+  /* Notes */
+  .notes {
+    max-width: 900px;
+    margin: 16px auto 0;
+    padding: 12px 16px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  .notes strong { color: var(--text); font-weight: 600; }
+  .notes .note-icon { color: var(--accent-orange); margin-right: 4px; }
+
+  /* Push btn labels */
+  .push-btn-section {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    margin-bottom: 6px;
+  }
+
+  .push-btn-info {
+    background: var(--key-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    padding: 8px 14px;
+    text-align: center;
+    min-width: 120px;
+  }
+
+  .push-btn-info .pbtn-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-bottom: 3px;
+  }
+
+  .push-btn-info .pbtn-fn {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  @media print {
+    body { background: #fff; color: #000; padding: 12px; }
+    .device, .notes { background: #fafafa; border-color: #ccc; }
+    .key, .stick-panel, .pov-section, .switch-section, .push-btn-info {
+      background: #fff; border-color: #ccc;
+    }
+    h1 { color: #b45309; }
+    .c-combat { color: #b91c1c; }
+    .c-flight { color: #0369a1; }
+    .c-nav { color: #15803d; }
+    .c-ui { color: #6d28d9; }
+    .c-camera { color: #0e7490; }
+    .c-ship { color: #b45309; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Elite Dangerous — Boopidoo Mini-HOTAS</h1>
+<div class="subtitle">Custom Bindings Cheat Sheet &middot; Profile: Custom_4_2</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--accent-red)"></div>COMBAT</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--accent-blue)"></div>FLIGHT</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--accent-green)"></div>NAV</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--accent-orange)"></div>SHIP SYS</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--accent-purple)"></div>UI</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--accent-cyan)"></div>CAMERA</div>
+</div>
+
+<div class="device">
+
+  <!-- Top button row -->
+  <div class="top-row">
+    <div>
+      <div class="btn-group-label">LEFT BUTTONS</div>
+      <div class="btn-group">
+        <div class="small-btn" data-joy="Joy_2">
+          <div class="small-btn-circle b-flight"><span class="small-btn-id">2</span></div>
+          <div class="small-btn-fn c-flight">SPD 0%</div>
+          <div class="small-btn-fn2 c-ui">Prev Panel</div>
+        </div>
+        <div class="small-btn" data-joy="Joy_7">
+          <div class="small-btn-circle b-flight"><span class="small-btn-id">7</span></div>
+          <div class="small-btn-fn c-flight">SPD 50%</div>
+        </div>
+        <div class="small-btn" data-joy="Joy_8">
+          <div class="small-btn-circle b-flight"><span class="small-btn-id">8</span></div>
+          <div class="small-btn-fn c-flight">SPD 100%</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="btn-group-label">RIGHT BUTTONS</div>
+      <div class="btn-group">
+        <div class="small-btn" data-joy="Joy_13">
+          <div class="small-btn-circle b-flight"><span class="small-btn-id">13</span></div>
+          <div class="small-btn-fn c-flight">FA Toggle</div>
+        </div>
+        <div class="small-btn" data-joy="Joy_14">
+          <div class="small-btn-circle b-nav"><span class="small-btn-id">14</span></div>
+          <div class="small-btn-fn c-nav">S-Cruise</div>
+          <div class="small-btn-fn2 c-ui">Next Panel</div>
+        </div>
+        <div class="small-btn" data-joy="Joy_19">
+          <div class="small-btn-circle b-nav"><span class="small-btn-id">19</span></div>
+          <div class="small-btn-fn c-nav">FSD Jump</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Push buttons under each stick -->
+  <div class="push-btn-section">
+    <div class="push-btn-info" data-joy="Joy_1">
+      <div class="pbtn-label">BTN 1 &middot; LEFT PUSH</div>
+      <div class="pbtn-fn c-ui">UI Back</div>
+      <div class="dual">
+        <div class="pbtn-fn c-ui" style="font-size:10px;">UI Focus</div>
+      </div>
+    </div>
+    <div class="push-btn-info" data-joy="Joy_20">
+      <div class="pbtn-label">BTN 20 &middot; RIGHT PUSH</div>
+      <div class="pbtn-fn c-flight">BOOST</div>
+      <div class="dual">
+        <div class="pbtn-fn c-ui" style="font-size:10px;">UI Toggle</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main row: Left stick / Keypad / Right stick -->
+  <div class="main-row">
+
+    <!-- Left Stick -->
+    <div class="stick-panel" data-joy-device="left-stick">
+      <div class="stick-label">Left Stick</div>
+      <div class="stick-visual"></div>
+      <div class="axis-labels">
+        <div class="axis-row" data-joy="Joy_RXAxis">
+          <span class="axis-dir">X (L/R)</span>
+          <span class="axis-fn c-flight">Lateral Thrust</span>
+        </div>
+        <div class="axis-row" data-joy="Joy_RYAxis">
+          <span class="axis-dir">Y (F/B)</span>
+          <span class="axis-fn c-flight">Vertical Thrust</span>
+        </div>
+        <div class="axis-row" data-joy="Joy_RZAxis">
+          <span class="axis-dir">Twist</span>
+          <span class="axis-fn c-flight">Ahead Thrust</span>
+        </div>
+      </div>
+      <div class="stick-btn bg-combat b-combat" style="border:1px solid;" data-joy="Joy_25">
+        <span class="btn-label">BTN 25 &middot; STICK PRESS</span>
+        <span class="c-combat">Secondary Fire</span>
+      </div>
+    </div>
+
+    <!-- Keypad -->
+    <div class="keypad-section">
+      <div class="keypad-title">4×4 Keypad</div>
+      <div class="keypad-grid">
+        <!-- Row 1: 1 2 3 A -->
+        <div class="key bound bg-combat b-combat" data-joy="Joy_3">
+          <div class="key-cap">1</div>
+          <div class="key-fn c-combat">Hardpoints</div>
+        </div>
+        <div class="key bound bg-combat b-combat" data-joy="Joy_4">
+          <div class="key-cap">2</div>
+          <div class="key-fn c-combat">Target Ahead</div>
+        </div>
+        <div class="key bound bg-combat b-combat" data-joy="Joy_5">
+          <div class="key-cap">3</div>
+          <div class="key-fn c-combat">Prev Fire Grp</div>
+        </div>
+        <div class="key bound bg-combat b-combat" data-joy="Joy_6">
+          <div class="key-cap">A</div>
+          <div class="key-fn c-combat">Next Fire Grp</div>
+        </div>
+        <!-- Row 2: 4 5 6 B -->
+        <div class="key bound bg-nav b-nav" data-joy="Joy_9">
+          <div class="key-cap">4</div>
+          <div class="key-fn c-nav">Galaxy Map</div>
+        </div>
+        <div class="key bound bg-nav b-nav" data-joy="Joy_10">
+          <div class="key-cap">5</div>
+          <div class="key-fn c-nav">System Map</div>
+        </div>
+        <div class="key bound bg-nav b-nav" data-joy="Joy_11">
+          <div class="key-cap">6</div>
+          <div class="key-fn c-nav">Next Route Sys</div>
+        </div>
+        <div class="key bound bg-nav b-nav" data-joy="Joy_12">
+          <div class="key-cap">B</div>
+          <div class="key-fn c-nav">FSS Scanner</div>
+        </div>
+        <!-- Row 3: 7 8 9 C -->
+        <div class="key bound bg-camera b-camera" data-joy="Joy_15">
+          <div class="key-cap">7</div>
+          <div class="key-fn c-camera">Photo Cam</div>
+        </div>
+        <div class="key bound bg-camera b-camera" data-joy="Joy_16">
+          <div class="key-cap">8</div>
+          <div class="key-fn c-camera">Vanity ◀</div>
+        </div>
+        <div class="key bound bg-camera b-camera" data-joy="Joy_17">
+          <div class="key-cap">9</div>
+          <div class="key-fn c-camera">Vanity ▶</div>
+        </div>
+        <div class="key bound bg-camera b-camera" data-joy="Joy_18">
+          <div class="key-cap">C</div>
+          <div class="key-fn c-camera">On-Foot Cam</div>
+        </div>
+        <!-- Row 4: * 0 # D -->
+        <div class="key bound bg-ship b-ship" data-joy="Joy_21">
+          <div class="key-cap">*</div>
+          <div class="key-fn c-ship">Cargo Scoop</div>
+        </div>
+        <div class="key bound bg-flight b-flight" data-joy="Joy_22">
+          <div class="key-cap">0</div>
+          <div class="key-fn c-flight">Pips SYS</div>
+        </div>
+        <div class="key bound bg-flight b-flight" data-joy="Joy_23">
+          <div class="key-cap">#</div>
+          <div class="key-fn c-flight">Pips ENG</div>
+        </div>
+        <div class="key bound bg-ship b-ship" data-joy="Joy_24">
+          <div class="key-cap">D</div>
+          <div class="key-fn c-ship">Landing Gear</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Stick -->
+    <div class="stick-panel" data-joy-device="right-stick">
+      <div class="stick-label">Right Stick</div>
+      <div class="stick-visual"></div>
+      <div class="axis-labels">
+        <div class="axis-row" data-joy="Joy_XAxis">
+          <span class="axis-dir">X (L/R)</span>
+          <span class="axis-fn c-flight">Roll</span>
+        </div>
+        <div class="axis-row" data-joy="Joy_YAxis">
+          <span class="axis-dir">Y (F/B)</span>
+          <span class="axis-fn c-flight">Pitch ↕</span>
+        </div>
+        <div class="axis-row" data-joy="Joy_ZAxis">
+          <span class="axis-dir">Twist</span>
+          <span class="axis-fn c-flight">Yaw</span>
+        </div>
+      </div>
+      <div class="stick-btn bg-combat b-combat" style="border:1px solid;" data-joy="Joy_26">
+        <span class="btn-label">BTN 26 &middot; STICK PRESS</span>
+        <span class="c-combat">Primary Fire</span>
+        <div class="dual">
+          <span class="c-ui" style="font-size:10px;">Galaxy Map Home</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom row: 4-way switch & POV Hat -->
+  <div class="bottom-row">
+    <div class="switch-section">
+      <div class="switch-label">4-Way Slide Switch</div>
+      <div class="switch-positions">
+        <div class="switch-pos" data-joy="Joy_30"><span class="sw-num">30</span>POS 1</div>
+        <div class="switch-pos" data-joy="Joy_29"><span class="sw-num">29</span>POS 2</div>
+        <div class="switch-pos" data-joy="Joy_28"><span class="sw-num">28</span>POS 3</div>
+        <div class="switch-pos" data-joy="Joy_27"><span class="sw-num">27</span>POS 4</div>
+      </div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:8px;">Not bound — available for modifiers</div>
+    </div>
+
+    <div class="pov-section">
+      <div class="pov-label">POV Hat</div>
+      <div class="pov-grid">
+        <div class="pov-cell"></div>
+        <div class="pov-cell active c-ui" data-joy="Joy_POV1Up">
+          <div><span class="pov-fn-label">↑</span>UI Up</div>
+        </div>
+        <div class="pov-cell"></div>
+        <div class="pov-cell active c-ui" data-joy="Joy_POV1Left">
+          <div><span class="pov-fn-label">←</span>UI Left</div>
+        </div>
+        <div class="pov-cell center" data-joy="Joy_32">
+          <div>
+            <span class="pov-fn-label">PRESS</span>
+            <div class="c-ui" style="font-size:10px;font-weight:700;">UI Select</div>
+            <div class="dual">
+              <div class="c-flight" style="font-size:10px;">HeadLook</div>
+            </div>
+          </div>
+        </div>
+        <div class="pov-cell active c-ui" data-joy="Joy_POV1Right">
+          <div><span class="pov-fn-label">→</span>UI Right</div>
+        </div>
+        <div class="pov-cell"></div>
+        <div class="pov-cell active c-ui" data-joy="Joy_POV1Down">
+          <div><span class="pov-fn-label">↓</span>UI Down</div>
+        </div>
+        <div class="pov-cell"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Notes -->
+<div class="notes">
+  <p><span class="note-icon">▸</span> <strong>Dual bindings:</strong> Several buttons show two functions — ED uses Primary/Secondary bindings contextually (e.g., flight vs UI panel mode). The main function is shown first, secondary below the dashed line.</p>
+  <p style="margin-top:6px;"><span class="note-icon">▸</span> <strong>Left twist = Ahead Thrust</strong> (direct thrust, not autothrottle). Speed management is button-only via 0%/50%/100% presets on the top row. Twist spring-centers to zero — ideal for FA-off.</p>
+  <p style="margin-top:6px;"><span class="note-icon">▸</span> <strong>FSD buttons:</strong> Btn 14 = supercruise (short/local). Btn 19 = hyperspace jump (long/next system). Mnemonic: short trip left, long trip right.</p>
+  <p style="margin-top:6px;"><span class="note-icon">▸</span> <strong>Pip management:</strong> SYS for shields under fire, ENG for FA-off maneuvering. WEP remains on keyboard for now. <strong>Balance/Reset pips to equal (2-2-2)</strong> is the "Balance Power Distribution" binding in ED — keep that on keyboard or add to a future slide switch mode.</p>
+  <p style="margin-top:6px;"><span class="note-icon">▸</span> <strong>4-way slide switch</strong> is unbound — reserved for future mode layers if more bindings are needed (combat countermeasures, WEP pips, DSS, etc.).</p>
+  <p style="margin-top:6px;"><span class="note-icon">▸</span> <strong>Boost (Btn 20):</strong> Essential even for non-combat — submit-boost-boost-jump is the standard interdiction escape. Also the foundation of FA-off maneuvering (boost-and-turn).</p>
+  <p style="margin-top:6px;"><span class="note-icon">▸</span> <strong>Pitch axis</strong> is inverted (pull back = nose up).</p>
+</div>
+
+</body>
+</html>
