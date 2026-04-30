@@ -10,6 +10,18 @@ synology_restic_backup_restic_version: "0.17.3"
 synology_restic_backup_restic_install_dir: "/usr/local/bin"
 
 # ---------------------------------------------------------------------------
+# Performance tuning
+# ---------------------------------------------------------------------------
+# Compression: "auto" (zstd, default upstream), "off", or "max".
+# On low-power NAS hardware (Atom, ARM) zstd compression can saturate the CPU
+# and starve SSH keepalives, killing the SFTP connection mid-transfer.
+synology_restic_backup_compression: "off"
+
+# GOMAXPROCS limits Go's parallel threads. Set to less than the total logical
+# CPUs to leave headroom for the OS, SSH, and DSM services.
+synology_restic_backup_gomaxprocs: 2
+
+# ---------------------------------------------------------------------------
 # Directory layout on the NAS
 # ---------------------------------------------------------------------------
 synology_restic_backup_config_dir: "/etc/restic-backup"

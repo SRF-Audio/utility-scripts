@@ -64,8 +64,10 @@ trap 'rmdir "${LOCK_DIR}" 2>/dev/null || true' EXIT INT TERM
         fi
 
         set +e
+        GOMAXPROCS={{ synology_restic_backup_gomaxprocs }} \
         "${RESTIC}" backup \
             --one-file-system \
+            --compression {{ synology_restic_backup_compression }} \
             --tag "{{ synology_restic_backup_snapshot_tag }}" \
             --verbose \
             "${EXCLUDES[@]}" \
