@@ -14,6 +14,17 @@ Key constraints:
 - hetzner/ansible/ is a standalone playbook; it reuses roles from ansible/roles/ via
   the roles_path in hetzner/ansible/ansible.cfg
 - Run bootstrap from hetzner/ansible/: ansible-playbook -i inventory/hetzner.yml site.yml
+
+kubectl contexts:
+- hetzner               → this cluster (use for all kubectl commands in this directory)
+- coachlight-k3s-cluster → homelab cluster (reference only; do not modify)
+Always pass --context explicitly. The API server is Tailscale-only; ensure local machine
+is on the tailnet before running kubectl or ansible against the hetzner node.
+
+MCP tools available in Claude Code:
+- github: read GitHub repos/PRs/issues without leaving the conversation
+- fetch:  look up ArgoCD, Ansible, k8s, or Hetzner API docs inline
+Use Bash (kubectl, ansible-playbook, op) for all write/mutation operations.
 -->
 
 ## Purpose

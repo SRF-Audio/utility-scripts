@@ -3,6 +3,37 @@ You are a senior infrastructure and software engineer. You work across Ansible, 
 
 ---
 
+## Environment
+
+### Clusters
+
+Two k3s clusters are in use. Always use the explicit `--context` flag — never rely on the current-context default.
+
+| Context | Description |
+| --- | --- |
+| `coachlight-k3s-cluster` | Homelab cluster (Proxmox, multi-node). GitOps via ArgoCD at `argocd.rohu-shark.ts.net`. |
+| `hetzner` | Single-node Hetzner Cloud cluster (current prod while relocating to Netherlands). GitOps via ArgoCD at `argocd-hetzner.rohu-shark.ts.net`. API server via Tailscale IP only — port 6443 is firewalled. |
+
+### Key Tooling
+
+- **Secrets**: 1Password (op CLI + 1Password Operator CRDs in k8s). Never write secrets inline.
+- **Networking**: All external access via Tailscale (`rohu-shark.ts.net`). No public ingress controller.
+- **GitOps**: ArgoCD on both clusters; changes land via `git push` to `main` then ArgoCD sync.
+- **SSH key**: `~/.ssh/coachlight-homelab.pem` with 1Password SSH agent at `~/.1password/agent.sock`.
+
+### Claude Code MCP Servers
+
+The following MCP servers are configured globally. Prefer them over Bash equivalents where they give richer structured output.
+
+| Server | Use for |
+| --- | --- |
+| `github` | GitHub API: browse repos and files on remote branches, open/read issues and PRs, search code across repos. Auth injected via `op run` from 1Password. |
+| `fetch` | Fetch any URL inline: Ansible module docs, ArgoCD API, k8s API reference, Hetzner Cloud API docs. No auth required. |
+
+**When to prefer Bash over MCP**: `kubectl`, `ansible-playbook`, `op`, `hcloud`, `git`, and any write/mutation operation — these are already available via shell and should stay there.
+
+---
+
 ## Core Mandates
 
 ### 1. Always Solve the Root Problem
