@@ -2,13 +2,10 @@
 # Managed by Ansible role synology_restic_backup — do not edit by hand.
 # Re-run the Ansible playbook to update this file.
 #
-# Runs a restic backup of all configured shares to the Hetzner Storage Box.
-# Safe to invoke manually; concurrent runs are prevented via a lock directory.
-#
-# The SSH connection to the storage box can be silently killed by NAT session
-# timeouts mid-transfer (the local scan phase keeps the connection idle for
-# ~20 min before writing starts). On failure the script unlocks the repo and
-# retries — restic deduplication means each retry transfers only new data.
+# Backs up each configured share as an independent restic invocation so that
+# a mid-transfer SSH failure only loses progress on the current share, not
+# the entire job.  Restic content-level deduplication means data already
+# uploaded by a prior (failed) monolithic run is not re-sent.
 set -euo pipefail
 
 readonly LOCK_DIR="/var/lock/restic-backup-backup.lock"
@@ -17,15 +14,58 @@ readonly RESTIC="{{ synology_restic_backup_restic_install_dir }}/restic"
 readonly PASSWORD_FILE="{{ synology_restic_backup_config_dir }}/.restic-password"
 readonly ALERT_CMD="{{ synology_restic_backup_alert_command }}"
 readonly JOB="backup"
-readonly MAX_ATTEMPTS=4
-readonly RETRY_DELAY=300  # 5 min — give the NAT table time to clear
+readonly MAX_ATTEMPTS={{ synology_restic_backup_max_attempts | default(4) }}
+readonly RETRY_DELAY={{ synology_restic_backup_retry_delay | default(300) }}
+
+_log() { echo "$(date -Iseconds) [${JOB}] $1"; }
 
 _alert() {
     local message="$1"
-    echo "$(date -Iseconds) [${JOB}] ALERT: ${message}" >> "${LOG_FILE}"
+    _log "ALERT: ${message}"
     if [[ -n "${ALERT_CMD}" ]]; then
         eval "${ALERT_CMD}" <<< "${message}" 2>> "${LOG_FILE}" || true
     fi
+}
+
+_backup_share() {
+    local share="$1"
+    local share_name
+    share_name=$(basename "${share}")
+    local attempt=1
+    local rc=1
+
+    while [[ ${attempt} -le ${MAX_ATTEMPTS} ]]; do
+        if [[ ${attempt} -gt 1 ]]; then
+            _log "[${share_name}] Attempt ${attempt}/${MAX_ATTEMPTS} — unlocking repo and retrying in ${RETRY_DELAY}s"
+            "${RESTIC}" unlock 2>&1 || true
+            sleep "${RETRY_DELAY}"
+        fi
+
+        _log "[${share_name}] Attempt ${attempt}/${MAX_ATTEMPTS} — starting backup"
+
+        set +e
+        GOMAXPROCS={{ synology_restic_backup_gomaxprocs }} \
+        "${RESTIC}" backup \
+            --one-file-system \
+            --compression {{ synology_restic_backup_compression }} \
+            --tag "{{ synology_restic_backup_snapshot_tag }}" \
+            --verbose \
+            "${EXCLUDES[@]}" \
+            "${share}"
+        rc=$?
+        set -e
+
+        if [[ ${rc} -eq 0 ]]; then
+            _log "[${share_name}] Completed successfully"
+            return 0
+        fi
+
+        _log "[${share_name}] Attempt ${attempt}/${MAX_ATTEMPTS} failed with rc=${rc}"
+        attempt=$(( attempt + 1 ))
+    done
+
+    _alert "${share_name} failed after ${MAX_ATTEMPTS} attempts with exit code ${rc}. Check ${LOG_FILE} for details."
+    return 1
 }
 
 # Acquire lock — mkdir is atomic on all DSM-supported filesystems.
@@ -36,7 +76,7 @@ fi
 trap 'rmdir "${LOCK_DIR}" 2>/dev/null || true' EXIT INT TERM
 
 {
-    echo "=== $(date -Iseconds) [${JOB}] START ==="
+    _log "START"
 
     export RESTIC_REPOSITORY="sftp:storagebox:{{ synology_restic_backup_storagebox_repo_path }}"
     export RESTIC_PASSWORD
@@ -45,48 +85,31 @@ trap 'rmdir "${LOCK_DIR}" 2>/dev/null || true' EXIT INT TERM
     EXCLUDES=(
 {% for exclude in synology_restic_backup_excludes %}
         --exclude="{{ exclude }}"
-{% endfor %}
+{%- endfor %}
     )
 
-    SOURCES=(
+    SHARES=(
 {% for path in synology_restic_backup_backup_paths %}
         "{{ path }}"
-{% endfor %}
+{%- endfor %}
     )
 
-    attempt=1
-    rc=1
-    while [[ ${attempt} -le ${MAX_ATTEMPTS} ]]; do
-        if [[ ${attempt} -gt 1 ]]; then
-            echo "$(date -Iseconds) [${JOB}] Attempt ${attempt}/${MAX_ATTEMPTS} — unlocking repo and retrying in ${RETRY_DELAY}s"
-            "${RESTIC}" unlock 2>&1 || true
-            sleep "${RETRY_DELAY}"
+    failed=()
+    for share in "${SHARES[@]}"; do
+        if [[ ! -d "${share}" ]]; then
+            _log "$(basename "${share}") does not exist, skipping"
+            continue
         fi
-
-        set +e
-        GOMAXPROCS={{ synology_restic_backup_gomaxprocs }} \
-        "${RESTIC}" backup \
-            --one-file-system \
-            --compression {{ synology_restic_backup_compression }} \
-            --tag "{{ synology_restic_backup_snapshot_tag }}" \
-            --verbose \
-            "${EXCLUDES[@]}" \
-            "${SOURCES[@]}"
-        rc=$?
-        set -e
-
-        if [[ ${rc} -eq 0 ]]; then
-            break
+        if ! _backup_share "${share}"; then
+            failed+=("${share}")
         fi
-
-        echo "$(date -Iseconds) [${JOB}] Attempt ${attempt}/${MAX_ATTEMPTS} failed with rc=${rc}"
-        attempt=$(( attempt + 1 ))
     done
 
-    echo "=== $(date -Iseconds) [${JOB}] END rc=${rc} ==="
-
-    if [[ ${rc} -ne 0 ]]; then
-        _alert "${JOB} failed after ${MAX_ATTEMPTS} attempts with exit code ${rc}. Check ${LOG_FILE} for details."
-        exit ${rc}
+    if [[ ${% raw %}{#{% endraw %}failed[@]} -gt 0 ]]; then
+        _log "END — ${% raw %}{#{% endraw %}failed[@]} share(s) failed: ${failed[*]}"
+        _alert "${% raw %}{#{% endraw %}failed[@]} share(s) failed: ${failed[*]}. Check ${LOG_FILE} for details."
+        exit 1
     fi
+
+    _log "END — all shares completed successfully"
 } >> "${LOG_FILE}" 2>&1

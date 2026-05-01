@@ -21,6 +21,11 @@ synology_restic_backup_compression: "off"
 # CPUs to leave headroom for the OS, SSH, and DSM services.
 synology_restic_backup_gomaxprocs: 2
 
+# Retry behaviour per share: how many times to retry a failed backup, and how
+# long to wait between attempts (seconds).
+synology_restic_backup_max_attempts: 4
+synology_restic_backup_retry_delay: 300
+
 # ---------------------------------------------------------------------------
 # Directory layout on the NAS
 # ---------------------------------------------------------------------------

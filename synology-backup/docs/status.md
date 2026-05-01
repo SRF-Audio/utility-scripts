@@ -1,6 +1,6 @@
 # Synology NAS → Hetzner Backup: Project Status
 
-**Last updated:** 2026-04-20 (session 4 — first backup running; all blockers resolved)
+**Last updated:** 2026-05-01 (session 5 — per-share backup deployed after diagnosing SSH pipe breaks)
 
 **Agent context:** This document is the authoritative state of this project. Read it before doing anything else. It captures findings, decisions, and outstanding work so any new agent or conversation can pick up without re-auditing the codebase.
 
@@ -13,6 +13,7 @@ Create a bit-for-bit backup of a Synology DS1813+ NAS (9.7TB used, /volume2) to 
 **Key dates:**
 
 - 2026-04-20: Project started
+- 2026-05-01: Per-share backup strategy deployed (see Session 5 notes below)
 - 2026-06-~20: NAS must be packed (estimate — late June)
 - 2026-07-22: Fly to Netherlands
 - Backup must be running reliably well before late June so there is time to verify it
@@ -28,6 +29,8 @@ Create a bit-for-bit backup of a Synology DS1813+ NAS (9.7TB used, /volume2) to 
 **Secrets:** 1Password CLI (`op`) — all secrets fetched at playbook runtime on control host, never hardcoded
 **Destination:** Hetzner Storage Box (SFTP, port 23)
 **Encryption:** Restic AES-256 at rest; SSH transport in transit
+
+**Backup strategy:** Per-share sequential. Each share in `synology_restic_backup_backup_paths` is backed up as an independent `restic backup` invocation with its own retry loop (up to `MAX_ATTEMPTS` per share, default 4). A completed share saves a snapshot immediately; a failure only retries the failed share. Restic content-level deduplication means data uploaded by prior attempts is never re-sent.
 
 **Schedule (once running):**
 
@@ -70,8 +73,9 @@ Create a bit-for-bit backup of a Synology DS1813+ NAS (9.7TB used, /volume2) to 
 | # | Finding | Status |
 | - | ------- | ------ |
 | C1 | No failure alerting on cron jobs — backup could fail for weeks silently | ✅ Done 2026-04-20 — all three wrapper scripts rewritten: exit codes captured cleanly, failures call `_alert()`; Trello card creation implemented via `trello_alert.sh`; enable with `synology_restic_backup_trello_alerts_enabled: true` |
-| C2 | Restore has never been tested — backup is unverified until at least one restore test is run | ❌ Open — requires first successful backup run |
+| C2 | Restore has never been tested — backup is unverified until at least one restore test is run | ❌ Open — requires first successful per-share backup run |
 | C3 | Retention policy is irrelevant for transit use case | ✅ Resolved (decision: keep defaults, no change needed) |
+| C4 | Monolithic backup fails before completing — SSH connection drops after 4–57 hours, losing all progress | ✅ Done 2026-05-01 — rewritten as per-share sequential backup; each share is an independent restic invocation with retry; completed shares save snapshots immediately |
 
 ### Important — lower urgency but worth addressing
 
@@ -95,22 +99,43 @@ Create a bit-for-bit backup of a Synology DS1813+ NAS (9.7TB used, /volume2) to 
 | 2026-04-20 | Use Trello for alerting | User checks Trello daily with notifications on; credentials stored in `op://HomeLab/Atlassian/{api_key,token,alert_list_id}`; enabled via `synology_restic_backup_trello_alerts_enabled: true` |
 | 2026-04-20 | Restic version check is advisory (warn, not fail) | Upstream releases must be reviewed for breaking changes before upgrading; blocking playbook runs on a patch release would be counterproductive |
 | 2026-04-20 | B4 (host key pinning) closed as not-applicable | Storage Box host key is Hetzner-generated, not in 1Password. Pre-populating via ssh-keyscan is itself TOFU and adds no security. `accept-new` is correct — it pins on first use and enforces thereafter. |
+| 2026-05-01 | Per-share sequential backup, not monolithic | Every monolithic attempt (Apr 20–Apr 30) failed with SSH broken pipe after 4–57 hours — never enough to complete 9.7TB. Per-share means each share completes and saves a snapshot independently; failures only retry the current share. Restic dedup ensures no data is re-uploaded. |
+| 2026-05-01 | No parallel restic — sequential is correct | Restic takes an exclusive repo lock; parallel runs are not possible against a single repo. Separate repos per share would add unacceptable operational overhead. Upload bandwidth (not CPU or disk) is the bottleneck. |
+| 2026-05-01 | SSH pipe breaks are likely Spectrum modem, not Omada or Hetzner | Investigation: Omada gateway TCP Established timeout is 7440s but connections survived far longer (SSH keepalives refresh NAT). No Hetzner server-side session limit found. NAS NIC link stable since Dec 2025. Spectrum cable modem (bridge mode) is the most likely culprit — inconsistent failure times (4h–57h) match consumer modem connection tracking behaviour. |
 
 ---
 
 ## What Needs to Happen Next (Ordered)
 
-1. **Enable Trello alerting** — add `synology_restic_backup_trello_alerts_enabled: true` to playbook vars or `group_vars/synology_nas.yml`
-2. **Run playbook end-to-end** — `ansible-playbook -i inventories/hosts.yml playbooks/synology-backup.yml`
-3. **Verify first snapshot** — `restic snapshots` and `restic check` on the NAS; confirm repo is healthy
-4. **Run restore test (C2)** — restore at least one directory to a temp location, verify contents
-5. **Pre-pack checklist** — before powering down NAS: confirm last snapshot date, confirm repo health, document restic repo URL and password location for recovery
+1. **Monitor per-share backup progress** — per-share backup started 2026-05-01 08:20 CDT. Check `sudo tail -f /var/log/restic-backup/backup.log` and `restic snapshots` to confirm shares are completing and saving snapshots
+2. **Verify all 9 shares have a snapshot** — `restic snapshots` should show one snapshot per share once the first full run completes
+3. **Run restore test (C2)** — restore at least one directory to a temp location, verify contents
+4. **Pre-pack checklist** — before powering down NAS: confirm last snapshot date, confirm repo health, document restic repo URL and password location for recovery
 
 ---
 
 ## Conventions
 
 - **Always use `op` CLI for secrets.** Never use `read -rs`, inline flags with passwords, or shell variable workarounds. Use `op run --env-file` or inline `VAR=op://vault/item/field op run --` patterns exclusively.
+- **Jinja `{#` escaping.** Bash `${#array[@]}` must be escaped in Jinja2 templates because `{#` opens a comment block. Use `${% raw %}{#{% endraw %}array[@]}` in `.j2` files.
+
+---
+
+## Network Topology & SSH Pipe Break Investigation (2026-05-01)
+
+**Path:** NAS (192.168.226.6, bond0) → TP-Link Omada gateway (192.168.226.1) → Spectrum modem (bridge mode, WAN 24.207.167.72) → internet → Hetzner (91.98.241.44:23)
+
+**NAS network:** 4× 1Gbps NICs in LACP bond (bond0), but switch is not doing LACP (Partner Mac 00:00:00:00:00:00) — only eth0 carries traffic. No link flaps since Dec 2025 reboot. 20M RX dropped (overruns), but no TX errors.
+
+**Omada gateway:** TCP Established session timeout = 7440s (default). SSH keepalives at 60s refresh the NAT mapping — connections survive well past 7440s, so this is not the cause. No session limits or QoS rate limits active. The Storage Box connection uses port 23, which falls under TELNET in the Omada QoS service definitions (not SSH/22).
+
+**Spectrum modem:** Charter/Spectrum residential cable (AS20115), bridge mode. No admin interface accessible from LAN. Even in bridge mode, some Spectrum modems maintain light connection tracking. The inconsistent failure times across attempts (4h, 8h, 15h, 20h, 24h, 31h, 57h) are characteristic of a stateful middlebox with variable session eviction, not a fixed timeout.
+
+**Hetzner side:** No documented SFTP session duration limit. The SSH error is `client_loop: send disconnect: Broken pipe` — client detects a dead socket, not a server-initiated reset. Not a Hetzner issue.
+
+**NAS kernel TCP:** `tcp_keepalive_time=7200` (2hr before first probe). SSH keepalives at 60s supplement this. The kernel conntrack timeout on the NAS is 432000s (irrelevant — NAS is not doing NAT).
+
+**Conclusion:** The Spectrum modem is the most likely cause. The per-share backup strategy mitigates this by keeping individual SSH sessions shorter and ensuring progress is saved between shares.
 
 ---
 
@@ -119,6 +144,7 @@ Create a bit-for-bit backup of a Synology DS1813+ NAS (9.7TB used, /volume2) to 
 - Active context: `Paperless-NGX`
 - Existing servers: `hetzner-node` (nbg1, running)
 - Storage Boxes: BX61, ID 562357, `u579903.your-storagebox.de`
+- Storage Box usage as of 2026-05-01: 1.5 TB / 20 TB (7%) — from prior failed monolithic runs; data preserved by restic dedup
 
 ---
 
@@ -138,7 +164,7 @@ synology-backup/
 │       └── synology-backup.yml               # Main playbook
 │   └── roles/
 │       └── synology_restic_backup/
-│           ├── defaults/main.yml             # All role defaults incl. restic version, retention, cron, alerting
+│           ├── defaults/main.yml             # All role defaults incl. restic version, retention, cron, alerting, retry params
 │           ├── meta/argument_specs.yml       # Full variable documentation
 │           └── tasks/
 │               ├── main.yml                  # Entry point: op preflight, version check, secrets, orchestration
@@ -150,7 +176,7 @@ synology-backup/
 │               ├── schedule_jobs.yml         # Cron job deployment
 │               └── restore_doc.yml           # Restore procedure doc
 │           └── templates/
-│               ├── backup.sh.j2              # Alert on failure + lock contention (C1/I1)
+│               ├── backup.sh.j2              # Per-share sequential backup with retry (C1/I1/C4)
 │               ├── forget.sh.j2              # Alert on failure + lock contention (C1/I1)
 │               ├── check.sh.j2               # Alert on failure + storage space audit (C1/I1/I2)
 │               ├── trello_alert.sh.j2        # Creates a Trello card; called by _alert()
