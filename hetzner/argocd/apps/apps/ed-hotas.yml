@@ -1,0 +1,23 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ed-hotas
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  project: hetzner-apps
+  source:
+    repoURL: https://github.com/SRF-Audio/utility-scripts
+    targetRevision: main
+    path: hetzner/k8s/ed_hotas
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps-ed-hotas
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

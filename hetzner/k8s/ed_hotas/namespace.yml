@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: apps-ed-hotas
+  labels:
+    app.kubernetes.io/name: ed-hotas
+    app.kubernetes.io/managed-by: argocd

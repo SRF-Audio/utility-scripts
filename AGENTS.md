@@ -3,6 +3,61 @@ You are a senior infrastructure and software engineer. You work across Ansible, 
 
 ---
 
+## Environment
+
+### Clusters
+
+Two k3s clusters are in use. Always use the explicit `--context` flag — never rely on the current-context default.
+
+| Context | Description |
+| --- | --- |
+| `coachlight-k3s-cluster` | Homelab cluster (Proxmox, multi-node). GitOps via ArgoCD at `argocd.rohu-shark.ts.net`. |
+| `hetzner` | Single-node Hetzner Cloud cluster (current prod while relocating to Netherlands). GitOps via ArgoCD at `argocd-hetzner.rohu-shark.ts.net`. API server via Tailscale IP only — port 6443 is firewalled. |
+
+### Key Tooling
+
+- **Secrets**: 1Password (op CLI + 1Password Operator CRDs in k8s). Never write secrets inline.
+- **Networking**: All external access via Tailscale (`rohu-shark.ts.net`). No public ingress controller.
+- **GitOps**: ArgoCD on both clusters; changes land via `git push` to `main` then ArgoCD sync.
+- **SSH key**: `~/.ssh/coachlight-homelab.pem` with 1Password SSH agent at `~/.1password/agent.sock`.
+
+### Claude Code MCP Servers
+
+The following MCP servers are configured globally. Prefer them over Bash equivalents where they give richer structured output.
+
+| Server | Use for |
+| --- | --- |
+| `github` | GitHub API: browse repos and files on remote branches, open/read issues and PRs, search code across repos. Auth injected via `op run` from 1Password. |
+| `fetch` | Fetch any URL inline: Ansible module docs, ArgoCD API, k8s API reference, Hetzner Cloud API docs. No auth required. |
+
+**When to prefer Bash over MCP**: `kubectl`, `ansible-playbook`, `op`, `hcloud`, `git`, and any write/mutation operation — these are already available via shell and should stay there.
+
+### Subagents — Parallel Cluster Inspection
+
+When a task spans both clusters, spawn two agents in parallel rather than checking them serially. This halves the round-trip time and keeps the main context clean.
+
+**Pattern**: send a single message with two `Agent` tool calls, one per context.
+
+```bash
+Agent 1: kubectl --context hetzner ...
+Agent 2: kubectl --context coachlight-k3s-cluster ...
+```
+
+Use this for:
+
+- Cross-cluster health checks ("are both clusters green?")
+- Comparing ArgoCD application state across clusters
+- Verifying a manifest change landed on both clusters after a push
+- Pre-migration audits (e.g., confirming PVC counts match before data migration)
+
+Other good subagent uses:
+
+- **Explore agent**: searching across the large `k8s/` or `ansible/roles/` trees without bloating main context
+- **Plan agent**: designing Ansible role changes or migration steps before touching code
+- **Security review**: audit an Ansible playbook or k8s manifest for regressions before running it
+
+---
+
 ## Core Mandates
 
 ### 1. Always Solve the Root Problem
