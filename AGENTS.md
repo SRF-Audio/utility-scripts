@@ -32,6 +32,30 @@ The following MCP servers are configured globally. Prefer them over Bash equival
 
 **When to prefer Bash over MCP**: `kubectl`, `ansible-playbook`, `op`, `hcloud`, `git`, and any write/mutation operation — these are already available via shell and should stay there.
 
+### Subagents — Parallel Cluster Inspection
+
+When a task spans both clusters, spawn two agents in parallel rather than checking them serially. This halves the round-trip time and keeps the main context clean.
+
+**Pattern**: send a single message with two `Agent` tool calls, one per context.
+
+```bash
+Agent 1: kubectl --context hetzner ...
+Agent 2: kubectl --context coachlight-k3s-cluster ...
+```
+
+Use this for:
+
+- Cross-cluster health checks ("are both clusters green?")
+- Comparing ArgoCD application state across clusters
+- Verifying a manifest change landed on both clusters after a push
+- Pre-migration audits (e.g., confirming PVC counts match before data migration)
+
+Other good subagent uses:
+
+- **Explore agent**: searching across the large `k8s/` or `ansible/roles/` trees without bloating main context
+- **Plan agent**: designing Ansible role changes or migration steps before touching code
+- **Security review**: audit an Ansible playbook or k8s manifest for regressions before running it
+
 ---
 
 ## Core Mandates
