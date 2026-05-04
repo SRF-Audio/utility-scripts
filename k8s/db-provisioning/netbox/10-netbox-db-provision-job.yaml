@@ -1,0 +1,120 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: netbox-db-provision
+  namespace: db-postgres
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      name: netbox-db-provision
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: postgres-client
+          image: bitnami/postgresql:16
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              set -o pipefail
+
+              echo "Starting NetBox database provisioning..."
+
+              # Set PGPASSWORD for admin connection
+              export PGPASSWORD="$POSTGRES_ADMIN_PASSWORD"
+
+              # Create SQL script with idempotent operations using psql variables
+              cat > /tmp/provision.sql << 'EOF'
+              -- Create role if it doesn't exist
+              DO $$
+              BEGIN
+                IF NOT EXISTS (
+                  SELECT FROM pg_catalog.pg_roles
+                  WHERE rolname = :'netbox_user'
+                ) THEN
+                  EXECUTE format('CREATE ROLE %I WITH LOGIN', :'netbox_user');
+                  RAISE NOTICE 'Role % created', :'netbox_user';
+                ELSE
+                  RAISE NOTICE 'Role % already exists', :'netbox_user';
+                END IF;
+              END
+              $$;
+
+              -- Set/update password (rotation-friendly)
+              DO $$
+              BEGIN
+                EXECUTE format(
+                  'ALTER ROLE %I WITH LOGIN PASSWORD %L',
+                  :'netbox_user',
+                  :'netbox_password'
+                );
+              END
+              $$;
+
+              -- Create database if it doesn't exist
+              DO $$
+              BEGIN
+                IF NOT EXISTS (
+                  SELECT FROM pg_database WHERE datname = :'netbox_db_name'
+                ) THEN
+                  EXECUTE format(
+                    'CREATE DATABASE %I WITH OWNER = %I',
+                    :'netbox_db_name',
+                    :'netbox_user'
+                  );
+                  RAISE NOTICE 'Database % created', :'netbox_db_name';
+                ELSE
+                  RAISE NOTICE 'Database % already exists', :'netbox_db_name';
+                END IF;
+              END
+              $$;
+
+              -- Ensure ownership and grants
+              DO $$
+              BEGIN
+                EXECUTE format('ALTER DATABASE %I OWNER TO %I', :'netbox_db_name', :'netbox_user');
+                EXECUTE format('GRANT CONNECT ON DATABASE %I TO %I', :'netbox_db_name', :'netbox_user');
+                EXECUTE format('GRANT ALL PRIVILEGES ON DATABASE %I TO %I', :'netbox_db_name', :'netbox_user');
+              END
+              $$;
+              EOF
+
+              # Execute SQL with psql variables (safe from SQL injection)
+              psql -v ON_ERROR_STOP=1 \
+                -h postgres-postgresql.db-postgres.svc.cluster.local \
+                -p 5432 \
+                -U "$POSTGRES_ADMIN_USER" \
+                -d postgres \
+                --set=netbox_db_name=netbox \
+                --set=netbox_user="$NETBOX_DB_USER" \
+                --set=netbox_password="$NETBOX_DB_PASSWORD" \
+                -f /tmp/provision.sql
+
+              echo "NetBox database provisioning completed successfully."
+          env:
+            - name: POSTGRES_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-admin
+                  key: username
+            - name: POSTGRES_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-admin
+                  key: password
+            - name: NETBOX_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: netbox-db-credentials
+                  key: username
+            - name: NETBOX_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: netbox-db-credentials
+                  key: password
