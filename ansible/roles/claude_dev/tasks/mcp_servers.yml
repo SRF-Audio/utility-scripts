@@ -1,0 +1,22 @@
+---
+- name: Create MCP wrappers directory
+  ansible.builtin.file:
+    path: "{{ claude_dev_wrapper_dir }}"
+    state: directory
+    mode: "0700"
+
+- name: Generate MCP wrapper scripts for servers with secrets
+  ansible.builtin.template:
+    src: mcp_wrapper.sh.j2
+    dest: "{{ claude_dev_wrapper_dir }}/{{ item.name }}.sh"
+    mode: "0700"
+  loop: "{{ claude_dev_mcp_servers | selectattr('op_secrets') | rejectattr('op_secrets', 'equalto', {}) | list }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Generate Claude Code settings.json with MCP configuration
+  ansible.builtin.template:
+    src: claude_settings.json.j2
+    dest: "{{ claude_dev_config_dir }}/settings.json"
+    mode: "0600"
+    backup: true

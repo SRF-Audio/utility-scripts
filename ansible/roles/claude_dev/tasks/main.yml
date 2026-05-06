@@ -1,0 +1,32 @@
+---
+- name: Run prerequisite checks
+  ansible.builtin.include_tasks:
+    file: prerequisites.yml
+    apply:
+      tags:
+        - claude_dev
+        - claude_dev_prerequisites
+
+- name: Install and configure Claude Code
+  ansible.builtin.include_tasks:
+    file: claude_code.yml
+    apply:
+      tags:
+        - claude_dev
+        - claude_dev_install
+
+- name: Configure MCP servers
+  ansible.builtin.include_tasks:
+    file: mcp_servers.yml
+    apply:
+      tags:
+        - claude_dev
+        - claude_dev_mcp
+
+- name: Configure shell integration
+  ansible.builtin.include_tasks:
+    file: shell.yml
+    apply:
+      tags:
+        - claude_dev
+        - claude_dev_shell

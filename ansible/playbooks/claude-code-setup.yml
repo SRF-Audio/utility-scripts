@@ -1,0 +1,27 @@
+---
+# Claude Code Development Environment Setup
+#
+# Provisions a consistent Claude Code + MCP server configuration
+# across desktop and laptop machines.
+#
+# Usage:
+#   ansible-playbook ansible/playbooks/claude-code-setup.yml
+#
+# Run only MCP server config:
+#   ansible-playbook ansible/playbooks/claude-code-setup.yml --tags claude_dev_mcp
+#
+# Available tags:
+#   claude_dev               - all tasks
+#   claude_dev_prerequisites - verify node, npm, op CLI
+#   claude_dev_install       - install/update Claude Code
+#   claude_dev_mcp           - MCP wrapper scripts + settings.json
+#   claude_dev_shell         - zsh PATH, aliases, completions
+
+- name: Configure Claude Code development environment
+  hosts: desktops:laptops
+  gather_facts: true
+  connection: local
+  roles:
+    - role: claude_dev
+      tags:
+        - claude_dev

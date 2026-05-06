@@ -1,0 +1,41 @@
+---
+- name: Verify 1Password CLI is installed
+  ansible.builtin.command:
+    cmd: op --version
+  register: claude_dev_op_version
+  changed_when: false
+  failed_when: claude_dev_op_version.rc != 0
+  check_mode: false
+
+- name: Verify 1Password CLI is authenticated
+  ansible.builtin.command:
+    cmd: op account get
+  register: claude_dev_op_auth
+  changed_when: false
+  failed_when: claude_dev_op_auth.rc != 0
+  check_mode: false
+
+- name: Check Node.js version
+  ansible.builtin.command:
+    cmd: node --version
+  register: claude_dev_node_version
+  changed_when: false
+  failed_when: claude_dev_node_version.rc != 0
+  check_mode: false
+
+- name: Validate Node.js meets minimum version
+  ansible.builtin.assert:
+    that:
+      - (claude_dev_node_version.stdout | regex_replace('^v', '') | split('.') | first | int) >= (claude_dev_node_min_version | int)
+    fail_msg: >-
+      Node.js {{ claude_dev_node_version.stdout }} is below minimum
+      v{{ claude_dev_node_min_version }}. Install a newer version first.
+    success_msg: "Node.js {{ claude_dev_node_version.stdout }} meets requirements."
+
+- name: Verify npx is available
+  ansible.builtin.command:
+    cmd: which npx
+  register: claude_dev_npx_check
+  changed_when: false
+  failed_when: claude_dev_npx_check.rc != 0
+  check_mode: false

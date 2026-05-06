@@ -1,0 +1,9 @@
+{% set mcp_config = {} %}
+{% for server in claude_dev_mcp_servers %}
+{%   if server.op_secrets | default({}) | length > 0 %}
+{%     set _ = mcp_config.update({server.name: {"type": "stdio", "command": server.command, "args": server.args}}) %}
+{%   else %}
+{%     set _ = mcp_config.update({server.name: {"type": "stdio", "command": server.command, "args": server.args}}) %}
+{%   endif %}
+{% endfor %}
+{{ {"model": "opus", "mcpServers": mcp_config} | to_nice_json }}

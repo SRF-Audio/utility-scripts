@@ -1,0 +1,25 @@
+---
+- name: Add Claude Code shell integration to .zshrc
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    marker: "# {mark} ANSIBLE MANAGED - claude_dev"
+    block: |
+      # PATH additions for Claude Code
+      export PATH="{{ claude_dev_npm_global_prefix }}/bin:$HOME/.local/bin:$PATH"
+
+      # Claude Code aliases
+      {% for alias, cmd in claude_dev_zsh_aliases.items() %}
+      alias {{ alias }}='{{ cmd }}'
+      {% endfor %}
+
+      # Claude Code completions
+      if command -v claude &>/dev/null; then
+        eval "$(claude completions zsh 2>/dev/null)"
+      fi
+
+      # 1Password CLI completions
+      if command -v op &>/dev/null; then
+        eval "$(op completion zsh 2>/dev/null)"
+      fi
+    create: true
+    mode: "0644"

@@ -1,0 +1,40 @@
+---
+- name: Ensure npm global prefix directory exists
+  ansible.builtin.file:
+    path: "{{ claude_dev_npm_global_prefix }}"
+    state: directory
+    mode: "0755"
+
+- name: Set npm global prefix to user directory
+  ansible.builtin.command:
+    cmd: "npm config set prefix {{ claude_dev_npm_global_prefix }}"
+  register: claude_dev_npm_prefix_set
+  changed_when: claude_dev_npm_prefix_set.rc == 0
+  check_mode: false
+
+- name: Check if Claude Code is installed
+  ansible.builtin.command:
+    cmd: "{{ claude_dev_npm_global_prefix }}/bin/claude --version"
+  register: claude_dev_claude_installed
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Display Claude Code version
+  ansible.builtin.debug:
+    msg: "Claude Code {{ claude_dev_claude_installed.stdout | default('not installed') }}"
+
+- name: Install Claude Code via npm
+  community.general.npm:
+    name: "@anthropic-ai/claude-code"
+    global: true
+    state: latest
+  environment:
+    NPM_CONFIG_PREFIX: "{{ claude_dev_npm_global_prefix }}"
+  when: claude_dev_claude_installed.rc != 0
+
+- name: Ensure Claude config directory exists
+  ansible.builtin.file:
+    path: "{{ claude_dev_config_dir }}"
+    state: directory
+    mode: "0700"

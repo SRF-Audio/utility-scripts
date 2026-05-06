@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Verify 1Password CLI is authenticated
+if ! op account get &>/dev/null; then
+  echo "ERROR: 1Password CLI is not authenticated. Run 'eval \$(op signin)' first." >&2
+  exit 1
+fi
+
+# Inject secrets from 1Password
+{% for var, ref in item.op_secrets.items() %}
+export {{ var }}="$(op read '{{ ref }}')"
+{% endfor %}
+
+# Launch the MCP server
+exec {{ item.server_command }} {{ item.server_args | join(' ') }}

@@ -1,0 +1,45 @@
+---
+# Claude Code MCP environment defaults
+
+claude_dev_node_min_version: "20"
+claude_dev_npm_global_prefix: "{{ ansible_env.HOME }}/.npm-global"
+claude_dev_config_dir: "{{ ansible_env.HOME }}/.claude"
+claude_dev_wrapper_dir: "{{ ansible_env.HOME }}/.claude/mcp-wrappers"
+
+claude_dev_op_vault: "HomeLab"
+
+claude_dev_mcp_servers:
+  - name: github
+    transport: stdio
+    command: "{{ claude_dev_wrapper_dir }}/github.sh"
+    args: []
+    op_secrets:
+      GITHUB_PERSONAL_ACCESS_TOKEN: "op://HomeLab/Github/Personal Access Tokens/Claude Code"
+    server_command: npx
+    server_args:
+      - "-y"
+      - "@modelcontextprotocol/server-github"
+
+  - name: fetch
+    transport: stdio
+    command: npx
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-fetch"
+    op_secrets: {}
+
+  - name: trello
+    transport: stdio
+    command: "{{ claude_dev_wrapper_dir }}/trello.sh"
+    args: []
+    op_secrets:
+      TRELLO_API_KEY: "op://HomeLab/Atlassian/api_key"
+      TRELLO_TOKEN: "op://HomeLab/Atlassian/token"
+    server_command: npx
+    server_args:
+      - "-y"
+      - "trello-mcp"
+
+claude_dev_zsh_aliases:
+  cc: claude
+  ccmcp: "claude mcp list"
