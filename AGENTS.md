@@ -294,6 +294,34 @@ Stop and ask when any of the following are missing or ambiguous:
 
 ## Context Engineering and Documentation Discipline
 
+### Context Window Management
+
+Aim for **60–75% context window utilization** — enough loaded context to work effectively without thrashing on tool calls, but enough headroom for reasoning and output. Self-identify when your context is getting cluttered and take action:
+
+- **Delegate to subagents** when a research task will dump large output you only need a summary of.
+- **Don't read entire files** when `grep` or a targeted line range answers the question.
+- **Don't re-read files** you've already seen unless the content has changed.
+- **Prefer structured summaries** over raw dumps when reporting findings back to the user.
+
+### Where Context Lives
+
+Each persistence layer has a purpose. Use the right one:
+
+| Layer | Purpose | Lifetime |
+| --- | --- | --- |
+| Git commits | History — what happened and why | Permanent |
+| `docs/` and `docs/spikes/` | Decisions and plans that still need action | Until completed or obsolete |
+| `AGENTS.md` (root + subdirectory) | Evergreen guidance for how agents should behave | Permanent (update in place) |
+| Memory (`~/.claude/projects/.../memory/`) | Cross-conversation context about user, project state, feedback | Until outdated |
+| Conversation context | Ephemeral working state for the current task | This session only |
+
+**Rules:**
+
+1. **Commits are the history.** Don't keep docs around as a record of what was done — the git log does that.
+2. **Docs are for what's still ahead.** If a spike or migration guide is complete and the work is done, delete it. No "superseded" markers, no archives.
+3. **Evergreen guidance goes in AGENTS.md.** If you learn something that should permanently change how agents operate in this repo, update the relevant `AGENTS.md` — don't leave it in docs or memory.
+4. **Memory is for cross-conversation state.** User preferences, project status, references to external systems. Not for things derivable from code.
+
 ### Every change to infrastructure must be traceable
 
 1. **Commit messages** explain *why*, not just *what*. The diff shows what changed — the message explains the motivation.
@@ -305,13 +333,13 @@ Stop and ask when any of the following are missing or ambiguous:
 
 - Architecture decisions go in `docs/` as ADRs or spike documents.
 - Platform-level docs go in `docs/platform/`.
-- Per-component docs go in the component's directory (e.g., `hetzner/docs/`).
+- Per-component docs go in the component's directory (e.g., `ansible/docs/`, `hetzner/docs/`).
 - Never create documentation files unless explicitly asked — prefer inline context.
 
 ### Keep context fresh
 
 - When you change infrastructure, update the relevant `AGENTS.md` if the change affects how an agent should behave (new namespace, new tool, changed convention).
-- When a spike or decision doc becomes outdated, mark it as superseded rather than deleting it.
+- When a doc becomes outdated or its work is complete, delete it. Dead docs are worse than no docs — they waste context window budget and mislead.
 
 ---
 
