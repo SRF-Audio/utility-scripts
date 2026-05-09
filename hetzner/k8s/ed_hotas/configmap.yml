@@ -1,4 +1,3 @@
----
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -103,7 +102,7 @@ data:
     .btn-group-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); text-align: center; margin-bottom: 4px; letter-spacing: 1px; }
     .small-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 64px; }
     .small-btn-circle { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--panel-border); background: var(--key-bg); display: flex; align-items: center; justify-content: center; }
-    .small-btn-id { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-muted); }
+    .small-btn-id { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-muted); display: block; margin-top: 2px; }
     .small-btn-fn { font-size: 12px; font-weight: 600; text-align: center; line-height: 1.2; max-width: 80px; }
     .small-btn-fn2 { font-size: 10px; text-align: center; line-height: 1.1; max-width: 80px; opacity: 0.7; }
     .b-flight { border-color: var(--c-flight) !important; }
@@ -137,7 +136,8 @@ data:
     .key-cap { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
     .key-fn { font-size: 11px; font-weight: 700; line-height: 1.2; }
     .key.key-modes { min-height: 92px; padding: 4px 3px 4px; border-color: var(--panel-border); }
-    .key-modes .key-cap { margin-bottom: 4px; font-size: 12px; color: var(--text); font-weight: 700; }
+    .key-modes .key-cap, .key-power .key-cap { margin-bottom: 4px; font-size: 12px; color: var(--text); font-weight: 700; }
+    .key-joy { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-muted); font-weight: 400; margin-left: 4px; letter-spacing: 0; }
     .mode-row { display: flex; gap: 4px; align-items: baseline; padding: 1px 2px; line-height: 1.15; font-weight: 600; }
     .mode-tag { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 8px; opacity: 0.85; width: 9px; flex-shrink: 0; text-align: left; }
     .mode-text { flex: 1; text-align: left; font-size: 9px; }
@@ -218,16 +218,19 @@ data:
           <div class="btn-group-label">LEFT BUTTONS &middot; TOP ROW</div>
           <div class="btn-group">
             <div class="small-btn">
-              <div class="small-btn-circle b-flight"><span class="small-btn-id">2</span></div>
+              <div class="small-btn-circle b-flight"></div>
+              <span class="small-btn-id">Joy_2</span>
               <div class="small-btn-fn c-flight">SPD 0%</div>
               <div class="small-btn-fn2 c-ui">Prev Panel</div>
             </div>
             <div class="small-btn">
-              <div class="small-btn-circle b-flight"><span class="small-btn-id">7</span></div>
+              <div class="small-btn-circle b-flight"></div>
+              <span class="small-btn-id">Joy_7</span>
               <div class="small-btn-fn c-flight">SPD 50%</div>
             </div>
             <div class="small-btn">
-              <div class="small-btn-circle b-flight"><span class="small-btn-id">8</span></div>
+              <div class="small-btn-circle b-flight"></div>
+              <span class="small-btn-id">Joy_8</span>
               <div class="small-btn-fn c-flight">SPD 100%</div>
             </div>
           </div>
@@ -236,16 +239,19 @@ data:
           <div class="btn-group-label">RIGHT BUTTONS &middot; TOP ROW</div>
           <div class="btn-group">
             <div class="small-btn">
-              <div class="small-btn-circle b-flight"><span class="small-btn-id">13</span></div>
+              <div class="small-btn-circle b-flight"></div>
+              <span class="small-btn-id">Joy_13</span>
               <div class="small-btn-fn c-flight">FA Toggle</div>
             </div>
             <div class="small-btn">
-              <div class="small-btn-circle b-flight"><span class="small-btn-id">14</span></div>
+              <div class="small-btn-circle b-flight"></div>
+              <span class="small-btn-id">Joy_14</span>
               <div class="small-btn-fn c-flight">FSD Jump</div>
               <div class="small-btn-fn2 c-ui">Next Panel</div>
             </div>
             <div class="small-btn">
-              <div class="small-btn-circle b-flight"><span class="small-btn-id">19</span></div>
+              <div class="small-btn-circle b-flight"></div>
+              <span class="small-btn-id">Joy_19</span>
               <div class="small-btn-fn c-flight">S-Cruise</div>
             </div>
           </div>
@@ -253,12 +259,12 @@ data:
       </div>
       <div class="push-btn-section">
         <div class="push-btn-info">
-          <div class="pbtn-label">BTN 1 &middot; LEFT PUSH</div>
-          <div class="pbtn-fn c-ui">UI Focus / UI Back</div>
+          <div class="pbtn-label">Joy_1 &middot; LEFT PUSH</div>
+          <div class="pbtn-fn c-ui">Head Look</div>
           <div class="dual"><div class="pbtn-fn" style="font-size:10px;color:var(--text-dim);">context-dual</div></div>
         </div>
         <div class="push-btn-info">
-          <div class="pbtn-label">BTN 20 &middot; RIGHT PUSH</div>
+          <div class="pbtn-label">Joy_20 &middot; RIGHT PUSH</div>
           <div class="pbtn-fn c-flight">BOOST</div>
           <div class="dual"><div class="pbtn-fn c-ui" style="font-size:10px;">UI Toggle (panel ctx)</div></div>
         </div>
@@ -267,11 +273,11 @@ data:
         <div class="stick-panel">
           <div class="stick-label">Left Stick</div>
           <div class="stick-visual"></div>
-          <div class="axis-row"><span class="axis-dir">X (L/R)</span><span class="axis-fn c-flight">Lateral Thrust</span></div>
-          <div class="axis-row"><span class="axis-dir">Y (F/B)</span><span class="axis-fn c-flight">Vertical Thrust</span></div>
-          <div class="axis-row"><span class="axis-dir">Twist</span><span class="axis-fn c-flight">Ahead Thrust</span></div>
+          <div class="axis-row"><span class="axis-dir">X (L/R)</span><span class="axis-fn c-flight">Sway</span></div>
+          <div class="axis-row"><span class="axis-dir">Y (F/B)</span><span class="axis-fn c-flight">Heave</span></div>
+          <div class="axis-row"><span class="axis-dir">Twist</span><span class="axis-fn c-flight">Surge</span></div>
           <div class="stick-btn">
-            <span class="btn-label">BTN 25 &middot; STICK PRESS</span>
+            <span class="btn-label">Joy_25 &middot; STICK PRESS</span>
             <span class="c-fire">Secondary Fire</span>
           </div>
         </div>
@@ -280,28 +286,28 @@ data:
           <div class="keypad-grid">
             <!-- Row 1: 1 2 3 A -->
             <div class="key key-modes">
-              <div class="key-cap">1</div>
+              <div class="key-cap">1<span class="key-joy">Joy_3</span></div>
               <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Cargo Scoop</span></div>
               <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">FSS Enter</span></div>
               <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Cargo Scoop</span></div>
               <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Hardpoints</span></div>
             </div>
             <div class="key key-modes">
-              <div class="key-cap">2</div>
+              <div class="key-cap">2<span class="key-joy">Joy_4</span></div>
               <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Landing Gear</span></div>
               <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">Discovery Scan</span></div>
               <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Hardpoints</span></div>
               <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Target Ahead</span></div>
             </div>
             <div class="key key-modes">
-              <div class="key-cap">3</div>
+              <div class="key-cap">3<span class="key-joy">Joy_5</span></div>
               <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Lights</span></div>
               <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">FSS Quit</span></div>
               <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Fire Group &#9664;</span></div>
               <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Fire Group &#9664;</span></div>
             </div>
             <div class="key key-modes">
-              <div class="key-cap">A</div>
+              <div class="key-cap">A<span class="key-joy">Joy_6</span></div>
               <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Rot-Corr Off</span></div>
               <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">FSS Target</span></div>
               <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Fire Group &#9654;</span></div>
@@ -309,28 +315,28 @@ data:
             </div>
             <!-- Row 2: 4 5 6 B -->
             <div class="key key-modes">
-              <div class="key-cap">4</div>
+              <div class="key-cap">4<span class="key-joy">Joy_9</span></div>
               <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Next Route Sys</span></div>
               <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">DSS 3rd-Person</span></div>
               <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Target Asteroid</span></div>
               <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Hostile &#9664;</span></div>
             </div>
             <div class="key key-modes">
-              <div class="key-cap">5</div>
+              <div class="key-cap">5<span class="key-joy">Joy_10</span></div>
               <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">HUD Mode</span></div>
               <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">DSS View Toggle</span></div>
               <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Lights</span></div>
               <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Hostile &#9654;</span></div>
             </div>
             <div class="key key-modes">
-              <div class="key-cap">6</div>
+              <div class="key-cap">6<span class="key-joy">Joy_11</span></div>
               <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">System Map</span></div>
               <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">Genus &#9664;</span></div>
               <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">System Map</span></div>
               <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Highest Threat</span></div>
             </div>
             <div class="key key-modes">
-              <div class="key-cap">B</div>
+              <div class="key-cap">B<span class="key-joy">Joy_12</span></div>
               <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Galaxy Map</span></div>
               <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">Genus &#9654;</span></div>
               <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Next Route Sys</span></div>
@@ -338,28 +344,28 @@ data:
             </div>
             <!-- Row 3: 7 8 9 C -->
             <div class="key key-modes">
-              <div class="key-cap">7</div>
+              <div class="key-cap">7<span class="key-joy">Joy_15</span></div>
               <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Head Look</span></div>
               <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">Photo Cam</span></div>
               <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Night Vision</span></div>
               <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Heatsink</span></div>
             </div>
             <div class="key key-modes">
-              <div class="key-cap">8</div>
+              <div class="key-cap">8<span class="key-joy">Joy_16</span></div>
               <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Quick Comms</span></div>
               <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">Vanity &#9664;</span></div>
               <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">HUD Mode</span></div>
               <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Chaff</span></div>
             </div>
             <div class="key key-modes">
-              <div class="key-cap">9</div>
+              <div class="key-cap">9<span class="key-joy">Joy_17</span></div>
               <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Night Vision</span></div>
               <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">Vanity &#9654;</span></div>
               <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Orbit Lines</span></div>
               <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Shield Cell</span></div>
             </div>
             <div class="key key-modes">
-              <div class="key-cap">C</div>
+              <div class="key-cap">C<span class="key-joy">Joy_18</span></div>
               <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Codex</span></div>
               <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">Codex</span></div>
               <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Head Look</span></div>
@@ -367,19 +373,19 @@ data:
             </div>
             <!-- Row 4: * 0 # D  (common power) -->
             <div class="key key-power">
-              <div class="key-cap">*</div>
+              <div class="key-cap">*<span class="key-joy">Joy_21</span></div>
               <div class="key-fn">WEP Pip</div>
             </div>
             <div class="key key-power">
-              <div class="key-cap">0</div>
+              <div class="key-cap">0<span class="key-joy">Joy_22</span></div>
               <div class="key-fn">SYS Pip</div>
             </div>
             <div class="key key-power">
-              <div class="key-cap">#</div>
+              <div class="key-cap">#<span class="key-joy">Joy_23</span></div>
               <div class="key-fn">ENG Pip</div>
             </div>
             <div class="key key-power">
-              <div class="key-cap">D</div>
+              <div class="key-cap">D<span class="key-joy">Joy_24</span></div>
               <div class="key-fn">Reset 2-2-2</div>
             </div>
           </div>
@@ -391,7 +397,7 @@ data:
           <div class="axis-row"><span class="axis-dir">Y (F/B)</span><span class="axis-fn c-flight">Pitch &updownarrow; inv</span></div>
           <div class="axis-row"><span class="axis-dir">Twist</span><span class="axis-fn c-flight">Yaw</span></div>
           <div class="stick-btn">
-            <span class="btn-label">BTN 26 &middot; STICK PRESS</span>
+            <span class="btn-label">Joy_26 &middot; STICK PRESS</span>
             <span class="c-fire">Primary Fire</span>
           </div>
         </div>
