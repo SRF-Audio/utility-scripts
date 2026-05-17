@@ -1,0 +1,58 @@
+Physical_Location,Layer,Joy_Input,Ship,Camera,Galaxy_Map,System_Map,FSS,SAA,SRV,On_Foot,Notes
+Stick X Axis,—,Joy_XAxis,RollAxisRaw (Roll),,,,,,,,Main stick left/right
+Stick Y Axis,—,Joy_YAxis,PitchAxisRaw (Pitch),,,,,,,,Main stick forward/back (inverted)
+A1 Mini-Stick X (RotX),—,Joy_RXAxis,,CamTranslateXAxis,,,,,,HumanoidRotateAxis,Cam translate X in camera mode; body rotate on foot
+A1 Mini-Stick Y (RotY),—,Joy_RYAxis,RadarRangeAxis,CamTranslateYAxis,,,,,,HumanoidPitchAxis,Radar range + cam translate Y; look pitch on foot
+F-Throttle (RotZ),—,Joy_RZAxis,,,,,,,,,TBD
+Trigger 1,1,Joy_1,PrimaryFire,,,,,,HumanoidPrimaryFireButton,,
+TRIGGER 1,2,Joy_50,,,,,,,,,Unused
+Trigger 2,1,Joy_2,SecondaryFire [+T1],,,,,,HumanoidThrowGrenadeButton [+T1],,"Hold Trigger 1 as modifier; ship: secondary fire, on-foot: throw grenade"
+TRIGGER 2,2,Joy_51,,,,,,,,,Unused
+A2,1,Joy_3,CycleNextTarget,,,,,,,,Cycle all targets
+A2,2,Joy_52,,,,,,,,,Unused
+A1 Push,1,Joy_73,CyclePreviousTarget,,,,,,,,Cycle all targets
+A1 PUSH,2,Joy_69,,,,,,,,,TBD
+A3 Up,1,Joy_6,,ToggleFreeCam,,,,,,,"Enter free camera"
+A3 UP,2,Joy_57,,,,,,,,,Unused
+A3 Right,1,Joy_7,,VanityCameraScrollRight,,,,,,,"Scroll external camera views right"
+A3 RIGHT,2,Joy_59,,,,,,,,,Unused
+A3 Down,1,Joy_8,,QuitCamera,,,,,,,"Exit camera mode"
+A3 DOWN,2,Joy_56,,,,,,,,,Unused
+A3 Left,1,Joy_9,,VanityCameraScrollLeft,,,,,,,"Scroll external camera views left"
+A3 LEFT,2,Joy_58,,,,,,,,,Unused
+A3 Push,1,Joy_10,,PhotoCameraToggle,,,,,,,"Enter/exit photo (vanity) camera"
+A3 PUSH,2,Joy_53,,,,,,,,,Unused
+A4 Up,1,Joy_11,CycleFireGroupNext,,,,,,,,
+A4 UP,2,Joy_61,,,,,,,,,Unused
+A4 Right,1,Joy_14,DeployHeatSink,,,,,,,,
+A4 RIGHT,2,Joy_62,,,,,,,,,Unused
+A4 Down,1,Joy_13,CycleFireGroupPrevious,,,,,,,,
+A4 DOWN,2,Joy_60,,,,,,,,,Unused
+A4 Left,1,Joy_12,SelectHighestThreat,,,,,,,,
+A4 LEFT,2,Joy_63,,,,,,,,,Unused
+A4 Push,1,Joy_15,DeployHardpointToggle,,,,,,,,
+A4 PUSH,2,Joy_54,,,,,,,,,Unused
+B1,1,Joy_4,SelectTarget,,,,,,,,
+B1,2,Joy_55,,,,,,,,,Unused
+C1 Up,1,Joy_16,,,,,,,,,HumanoidItemWheelButton_YUp,Item wheel up (on foot)
+C1 UP,2,Joy_65,,,,,,,,,Unused,
+C1 Right,1,Joy_17,,,,,,,,,HumanoidItemWheelButton_XRight,Item wheel right (on foot)
+C1 RIGHT,2,Joy_67,,,,,,,,,Unused,
+C1 Down,1,Joy_18,,,,,,,,,HumanoidItemWheelButton_YDown,Item wheel down (on foot)
+C1 DOWN,2,Joy_64,,,,,,,,,Unused,
+C1 Left,1,Joy_19,,,,,,,,,HumanoidItemWheelButton_XLeft,Item wheel left (on foot)
+C1 LEFT,2,Joy_66,,,,,,,,,Unused,
+C1 Push,1,Joy_20,,,,,,,,,HumanoidItemWheelButton,Open item wheel (on foot)
+C1 PUSH,2,Joy_68,,,,,,,,,Unused,
+D1,1,Modifier Toggle,VKB Firmware Modifier Toggle,,,,,,,,"Modifier"
+RF-Up,1,Joy_21,CycleNextHostileTarget,,,,,,,,"Rapid fire rocker up"
+RF-UP,1,Joy_70,CycleNextHostileTarget,,,,,,,,"Rapid fire rocker up"
+RF-Down,1,Joy_22,CyclePreviousHostileTarget,,,,,,,,"Rapid fire rocker down"
+RF-DOWN,1,Joy_71,CyclePreviousHostileTarget,,,,,,,,"Rapid fire rocker down"
+En1-Up,1,Joy_23,,FreeCamSpeedInc,,,,,,,Encoder CW = free cam speed up
+En1-Down,1,Joy_24,,FreeCamSpeedDec,,,,,,,Encoder CCW = free cam speed down
+Sw1-Up,1,Joy_25,CycleNextSubsystem,,,,,,,,"Spring-center rocker; subsystem targeting"
+Sw1-Down,1,Joy_26,CyclePreviousSubsystem,,,,,,,,"Spring-center rocker; subsystem targeting"
+F3,1,Joy_29,,,,,,,,,TBD
+F2,1,Joy_28,,,,,,,,,TBD
+F1,1,Joy_27,,,,,,,,,TBD

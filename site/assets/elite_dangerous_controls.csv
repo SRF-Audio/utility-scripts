@@ -1,0 +1,423 @@
+control_name,category,type,context,description
+MouseReset,Mouse,button,all,Reset mouse position
+BlockMouseDecay,Mouse,button,all,Block mouse decay
+YawAxisRaw,Flight,axis,ship,Yaw axis (raw)
+YawLeftButton,Flight,button,ship,Yaw left
+YawRightButton,Flight,button,ship,Yaw right
+YawToRollButton,Flight,button,ship,Toggle yaw-to-roll conversion
+RollAxisRaw,Flight,axis,ship,Roll axis (raw)
+RollLeftButton,Flight,button,ship,Roll left
+RollRightButton,Flight,button,ship,Roll right
+PitchAxisRaw,Flight,axis,ship,Pitch axis (raw)
+PitchUpButton,Flight,button,ship,Pitch up
+PitchDownButton,Flight,button,ship,Pitch down
+LateralThrustRaw,Flight,axis,ship,Lateral thrust axis (raw)
+LeftThrustButton,Flight,button,ship,Thrust left
+RightThrustButton,Flight,button,ship,Thrust right
+VerticalThrustRaw,Flight,axis,ship,Vertical thrust axis (raw)
+UpThrustButton,Flight,button,ship,Thrust up
+DownThrustButton,Flight,button,ship,Thrust down
+AheadThrust,Flight,axis,ship,Forward thrust axis
+ForwardThrustButton,Flight,button,ship,Thrust forward
+BackwardThrustButton,Flight,button,ship,Thrust backward
+UseAlternateFlightValuesToggle,Flight,button,ship,Toggle alternate flight values
+YawAxisAlternate,Flight,axis,ship,Yaw axis (alternate)
+RollAxisAlternate,Flight,axis,ship,Roll axis (alternate)
+PitchAxisAlternate,Flight,axis,ship,Pitch axis (alternate)
+LateralThrustAlternate,Flight,axis,ship,Lateral thrust axis (alternate)
+VerticalThrustAlternate,Flight,axis,ship,Vertical thrust axis (alternate)
+ThrottleAxis,Flight,axis,ship,Throttle axis
+ToggleReverseThrottleInput,Flight,button,ship,Toggle reverse throttle
+ForwardKey,Flight,button,ship,Forward throttle key
+BackwardKey,Flight,button,ship,Backward throttle key
+SetSpeedMinus100,Flight,button,ship,Set speed -100%
+SetSpeedMinus75,Flight,button,ship,Set speed -75%
+SetSpeedMinus50,Flight,button,ship,Set speed -50%
+SetSpeedMinus25,Flight,button,ship,Set speed -25%
+SetSpeedZero,Flight,button,ship,Set speed 0%
+SetSpeed25,Flight,button,ship,Set speed 25%
+SetSpeed50,Flight,button,ship,Set speed 50%
+SetSpeed75,Flight,button,ship,Set speed 75%
+SetSpeed100,Flight,button,ship,Set speed 100%
+YawAxis_Landing,Flight (Landing),axis,ship,Yaw axis in landing mode
+YawLeftButton_Landing,Flight (Landing),button,ship,Yaw left in landing mode
+YawRightButton_Landing,Flight (Landing),button,ship,Yaw right in landing mode
+PitchAxis_Landing,Flight (Landing),axis,ship,Pitch axis in landing mode
+PitchUpButton_Landing,Flight (Landing),button,ship,Pitch up in landing mode
+PitchDownButton_Landing,Flight (Landing),button,ship,Pitch down in landing mode
+RollAxis_Landing,Flight (Landing),axis,ship,Roll axis in landing mode
+RollLeftButton_Landing,Flight (Landing),button,ship,Roll left in landing mode
+RollRightButton_Landing,Flight (Landing),button,ship,Roll right in landing mode
+LateralThrust_Landing,Flight (Landing),axis,ship,Lateral thrust in landing mode
+LeftThrustButton_Landing,Flight (Landing),button,ship,Thrust left in landing mode
+RightThrustButton_Landing,Flight (Landing),button,ship,Thrust right in landing mode
+VerticalThrust_Landing,Flight (Landing),axis,ship,Vertical thrust in landing mode
+UpThrustButton_Landing,Flight (Landing),button,ship,Thrust up in landing mode
+DownThrustButton_Landing,Flight (Landing),button,ship,Thrust down in landing mode
+AheadThrust_Landing,Flight (Landing),axis,ship,Forward thrust in landing mode
+ForwardThrustButton_Landing,Flight (Landing),button,ship,Thrust forward in landing mode
+BackwardThrustButton_Landing,Flight (Landing),button,ship,Thrust backward in landing mode
+ToggleFlightAssist,Ship Systems,button,ship,Toggle flight assist
+UseBoostJuice,Ship Systems,button,ship,Engage boost
+HyperSuperCombination,Ship Systems,button,ship,Hyperspace / supercruise combination toggle
+Supercruise,Ship Systems,button,ship,Enter supercruise
+Hyperspace,Ship Systems,button,ship,Initiate hyperspace jump
+DisableRotationCorrectToggle,Ship Systems,button,ship,Toggle rotation correction
+OrbitLinesToggle,Ship Systems,button,ship,Toggle orbit lines
+LandingGearToggle,Ship Systems,button,ship,Toggle landing gear
+ToggleCargoScoop,Ship Systems,button,ship,Toggle cargo scoop
+EjectAllCargo,Ship Systems,button,ship,Eject all cargo
+DeployHardpointToggle,Ship Systems,button,ship,Toggle hardpoints
+DeployHeatSink,Ship Systems,button,ship,Deploy heat sink
+ShipSpotLightToggle,Ship Systems,button,ship,Toggle ship spotlight
+UseShieldCell,Ship Systems,button,ship,Use shield cell bank
+FireChaffLauncher,Ship Systems,button,ship,Fire chaff launcher
+TriggerFieldNeutraliser,Ship Systems,button,ship,Trigger field neutraliser
+ChargeECM,Ship Systems,button,ship,Charge ECM
+ToggleButtonUpInput,Ship Systems,button,ship,Toggle button up input
+WeaponColourToggle,Ship Systems,button,ship,Toggle weapon colour
+EngineColourToggle,Ship Systems,button,ship,Toggle engine colour
+NightVisionToggle,Ship Systems,button,ship,Toggle night vision
+TriggerColonisationModule,Ship Systems,button,ship,Trigger colonisation module
+HMDReset,Ship Systems,button,ship,Reset HMD position
+MicrophoneMute,Ship Systems,button,ship,Mute microphone
+PrimaryFire,Weapons,button,ship,Primary fire
+SecondaryFire,Weapons,button,ship,Secondary fire
+CycleFireGroupNext,Weapons,button,ship,Cycle to next fire group
+CycleFireGroupPrevious,Weapons,button,ship,Cycle to previous fire group
+SelectTarget,Targeting,button,ship,Select target
+CycleNextTarget,Targeting,button,ship,Cycle to next target
+CyclePreviousTarget,Targeting,button,ship,Cycle to previous target
+SelectHighestThreat,Targeting,button,ship,Select highest threat
+CycleNextHostileTarget,Targeting,button,ship,Cycle to next hostile target
+CyclePreviousHostileTarget,Targeting,button,ship,Cycle to previous hostile target
+TargetWingman0,Targeting,button,ship,Target wingman 1
+TargetWingman1,Targeting,button,ship,Target wingman 2
+TargetWingman2,Targeting,button,ship,Target wingman 3
+SelectTargetsTarget,Targeting,button,ship,Select target's target
+WingNavLock,Targeting,button,ship,Wing nav lock
+CycleNextSubsystem,Targeting,button,ship,Cycle to next subsystem
+CyclePreviousSubsystem,Targeting,button,ship,Cycle to previous subsystem
+TargetNextRouteSystem,Targeting,button,ship,Target next system on route
+IncreaseEnginesPower,Power,button,ship,Increase engine power
+IncreaseWeaponsPower,Power,button,ship,Increase weapons power
+IncreaseSystemsPower,Power,button,ship,Increase systems power
+ResetPowerDistribution,Power,button,ship,Reset power distribution
+RadarRangeAxis,Sensors,axis,ship,Radar range axis
+RadarIncreaseRange,Sensors,button,ship,Increase radar range
+RadarDecreaseRange,Sensors,button,ship,Decrease radar range
+UIFocus,UI,button,ship,Focus UI
+FocusLeftPanel,UI,button,ship,Focus left panel
+FocusCommsPanel,UI,button,ship,Focus comms panel
+QuickCommsPanel,UI,button,ship,Quick comms panel
+FocusRadarPanel,UI,button,ship,Focus radar panel
+FocusRightPanel,UI,button,ship,Focus right panel
+GalaxyMapOpen,UI,button,ship,Open galaxy map
+SystemMapOpen,UI,button,ship,Open system map
+ExplorationFSSEnter,UI,button,ship,Enter FSS mode
+OpenCodexGoToDiscovery,UI,button,ship,Open codex discoveries
+PlayerHUDModeToggle,UI,button,ship,Toggle HUD mode (combat / analysis)
+ShowPGScoreSummaryInput,UI,button,ship,Show Power Play score summary
+HeadLookToggle,UI,button,ship,Toggle headlook
+FriendsMenu,UI,button,ship,Open friends menu
+Pause,UI,button,ship,Pause / main menu
+UI_Up,UI Navigation,button,all,UI navigate up
+UI_Down,UI Navigation,button,all,UI navigate down
+UI_Left,UI Navigation,button,all,UI navigate left
+UI_Right,UI Navigation,button,all,UI navigate right
+UI_Select,UI Navigation,button,all,UI select
+UI_Back,UI Navigation,button,all,UI back
+UI_Toggle,UI Navigation,button,all,UI toggle
+CycleNextPanel,UI Navigation,button,ship,Cycle to next panel
+CyclePreviousPanel,UI Navigation,button,ship,Cycle to previous panel
+CycleNextPage,UI Navigation,button,ship,Cycle to next page
+CyclePreviousPage,UI Navigation,button,ship,Cycle to previous page
+HeadLookReset,Headlook,button,ship,Reset headlook
+HeadLookPitchUp,Headlook,button,ship,Headlook pitch up
+HeadLookPitchDown,Headlook,button,ship,Headlook pitch down
+HeadLookPitchAxisRaw,Headlook,axis,ship,Headlook pitch axis (raw)
+HeadLookYawLeft,Headlook,button,ship,Headlook yaw left
+HeadLookYawRight,Headlook,button,ship,Headlook yaw right
+HeadLookYawAxis,Headlook,axis,ship,Headlook yaw axis
+CamPitchAxis,Camera,axis,ship,Camera pitch axis
+CamPitchUp,Camera,button,ship,Camera pitch up
+CamPitchDown,Camera,button,ship,Camera pitch down
+CamYawAxis,Camera,axis,ship,Camera yaw axis
+CamYawLeft,Camera,button,ship,Camera yaw left
+CamYawRight,Camera,button,ship,Camera yaw right
+CamTranslateXAxis,Camera,axis,ship,Camera translate X axis
+CamTranslateLeft,Camera,button,ship,Camera translate left
+CamTranslateRight,Camera,button,ship,Camera translate right
+CamTranslateYAxis,Camera,axis,ship,Camera translate Y axis
+CamTranslateForward,Camera,button,ship,Camera translate forward
+CamTranslateBackward,Camera,button,ship,Camera translate backward
+CamTranslateZAxis,Camera,axis,ship,Camera translate Z axis
+CamTranslateUp,Camera,button,ship,Camera translate up
+CamTranslateDown,Camera,button,ship,Camera translate down
+CamTranslateZHold,Camera,button,ship,Hold camera translate Z
+CamZoomAxis,Camera,axis,ship,Camera zoom axis
+CamZoomIn,Camera,button,ship,Camera zoom in
+CamZoomOut,Camera,button,ship,Camera zoom out
+GalaxyMapHome,Camera,button,ship,Galaxy map home view
+PhotoCameraToggle,Camera,button,ship,Toggle photo camera
+VanityCameraScrollLeft,Camera,button,ship,Vanity camera scroll left
+VanityCameraScrollRight,Camera,button,ship,Vanity camera scroll right
+VanityCameraOne,Camera,button,ship,Vanity camera 1
+VanityCameraTwo,Camera,button,ship,Vanity camera 2
+VanityCameraThree,Camera,button,ship,Vanity camera 3
+VanityCameraFour,Camera,button,ship,Vanity camera 4
+VanityCameraFive,Camera,button,ship,Vanity camera 5
+VanityCameraSix,Camera,button,ship,Vanity camera 6
+VanityCameraSeven,Camera,button,ship,Vanity camera 7
+VanityCameraEight,Camera,button,ship,Vanity camera 8
+VanityCameraNine,Camera,button,ship,Vanity camera 9
+VanityCameraTen,Camera,button,ship,Vanity camera 10
+ToggleFreeCam,Camera,button,ship,Toggle free camera
+FreeCamToggleHUD,Camera,button,ship,Toggle HUD in free camera
+FreeCamSpeedInc,Camera,button,ship,Increase free camera speed
+FreeCamSpeedDec,Camera,button,ship,Decrease free camera speed
+MoveFreeCamX,Camera,axis,ship,Free camera move X axis
+MoveFreeCamY,Camera,axis,ship,Free camera move Y axis
+MoveFreeCamZ,Camera,axis,ship,Free camera move Z axis
+MoveFreeCamUpAxis,Camera,axis,ship,Free camera move up axis
+MoveFreeCamDownAxis,Camera,axis,ship,Free camera move down axis
+MoveFreeCamForward,Camera,button,ship,Free camera move forward
+MoveFreeCamBackwards,Camera,button,ship,Free camera move backward
+MoveFreeCamLeft,Camera,button,ship,Free camera move left
+MoveFreeCamRight,Camera,button,ship,Free camera move right
+MoveFreeCamUp,Camera,button,ship,Free camera move up
+MoveFreeCamDown,Camera,button,ship,Free camera move down
+ToggleReverseThrottleInputFreeCam,Camera,button,ship,Toggle reverse throttle in free camera
+PitchCamera,Camera,axis,ship,Pitch camera axis
+PitchCameraUp,Camera,button,ship,Pitch camera up
+PitchCameraDown,Camera,button,ship,Pitch camera down
+YawCamera,Camera,axis,ship,Yaw camera axis
+YawCameraLeft,Camera,button,ship,Yaw camera left
+YawCameraRight,Camera,button,ship,Yaw camera right
+RollCamera,Camera,axis,ship,Roll camera axis
+RollCameraLeft,Camera,button,ship,Roll camera left
+RollCameraRight,Camera,button,ship,Roll camera right
+ToggleRotationLock,Camera,button,ship,Toggle rotation lock
+FixCameraRelativeToggle,Camera,button,ship,Fix camera relative to ship toggle
+FixCameraWorldToggle,Camera,button,ship,Fix camera to world toggle
+QuitCamera,Camera,button,ship,Quit camera mode
+ToggleAdvanceMode,Camera,button,ship,Toggle advanced camera mode
+FreeCamZoomIn,Camera,button,ship,Free camera zoom in
+FreeCamZoomOut,Camera,button,ship,Free camera zoom out
+FStopDec,Camera,button,ship,Decrease f-stop (depth of field)
+FStopInc,Camera,button,ship,Increase f-stop (depth of field)
+ToggleDriveAssist,SRV,button,srv,Toggle drive assist
+SteeringAxis,SRV,axis,srv,Steering axis
+SteerLeftButton,SRV,button,srv,Steer left
+SteerRightButton,SRV,button,srv,Steer right
+BuggyRollAxisRaw,SRV,axis,srv,Roll axis (raw)
+BuggyRollLeftButton,SRV,button,srv,Roll left
+BuggyRollRightButton,SRV,button,srv,Roll right
+BuggyPitchAxis,SRV,axis,srv,Pitch axis
+BuggyPitchUpButton,SRV,button,srv,Pitch up
+BuggyPitchDownButton,SRV,button,srv,Pitch down
+VerticalThrustersButton,SRV,button,srv,Vertical thrusters
+DriveSpeedAxis,SRV,axis,srv,Drive speed axis
+BuggyToggleReverseThrottleInput,SRV,button,srv,Toggle reverse throttle
+IncreaseSpeedButtonMax,SRV,button,srv,Accelerate (full throttle)
+DecreaseSpeedButtonMax,SRV,button,srv,Decelerate (full brake)
+IncreaseSpeedButtonPartial,SRV,axis,srv,Accelerate (partial) axis
+DecreaseSpeedButtonPartial,SRV,axis,srv,Decelerate (partial) axis
+BuggyPrimaryFireButton,SRV,button,srv,Primary fire
+BuggySecondaryFireButton,SRV,button,srv,Secondary fire
+BuggyCycleFireGroupNext,SRV,button,srv,Cycle to next fire group
+BuggyCycleFireGroupPrevious,SRV,button,srv,Cycle to previous fire group
+SelectTarget_Buggy,SRV,button,srv,Select target
+BuggyTurretYawAxisRaw,SRV,axis,srv,Turret yaw axis (raw)
+BuggyTurretYawLeftButton,SRV,button,srv,Turret yaw left
+BuggyTurretYawRightButton,SRV,button,srv,Turret yaw right
+BuggyTurretPitchAxisRaw,SRV,axis,srv,Turret pitch axis (raw)
+BuggyTurretPitchUpButton,SRV,button,srv,Turret pitch up
+BuggyTurretPitchDownButton,SRV,button,srv,Turret pitch down
+AutoBreakBuggyButton,SRV,button,srv,Toggle auto brake
+HeadlightsBuggyButton,SRV,button,srv,Toggle headlights
+ToggleBuggyTurretButton,SRV,button,srv,Toggle turret mode
+ToggleCargoScoop_Buggy,SRV,button,srv,Toggle cargo scoop
+EjectAllCargo_Buggy,SRV,button,srv,Eject all cargo
+RecallDismissShip,SRV,button,srv,Recall or dismiss ship
+IncreaseEnginesPower_Buggy,SRV,button,srv,Increase engine power
+IncreaseWeaponsPower_Buggy,SRV,button,srv,Increase weapons power
+IncreaseSystemsPower_Buggy,SRV,button,srv,Increase systems power
+ResetPowerDistribution_Buggy,SRV,button,srv,Reset power distribution
+UIFocus_Buggy,SRV UI,button,srv,Focus UI
+FocusLeftPanel_Buggy,SRV UI,button,srv,Focus left panel
+FocusCommsPanel_Buggy,SRV UI,button,srv,Focus comms panel
+QuickCommsPanel_Buggy,SRV UI,button,srv,Quick comms panel
+FocusRadarPanel_Buggy,SRV UI,button,srv,Focus radar panel
+FocusRightPanel_Buggy,SRV UI,button,srv,Focus right panel
+GalaxyMapOpen_Buggy,SRV UI,button,srv,Open galaxy map
+SystemMapOpen_Buggy,SRV UI,button,srv,Open system map
+OpenCodexGoToDiscovery_Buggy,SRV UI,button,srv,Open codex discoveries
+PlayerHUDModeToggle_Buggy,SRV UI,button,srv,Toggle HUD mode
+HeadLookToggle_Buggy,SRV UI,button,srv,Toggle headlook
+PhotoCameraToggle_Buggy,SRV UI,button,srv,Toggle photo camera
+MultiCrewToggleMode,Multi-Crew,button,multicrew,Toggle multi-crew mode
+MultiCrewPrimaryFire,Multi-Crew,button,multicrew,Primary fire
+MultiCrewSecondaryFire,Multi-Crew,button,multicrew,Secondary fire
+MultiCrewPrimaryUtilityFire,Multi-Crew,button,multicrew,Primary utility fire
+MultiCrewSecondaryUtilityFire,Multi-Crew,button,multicrew,Secondary utility fire
+MultiCrewThirdPersonYawAxisRaw,Multi-Crew,axis,multicrew,Third-person yaw axis (raw)
+MultiCrewThirdPersonYawLeftButton,Multi-Crew,button,multicrew,Third-person yaw left
+MultiCrewThirdPersonYawRightButton,Multi-Crew,button,multicrew,Third-person yaw right
+MultiCrewThirdPersonPitchAxisRaw,Multi-Crew,axis,multicrew,Third-person pitch axis (raw)
+MultiCrewThirdPersonPitchUpButton,Multi-Crew,button,multicrew,Third-person pitch up
+MultiCrewThirdPersonPitchDownButton,Multi-Crew,button,multicrew,Third-person pitch down
+MultiCrewThirdPersonFovAxisRaw,Multi-Crew,axis,multicrew,Third-person FOV axis (raw)
+MultiCrewThirdPersonFovOutButton,Multi-Crew,button,multicrew,Third-person FOV out
+MultiCrewThirdPersonFovInButton,Multi-Crew,button,multicrew,Third-person FOV in
+MultiCrewCockpitUICycleForward,Multi-Crew,button,multicrew,Cockpit UI cycle forward
+MultiCrewCockpitUICycleBackward,Multi-Crew,button,multicrew,Cockpit UI cycle backward
+OrderRequestDock,NPC Orders,button,ship,Order: request dock
+OrderDefensiveBehaviour,NPC Orders,button,ship,Order: defensive behaviour
+OrderAggressiveBehaviour,NPC Orders,button,ship,Order: aggressive behaviour
+OrderFocusTarget,NPC Orders,button,ship,Order: focus target
+OrderHoldFire,NPC Orders,button,ship,Order: hold fire
+OrderHoldPosition,NPC Orders,button,ship,Order: hold position
+OrderFollow,NPC Orders,button,ship,Order: follow
+OpenOrders,NPC Orders,button,ship,Open orders menu
+ExplorationFSSCameraPitch,FSS,axis,ship,FSS camera pitch axis
+ExplorationFSSCameraPitchIncreaseButton,FSS,button,ship,FSS camera pitch up
+ExplorationFSSCameraPitchDecreaseButton,FSS,button,ship,FSS camera pitch down
+ExplorationFSSCameraYaw,FSS,axis,ship,FSS camera yaw axis
+ExplorationFSSCameraYawIncreaseButton,FSS,button,ship,FSS camera yaw right
+ExplorationFSSCameraYawDecreaseButton,FSS,button,ship,FSS camera yaw left
+ExplorationFSSZoomIn,FSS,button,ship,FSS zoom in
+ExplorationFSSZoomOut,FSS,button,ship,FSS zoom out
+ExplorationFSSMiniZoomIn,FSS,button,ship,FSS mini-map zoom in
+ExplorationFSSMiniZoomOut,FSS,button,ship,FSS mini-map zoom out
+ExplorationFSSRadioTuningX_Raw,FSS,axis,ship,FSS radio tuning axis (raw)
+ExplorationFSSRadioTuningX_Increase,FSS,button,ship,FSS radio tuning increase
+ExplorationFSSRadioTuningX_Decrease,FSS,button,ship,FSS radio tuning decrease
+ExplorationFSSRadioTuningAbsoluteX,FSS,axis,ship,FSS radio tuning absolute axis
+ExplorationFSSDiscoveryScan,FSS,button,ship,FSS discovery scan (honk)
+ExplorationFSSTarget,FSS,button,ship,FSS target signal
+ExplorationFSSShowHelp,FSS,button,ship,FSS show help
+ExplorationFSSQuit,FSS,button,ship,Exit FSS mode
+ExplorationSAAChangeScannedAreaViewToggle,SAA,button,ship,SAA toggle scanned area view
+ExplorationSAAExitThirdPerson,SAA,button,ship,SAA exit third-person view
+ExplorationSAANextGenus,SAA,button,ship,SAA next genus
+ExplorationSAAPreviousGenus,SAA,button,ship,SAA previous genus
+SAAThirdPersonYawAxisRaw,SAA,axis,ship,SAA third-person yaw axis (raw)
+SAAThirdPersonYawLeftButton,SAA,button,ship,SAA third-person yaw left
+SAAThirdPersonYawRightButton,SAA,button,ship,SAA third-person yaw right
+SAAThirdPersonPitchAxisRaw,SAA,axis,ship,SAA third-person pitch axis (raw)
+SAAThirdPersonPitchUpButton,SAA,button,ship,SAA third-person pitch up
+SAAThirdPersonPitchDownButton,SAA,button,ship,SAA third-person pitch down
+SAAThirdPersonFovAxisRaw,SAA,axis,ship,SAA third-person FOV axis (raw)
+SAAThirdPersonFovOutButton,SAA,button,ship,SAA third-person FOV out
+SAAThirdPersonFovInButton,SAA,button,ship,SAA third-person FOV in
+HumanoidForwardAxis,On-Foot,axis,on_foot,Move forward axis
+HumanoidForwardButton,On-Foot,button,on_foot,Move forward
+HumanoidBackwardButton,On-Foot,button,on_foot,Move backward
+HumanoidStrafeAxis,On-Foot,axis,on_foot,Strafe axis
+HumanoidStrafeLeftButton,On-Foot,button,on_foot,Strafe left
+HumanoidStrafeRightButton,On-Foot,button,on_foot,Strafe right
+HumanoidRotateAxis,On-Foot,axis,on_foot,Rotate / look axis
+HumanoidRotateLeftButton,On-Foot,button,on_foot,Rotate left
+HumanoidRotateRightButton,On-Foot,button,on_foot,Rotate right
+HumanoidPitchAxis,On-Foot,axis,on_foot,Pitch / look up-down axis
+HumanoidPitchUpButton,On-Foot,button,on_foot,Look up
+HumanoidPitchDownButton,On-Foot,button,on_foot,Look down
+HumanoidSprintButton,On-Foot,button,on_foot,Sprint
+HumanoidWalkButton,On-Foot,button,on_foot,Walk (slow movement)
+HumanoidCrouchButton,On-Foot,button,on_foot,Crouch
+HumanoidJumpButton,On-Foot,button,on_foot,Jump
+HumanoidPrimaryInteractButton,On-Foot,button,on_foot,Primary interact
+HumanoidSecondaryInteractButton,On-Foot,button,on_foot,Secondary interact
+HumanoidItemWheelButton,On-Foot,button,on_foot,Open item wheel
+HumanoidItemWheelButton_XAxis,On-Foot,axis,on_foot,Item wheel X axis
+HumanoidItemWheelButton_XLeft,On-Foot,button,on_foot,Item wheel left
+HumanoidItemWheelButton_XRight,On-Foot,button,on_foot,Item wheel right
+HumanoidItemWheelButton_YAxis,On-Foot,axis,on_foot,Item wheel Y axis
+HumanoidItemWheelButton_YUp,On-Foot,button,on_foot,Item wheel up
+HumanoidItemWheelButton_YDown,On-Foot,button,on_foot,Item wheel down
+HumanoidEmoteWheelButton,On-Foot,button,on_foot,Open emote wheel
+HumanoidUtilityWheelCycleMode,On-Foot,button,on_foot,Cycle utility wheel mode
+HumanoidPrimaryFireButton,On-Foot,button,on_foot,Primary fire
+HumanoidZoomButton,On-Foot,button,on_foot,Zoom / aim down sights
+HumanoidThrowGrenadeButton,On-Foot,button,on_foot,Throw grenade
+HumanoidMeleeButton,On-Foot,button,on_foot,Melee attack
+HumanoidReloadButton,On-Foot,button,on_foot,Reload weapon
+HumanoidSwitchWeapon,On-Foot,button,on_foot,Switch weapon (toggle)
+HumanoidSelectPrimaryWeaponButton,On-Foot,button,on_foot,Select primary weapon
+HumanoidSelectSecondaryWeaponButton,On-Foot,button,on_foot,Select secondary weapon
+HumanoidSelectUtilityWeaponButton,On-Foot,button,on_foot,Select utility weapon
+HumanoidSelectNextWeaponButton,On-Foot,button,on_foot,Select next weapon
+HumanoidSelectPreviousWeaponButton,On-Foot,button,on_foot,Select previous weapon
+HumanoidHideWeaponButton,On-Foot,button,on_foot,Holster weapon
+HumanoidSelectNextGrenadeTypeButton,On-Foot,button,on_foot,Select next grenade type
+HumanoidSelectPreviousGrenadeTypeButton,On-Foot,button,on_foot,Select previous grenade type
+HumanoidSelectFragGrenade,On-Foot,button,on_foot,Select frag grenade
+HumanoidSelectEMPGrenade,On-Foot,button,on_foot,Select EMP grenade
+HumanoidSelectShieldGrenade,On-Foot,button,on_foot,Select shield grenade
+HumanoidToggleFlashlightButton,On-Foot,button,on_foot,Toggle flashlight
+HumanoidToggleNightVisionButton,On-Foot,button,on_foot,Toggle night vision
+HumanoidToggleShieldsButton,On-Foot,button,on_foot,Toggle personal shields
+HumanoidClearAuthorityLevel,On-Foot,button,on_foot,Clear authority level
+HumanoidHealthPack,On-Foot,button,on_foot,Use health pack
+HumanoidBattery,On-Foot,button,on_foot,Use battery pack
+HumanoidSwitchToRechargeTool,On-Foot,button,on_foot,Switch to recharge tool
+HumanoidSwitchToCompAnalyser,On-Foot,button,on_foot,Switch to composition analyser
+HumanoidSwitchToSuitTool,On-Foot,button,on_foot,Switch to suit tool
+HumanoidToggleToolModeButton,On-Foot,button,on_foot,Toggle tool mode
+HumanoidToggleMissionHelpPanelButton,On-Foot,button,on_foot,Toggle mission help panel
+HumanoidPing,On-Foot,button,on_foot,Ping location
+HumanoidOpenAccessPanelButton,On-Foot,button,on_foot,Open access panel
+HumanoidConflictContextualUIButton,On-Foot,button,on_foot,Conflict contextual UI
+GalaxyMapOpen_Humanoid,On-Foot UI,button,on_foot,Open galaxy map
+SystemMapOpen_Humanoid,On-Foot UI,button,on_foot,Open system map
+FocusCommsPanel_Humanoid,On-Foot UI,button,on_foot,Focus comms panel
+QuickCommsPanel_Humanoid,On-Foot UI,button,on_foot,Quick comms panel
+PhotoCameraToggle_Humanoid,On-Foot UI,button,on_foot,Toggle photo camera
+HumanoidEmoteSlot1,On-Foot Emotes,button,on_foot,Emote slot 1
+HumanoidEmoteSlot2,On-Foot Emotes,button,on_foot,Emote slot 2
+HumanoidEmoteSlot3,On-Foot Emotes,button,on_foot,Emote slot 3
+HumanoidEmoteSlot4,On-Foot Emotes,button,on_foot,Emote slot 4
+HumanoidEmoteSlot5,On-Foot Emotes,button,on_foot,Emote slot 5
+HumanoidEmoteSlot6,On-Foot Emotes,button,on_foot,Emote slot 6
+HumanoidEmoteSlot7,On-Foot Emotes,button,on_foot,Emote slot 7
+HumanoidEmoteSlot8,On-Foot Emotes,button,on_foot,Emote slot 8
+PlaceSettlement,Settlement,button,ship,Place settlement
+ChangeConstructionOption,Settlement,button,ship,Change construction option
+RotateSettlement,Settlement,axis,ship,Rotate settlement axis
+RotateSettlementLeft,Settlement,button,ship,Rotate settlement left
+RotateSettlementRight,Settlement,button,ship,Rotate settlement right
+ExitSettlementPlacementCamera,Settlement,button,ship,Exit settlement placement camera
+MovePlacementCamX,Settlement,axis,ship,Placement camera move X axis
+MovePlacementCamY,Settlement,axis,ship,Placement camera move Y axis
+MovePlacementCamZ,Settlement,axis,ship,Placement camera move Z axis
+MovePlacementCamUpAxis,Settlement,axis,ship,Placement camera move up axis
+MovePlacementCamDownAxis,Settlement,axis,ship,Placement camera move down axis
+MovePlacementCamForward,Settlement,button,ship,Placement camera move forward
+MovePlacementCamBackwards,Settlement,button,ship,Placement camera move backward
+MovePlacementCamLeft,Settlement,button,ship,Placement camera move left
+MovePlacementCamRight,Settlement,button,ship,Placement camera move right
+MovePlacementCamUp,Settlement,button,ship,Placement camera move up
+MovePlacementCamDown,Settlement,button,ship,Placement camera move down
+PitchPlacementCamera,Settlement,axis,ship,Placement camera pitch axis
+PitchPlacementCameraUp,Settlement,button,ship,Placement camera pitch up
+PitchPlacementCameraDown,Settlement,button,ship,Placement camera pitch down
+YawPlacementCamera,Settlement,axis,ship,Placement camera yaw axis
+YawPlacementCameraRight,Settlement,button,ship,Placement camera yaw right
+YawPlacementCameraLeft,Settlement,button,ship,Placement camera yaw left
+PlacementCamSpeedInc,Settlement,button,ship,Increase placement camera speed
+PlacementCamSpeedDec,Settlement,button,ship,Decrease placement camera speed
+StoreEnableRotation,Store,button,all,Enable store model rotation
+StorePitchCamera,Store,axis,all,Store camera pitch axis
+StoreYawCamera,Store,axis,all,Store camera yaw axis
+StoreCamZoomIn,Store,button,all,Store camera zoom in
+StoreCamZoomOut,Store,button,all,Store camera zoom out
+StoreToggle,Store,button,all,Toggle store
+CommanderCreator_Undo,Commander Creator,button,all,Undo
+CommanderCreator_Redo,Commander Creator,button,all,Redo
+CommanderCreator_Rotation_MouseToggle,Commander Creator,button,all,Toggle mouse rotation
+CommanderCreator_Rotation,Commander Creator,axis,all,Rotation axis
+GalnetAudio_Play_Pause,GalNet Audio,button,all,Play / pause GalNet audio
+GalnetAudio_SkipForward,GalNet Audio,button,all,Skip forward
+GalnetAudio_SkipBackward,GalNet Audio,button,all,Skip backward
+GalnetAudio_ClearQueue,GalNet Audio,button,all,Clear audio queue

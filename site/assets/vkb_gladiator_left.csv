@@ -1,0 +1,61 @@
+Physical_Location,Layer,Joy_Input,Ship,Camera,Galaxy_Map,System_Map,FSS,SAA,SRV,On_Foot,Notes
+Stick X Axis,—,Joy_XAxis,LateralThrustRaw (Sway),,,,,,,,Main stick left/right
+Stick Y Axis,—,Joy_YAxis,AheadThrust (Surge),,,,,,,,Main stick forward/back
+Stick Z Axis (Twist),—,Joy_ZAxis,VerticalThrustRaw (Heave),,,,,,,,Twist grip; heave in flight
+A1 Mini-Stick X (RotX),—,Joy_RXAxis,,CamYawAxis (Inv),,,,,,HumanoidStrafeAxis,"Cam yaw in cam suite (inv); strafe on foot"
+A1 Mini-Stick Y (RotY),—,Joy_RYAxis,,CamPitchAxis (Inv),,,,,,HumanoidForwardAxis,"Cam pitch (inv); forward on foot"
+F-Throttle (RotZ),—,Joy_RZAxis,ThrottleAxis,CamTranslateZAxis,,,,,,,"Physical throttle lever; cam translate Z in camera mode"
+Trigger 1,1,Joy_1,UseBoostJuice,,,,,,,HumanoidPrimaryInteractButton,
+TRIGGER 1,2,Joy_50,,,,,,,,,Unused
+Trigger 2,1,Joy_2,,,,,,,,HumanoidSecondaryInteractButton,"On-foot: hold Trigger 1 as modifier; ship binding TBD"
+TRIGGER 2,2,Joy_51,,,,,,,,,Unused
+A2,1,Joy_3,LandingGearToggle,,,,,,,,"UI_Back in panels"
+A2,2,Joy_52,ShipSpotLightToggle,,,,,,HeadlightsBuggyButton,HumanoidToggleFlashlightButton,Lights in all modes
+A1 Push,1,Joy_73,,,,,,,,HumanoidSprintButton,Sprint on foot (A1 Push)
+A1 PUSH,2,Joy_69,,,,,,,,,TBD
+A3 Up,1,Joy_6,UI_Up,,,,,,,UI_Up,4-way hat for UI panel navigation
+A3 UP,2,Joy_57,CycleNextPage,,,,,,,,Layer 2
+A3 Right,1,Joy_7,UI_Right,,,,,,,UI_Right,
+A3 RIGHT,2,Joy_59,CycleNextPanel,,,,,,,,Layer 2
+A3 Down,1,Joy_8,UI_Down,,,,,,,UI_Down,
+A3 DOWN,2,Joy_56,CyclePreviousPage,,,,,,,,Layer 2
+A3 Left,1,Joy_9,UI_Left,,,,,,,UI_Left,
+A3 LEFT,2,Joy_58,CyclePreviousPanel,,,,,,,,Layer 2
+A3 Push,1,Joy_10,UI_Select,,,,,,,UI_Select,
+A3 PUSH,2,Joy_53,,,,,,,,,Unused
+A4 Up,1,Joy_11,GalaxyMapOpen,,,,,,,,
+A4 UP,2,Joy_61,,,,,,,,,RESERVED — OpenKneeboard
+A4 Down,1,Joy_13,SystemMapOpen,,,,,,,,
+A4 DOWN,2,Joy_60,,,,,,,,,RESERVED — OpenKneeboard
+A4 Right,1,Joy_14,TargetNextRouteSystem,,,,,ExplorationSAANextGenus,,,DSS next genus; route target next (ship context)
+A4 RIGHT,2,Joy_62,,,,,,,,,RESERVED — OpenKneeboard
+A4 Left,1,Joy_12,,,,,,ExplorationSAAPreviousGenus,,,DSS previous genus
+A4 LEFT,2,Joy_63,,,,,,,,,RESERVED — OpenKneeboard
+A4 Push,1,Joy_15,ExplorationFSSEnter,,,,,,,,"Enter FSS scanner; exploration cluster with A4 Up/Down"
+A4 PUSH,2,Joy_54,,,,,,,,,RESERVED — OpenKneeboard
+B1,1,Joy_4,ToggleFlightAssist,,,,,,,,"Toggle on by default"
+B1,2,Joy_55,HMDReset,,,,,,,,"Layer 2; VR essential"
+C1 Up,1,Joy_16,IncreaseEnginesPower,,,,,,,,"Pip: Engines — matches HUD"
+C1 UP,2,Joy_65,NightVisionToggle,,,,,,,,
+C1 Right,1,Joy_17,IncreaseWeaponsPower,,,,,,,,"Pip: Weapons — matches HUD"
+C1 RIGHT,2,Joy_67,DeployHeatSink (secondary),,,,,,,,
+C1 Down,1,Joy_18,ResetPowerDistribution,,,,,,,,"Pip: Reset — matches HUD"
+C1 DOWN,2,Joy_64,ToggleCargoScoop,,,,,,,,
+C1 Left,1,Joy_19,IncreaseSystemsPower,,,,,,,,"Pip: Systems — matches HUD"
+C1 LEFT,2,Joy_66,FireChaffLauncher,,,,,,,,
+C1 Push,1,Joy_20,EjectAllCargo,,,,,,,,
+C1 PUSH,2,Joy_68,UseShieldCell,,,,,,,,
+D1,1,Modifier Toggle,VKB Firmware Modifier Toggle,,,,,,,,"Modifier"
+RF-Up,1,Joy_21,Supercruise,,,,,,,HumanoidCrouchButton,Rapid fire rocker up
+RF-UP,1,Joy_70,Supercruise,,,,,,,HumanoidCrouchButton,Rapid fire rocker up
+RF-Down,1,Joy_22,Hyperspace,,,,,,,HumanoidJumpButton,Rapid fire rocker down
+RF-DOWN,1,Joy_71,Hyperspace,,,,,,,HumanoidJumpButton,Rapid fire rocker down
+En1-Up,1,Joy_23,RadarIncreaseRange,,,,,,,,"Encoder CW = sensor range up"
+En1-Down,1,Joy_24,RadarDecreaseRange,,,,,,,,"Encoder CCW = sensor range down"
+Sw1-Up,1,Joy_25,,,,,ExplorationFSSRadioTuningX_Increase,,,,"Spring-center rocker; FSS frequency tuning"
+Sw1-Down,1,Joy_26,,,,,ExplorationFSSRadioTuningX_Decrease,,,,"Spring-center rocker; FSS frequency tuning"
+F3,1,Joy_29,,,,,,,,,RESERVED — OpenKneeboard
+F2,1,Joy_28,Pause,,,,,,,,
+F1,1,Joy_27,TBD,,,,,,,,
+
+
