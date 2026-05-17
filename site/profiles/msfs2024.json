@@ -1,0 +1,35 @@
+{
+  "name": "MSFS 2024",
+  "version": "0.1",
+  "lh": {
+    "A2_A_2": "Brakes",
+    "B1_A_2": "Quick Reply (VR mode)",
+    "BASE_A_2": "Toggle Parking Brakes",
+    "BASE_B_2": "Release Tow Hook",
+    "BASE_C_2": "Toggle Landing Gear",
+    "AX_Y": "Throttle",
+    "SW1_A_2": "Decrease Flaps",
+    "SW1_B_2": "Increase Flaps",
+    "D1_A_2": "MODIFIER"
+  },
+  "rh": {
+    "AX_X": "Roll",
+    "AX_Y": "Pitch",
+    "AX_TWIST": "Yaw",
+    "AX_THROTTLE": "Mixture",
+    "A2_A_2": "Autopilot Master",
+    "A3_A_2": "Display Checklist",
+    "A3_B_2": "AP Altitude Hold",
+    "A3_C_2": "AP Heading Hold",
+    "A3_D_2": "AP Nav1 Hold",
+    "A3_E_2": "AP Approach Hold",
+    "A4_B_2": "Altitude Bug +",
+    "A4_C_2": "Airspeed Bug −",
+    "A4_D_2": "Heading Bug Left",
+    "A4_E_2": "Heading Bug Right",
+    "EN1_A_2": "Elevator Trim Up",
+    "EN1_B_2": "Elevator Trim Down",
+    "B1_A_2": "Cockpit/External View",
+    "D1_A_2": "MODIFIER"
+  }
+}

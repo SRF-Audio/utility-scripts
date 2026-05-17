@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VKB Gladiator Bindings</title>
+<style>
+  :root {
+    --bg: #1a1a1a;
+    --fg: #eaeaea;
+    --accent: #ff4d3d;
+    --label-bg: rgba(255,255,255,0.92);
+    --label-fg: #111;
+    --empty-bg: rgba(120,120,120,0.25);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg);
+               font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+  header {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 0.5rem 1rem; background: #0e0e0e; border-bottom: 1px solid #333;
+    position: sticky; top: 0; z-index: 10;
+  }
+  header h1 { font-size: 1rem; margin: 0; font-weight: 600; }
+  header .meta { font-size: 0.85rem; color: #aaa; }
+  header select, header button {
+    background: #222; color: var(--fg); border: 1px solid #444;
+    padding: 0.25rem 0.5rem; border-radius: 4px; font: inherit;
+  }
+  header button:hover { background: #2a2a2a; cursor: pointer; }
+
+  .stage {
+    /* The diagram preserves its aspect ratio. 792:612 = 1.294 */
+    position: relative; margin: 0 auto;
+    width: min(100vw, calc((100vh - 50px) * 1.2941));
+    aspect-ratio: 792 / 612;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+  }
+
+  .label {
+    position: absolute;
+    background: var(--label-bg);
+    color: var(--label-fg);
+    display: flex; align-items: center; justify-content: flex-start;
+    padding: 0 0.4em;
+    font-size: clamp(8px, 1.1cqw, 13px);
+    line-height: 1;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    border-radius: 1px;
+  }
+  .label.empty { background: var(--empty-bg); color: transparent; }
+  .label.modifier { background: #ffe7c2; font-weight: 600; }
+  .label.section { background: #c8e4ff; font-weight: 600; }
+  .stage { container-type: inline-size; }
+
+  /* The static row-symbol cells (_1) — render but greyed so the diagram still reads */
+  .label.symbol { background: rgba(220,220,220,0.7); color: #333;
+                  justify-content: center; font-size: clamp(7px, 0.9cqw, 11px); }
+
+  footer { padding: 0.5rem 1rem; font-size: 0.8rem; color: #777; text-align: center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>VKB Gladiator</h1>
+  <select id="side">
+    <option value="lh">Left Stick (LH)</option>
+    <option value="rh">Right Stick (RH)</option>
+  </select>
+  <select id="profile">
+    <!-- populated from profiles/_index.json -->
+  </select>
+  <span class="meta" id="meta"></span>
+  <span style="flex:1"></span>
+  <button id="toggle-empty">Hide empty</button>
+</header>
+
+<div class="stage" id="stage"></div>
+
+<footer><span id="status"></span></footer>
+
+<script>
+const stage  = document.getElementById('stage');
+const sideEl = document.getElementById('side');
+const profEl = document.getElementById('profile');
+const metaEl = document.getElementById('meta');
+const statusEl = document.getElementById('status');
+const toggleEmpty = document.getElementById('toggle-empty');
+
+const params = new URLSearchParams(location.search);
+let hideEmpty = false;
+
+async function loadJSON(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${url}: ${r.status}`);
+  return r.json();
+}
+
+let fields, profileIndex, currentProfile;
+
+async function init() {
+  fields = await loadJSON('assets/fields.json');
+  profileIndex = await loadJSON('profiles/_index.json');
+
+  profileIndex.profiles.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p.id; o.textContent = p.name;
+    profEl.appendChild(o);
+  });
+
+  // URL-driven defaults
+  if (params.get('side'))    sideEl.value = params.get('side');
+  if (params.get('profile')) profEl.value = params.get('profile');
+
+  sideEl.onchange = profEl.onchange = render;
+  toggleEmpty.onclick = () => {
+    hideEmpty = !hideEmpty;
+    toggleEmpty.textContent = hideEmpty ? 'Show empty' : 'Hide empty';
+    render();
+  };
+
+  render();
+}
+
+async function render() {
+  const side = sideEl.value;
+  const profileId = profEl.value;
+  const profile = await loadJSON(`profiles/${profileId}.json`);
+  currentProfile = profile;
+
+  // Update URL without reload
+  const u = new URL(location);
+  u.searchParams.set('side', side);
+  u.searchParams.set('profile', profileId);
+  history.replaceState(null, '', u);
+
+  const data = fields[side];
+  metaEl.textContent = `${profile.name} · ${side.toUpperCase()} · v${profile.version || '–'}`;
+  stage.style.backgroundImage = `url(assets/${data.image})`;
+  stage.innerHTML = '';
+
+  const sideBindings = profile[side] || {};
+  let filled = 0;
+
+  for (const f of data.fields) {
+    const value = sideBindings[f.id];
+    const isValueCol = f.value_col;
+    const empty = !value;
+
+    if (hideEmpty && isValueCol && empty) continue;
+    // Skip the static label/symbol cells unless explicitly overridden — these
+    // are already burned into the background image so we don't redraw them.
+    if (!isValueCol && !value) continue;
+
+    const el = document.createElement('div');
+    el.className = 'label';
+    if (!isValueCol) el.classList.add('symbol');
+    if (empty) el.classList.add('empty');
+    if (value && /modifier/i.test(value)) el.classList.add('modifier');
+
+    const n = f.norm;
+    el.style.left   = (n.left   * 100) + '%';
+    el.style.top    = (n.top    * 100) + '%';
+    el.style.width  = (n.width  * 100) + '%';
+    el.style.height = (n.height * 100) + '%';
+    el.title = `${f.id}: ${value || '(unbound)'}`;
+    el.textContent = value || '';
+
+    stage.appendChild(el);
+    if (value) filled++;
+  }
+
+  const total = data.fields.filter(f => f.value_col).length;
+  statusEl.textContent = `${filled}/${total} bindings shown`;
+}
+
+init().catch(e => { statusEl.textContent = 'Error: ' + e.message; });
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "profiles": [
+    { "id": "ed-vr",      "name": "Elite Dangerous (VR)" },
+    { "id": "msfs2024",   "name": "MSFS 2024" },
+    { "id": "dcs-f16",    "name": "DCS F-16C" }
+  ]
+}
