@@ -14,14 +14,17 @@ site/
 │   └── fields.json           # All 76 fields × 2 sides, normalized coords
 └── profiles/
     ├── _index.json           # List of profiles to populate the dropdown
-    ├── ed-vr.json
+    ├── ed-flight.json        # ED — Ship Flight
+    ├── ed-onfoot.json        # ED — On Foot (Odyssey FPS)
+    ├── ed-galmap.json        # ED — Galaxy Map
+    ├── ed-srv.json           # ED — SRV
     ├── msfs2024.json
     └── dcs-f16.json
 ```
 
 ## URLs
 
-- `/?side=lh&profile=ed-vr` — pin this in OpenKneeboard
+- `/?side=lh&profile=ed-flight` — pin this in OpenKneeboard
 - `/?side=rh&profile=msfs2024`
 
 ## Adding a profile

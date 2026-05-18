@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm \"C:/Users/steph/GitHub/utility-scripts/vkb_hosas/profiles/ed-vr.json\")",
+      "PowerShell($files = @\\('ed-flight.json','ed-onfoot.json','ed-galmap.json','ed-srv.json','_index.json'\\); foreach \\($f in $files\\) { try { $null = Get-Content \"C:\\\\Users\\\\steph\\\\GitHub\\\\utility-scripts\\\\vkb_hosas\\\\profiles\\\\$f\" -Raw | ConvertFrom-Json; Write-Output \"OK: $f\" } catch { Write-Output \"FAIL: $f - $_\" } })",
+      "Bash(python \"C:/Users/steph/AppData/Local/Temp/gen_configmap.py\")",
+      "Bash(py -3 --version)",
+      "Bash(py -3 \"C:/Users/steph/AppData/Local/Temp/gen_configmap.py\")",
+      "Bash(where.exe python *)",
+      "PowerShell(Get-Command python, py, python3 -ErrorAction SilentlyContinue)",
+      "Bash(winget install *)",
+      "Read(//c/Users/steph/AppData/Local/Programs/Python//**)",
+      "Bash(/c/Users/steph/AppData/Local/Programs/Python/Python312/python.exe --version)",
+      "Bash(/c/Users/steph/AppData/Local/Programs/Python/Python312/python.exe \"C:/Users/steph/AppData/Local/Temp/gen_configmap.py\")",
+      "Bash(/c/Users/steph/AppData/Local/Programs/Python/Python312/python.exe -m pip install pyyaml --quiet)",
+      "Bash(/c/Users/steph/AppData/Local/Programs/Python/Python312/python.exe \"C:/Users/steph/AppData/Local/Temp/validate_configmap.py\")",
+      "Bash(kubectl apply *)",
+      "Bash(git show *)",
+      "Read(//tmp/**)",
+      "Bash(python -c 'import json; json.load\\(open\\('\\\\''__TRACKED_VAR__'\\\\''\\)\\); print\\('\\\\''OK: __TRACKED_VAR__'\\\\''\\)')",
+      "Bash(git -C \"C:/Users/steph/GitHub/utility-scripts\" diff HEAD --stat -- hetzner/k8s/ed_hotas/ hetzner/argocd/apps/apps/ed-hotas.yml)",
+      "Bash(git -C \"C:/Users/steph/GitHub/utility-scripts\" diff HEAD -- hetzner/argocd/apps/apps/ed-hotas.yml)",
+      "Bash(git -C \"C:/Users/steph/GitHub/utility-scripts\" diff HEAD --stat -- hetzner/k8s/ed_hotas/deployment.yml hetzner/k8s/ed_hotas/service.yml hetzner/k8s/ed_hotas/ingress.yml hetzner/k8s/ed_hotas/namespace.yml hetzner/k8s/ed_hotas/kustomization.yml)",
+      "Bash(python -c \"import yaml; d=yaml.safe_load\\(open\\(r'C:/Users/steph/GitHub/utility-scripts/hetzner/k8s/ed_hotas/configmap.yml',encoding='utf-8'\\)\\); print\\('name:', d['metadata']['name']\\); print\\('namespace:', d['metadata']['namespace']\\); print\\('keys:', sorted\\(d['data'].keys\\(\\)\\)\\)\")",
+      "PowerShell(py --version; \\(Get-Item 'C:/Users/steph/GitHub/utility-scripts/hetzner/k8s/ed_hotas/configmap.yml'\\).Length)",
+      "PowerShell(Get-Command python, python3, py -ErrorAction SilentlyContinue)",
+      "Bash(C:/Users/steph/AppData/Local/Programs/Python/Python312/python.exe --version)",
+      "Bash(C:/Users/steph/AppData/Local/Programs/Python/Python312/python.exe -c 'import yaml; print\\('\\\\''yaml ok'\\\\''\\)')",
+      "Bash(C:/Users/steph/AppData/Local/Programs/Python/Python312/python.exe -)",
+      "Bash(python -c ' *)",
+      "Bash(where py *)",
+      "Bash(where python.exe)",
+      "Read(//c/Program Files/**)",
+      "Read(//c/Users/steph/AppData/Local/Programs/**)",
+      "Bash(C:/Users/steph/AppData/Local/Programs/Python/Python312/python.exe -c ' *)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\steph\\GitHub\\utility-scripts\\vkb_hosas\\profiles",
+      "\\tmp"
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "ED — On Foot",
+  "version": "0.1-draft",
+  "notes": "Draft. Confirm in-game after Aug/Sep 2026 VR rig is online. Mapping derived from Boopidoo On-Foot Context table.",
+  "lh": {
+    "AX_X": "Strafe",
+    "AX_Y": "Move Forward/Back",
+    "AX_TWIST": "<unbound>",
+    "MT_A_2": "Reload",
+    "A2_A_2": "Crouch",
+    "B1_A_2": "Sprint",
+    "RFT_A_2": "Jump",
+    "D1_A_2": "MODIFIER"
+  },
+  "rh": {
+    "AX_X": "Look Yaw",
+    "AX_Y": "Look Pitch",
+    "AX_TWIST": "<unbound>",
+    "MT_A_2": "Primary Fire",
+    "MT_B_2": "Secondary Fire",
+    "A2_A_2": "Aim / Zoom",
+    "B1_A_2": "Melee",
+    "RFT_A_2": "Primary Interact",
+    "D1_A_2": "MODIFIER",
+    "A3_A_2": "Item Wheel",
+    "A3_B_2": "Wheel Up",
+    "A3_C_2": "Wheel Down",
+    "A3_D_2": "Wheel Left",
+    "A3_E_2": "Wheel Right",
+    "A4_A_2": "Emote Wheel",
+    "A4_B_2": "Grenade Up",
+    "A4_C_2": "Grenade Down",
+    "A4_D_2": "Grenade Left",
+    "A4_E_2": "Grenade Right"
+  }
+}

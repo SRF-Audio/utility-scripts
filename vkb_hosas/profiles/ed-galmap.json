@@ -1,0 +1,24 @@
+{
+  "name": "ED — Galaxy Map",
+  "version": "0.1-draft",
+  "notes": "Draft. Sparse — Galaxy Map is mostly UI nav.",
+  "lh": {
+    "AX_X": "<unbound>",
+    "AX_Y": "<unbound>",
+    "AX_TWIST": "<unbound>",
+    "A2_A_2": "Zoom In",
+    "B1_A_2": "Zoom Out"
+  },
+  "rh": {
+    "AX_X": "<unbound>",
+    "AX_Y": "<unbound>",
+    "AX_TWIST": "<unbound>",
+    "A3_A_2": "UI Select",
+    "A3_B_2": "UI Up",
+    "A3_C_2": "UI Down",
+    "A3_D_2": "UI Left",
+    "A3_E_2": "UI Right",
+    "MT_A_2": "Plot Route",
+    "RFT_A_2": "Back / Exit Map"
+  }
+}

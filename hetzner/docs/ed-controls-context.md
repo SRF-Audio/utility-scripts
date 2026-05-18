@@ -10,7 +10,7 @@ This file is the live status tracker for the ED controls hosting project.
 - Do NOT touch status.md (that file tracks the Paperless-NGX migration project).
 -->
 
-Last updated: 2026-05-17 (plan revised to unified single-app approach; implementation not started)
+Last updated: 2026-05-17 (Tasks 1–3 complete; multi-agent review done; awaiting deploy + Task 4 in-cluster validation)
 
 ---
 
@@ -31,12 +31,22 @@ Hardware context:
 
 | Task | Description | Status |
 |------|-------------|--------|
-| 1 | Write unified `index.html` (Boopidoo + VKB combined) | NOT STARTED |
-| 2 | Seed ED VR profiles (`ed-flight`, `ed-onfoot`, `ed-galmap`, `ed-srv`) | NOT STARTED |
-| 3 | Update ConfigMap with unified HTML + all JSON files | NOT STARTED |
-| 4 | Validation | NOT STARTED |
+| 1 | Write unified `index.html` (Boopidoo + VKB combined) | DONE (`vkb_hosas/index.html`, 824 lines) |
+| 2 | Seed ED VR profiles (`ed-flight`, `ed-onfoot`, `ed-galmap`, `ed-srv`) | DONE (4 ED profiles + updated `_index.json`; `ed-vr.json` removed) |
+| 3 | Update ConfigMap with unified HTML + all JSON files | DONE (`hetzner/k8s/ed_hotas/configmap.yml`, 9 keys, ~98 KB) |
+| 4 | Validation | PENDING — push to main, let ArgoCD sync, then run the in-browser checklist |
 
-Tasks 1 and 2 are independent and can be done in parallel. Task 3 requires both 1 and 2.
+Tasks 1 and 2 were done in parallel by separate agents. Task 3 mechanically copied source files into ConfigMap block scalars. A three-agent review pass (frontend / profiles / deployment) followed; minor fixes were applied and the ConfigMap was regenerated.
+
+### Review pass findings (resolved)
+- FOUC on `?view=vkb` landings — fixed by adding `hidden` to `#boopidoo-section`.
+- `renderVKB` silently swallowed dropdown-change fetch failures — wrapped in try/catch surfacing errors via `#status`.
+- `README.md` directory tree still listed `ed-vr.json` and was missing the four new ED profiles — updated.
+
+### Known drafts (intentional, deferred to in-game testing on VR rig ~Aug/Sep 2026)
+- `ed-onfoot.json`, `ed-galmap.json`, `ed-srv.json` are all `version: 0.1-draft`.
+- `ed-onfoot.json` RH `A4_*_2` "Grenade Up/Down/Left/Right" is an extrapolation not in the Boopidoo source table — confirm or rebind in-game.
+- "Heat Sink" vs Boopidoo's "Heatsink" — pick one for consistency at some point.
 
 ---
 

@@ -1,0 +1,31 @@
+{
+  "name": "ED — SRV",
+  "version": "0.1-draft",
+  "notes": "Draft. Stick layout mirrors Boopidoo SRV: right stick steers/aims, left twist = throttle, RFT = jump.",
+  "lh": {
+    "AX_X": "Turret Pitch",
+    "AX_Y": "<unbound>",
+    "AX_TWIST": "Throttle",
+    "MT_A_2": "Full Stop",
+    "MT_B_2": "Full Forward",
+    "RFT_A_2": "Handbrake",
+    "A2_A_2": "Headlights",
+    "B1_A_2": "Drive Assist Toggle",
+    "D1_A_2": "MODIFIER"
+  },
+  "rh": {
+    "AX_X": "Steering (Roll)",
+    "AX_Y": "Pitch / Turret Aim",
+    "AX_TWIST": "Turret Yaw",
+    "MT_A_2": "Primary Fire (Turret)",
+    "MT_B_2": "Secondary Fire",
+    "RFT_A_2": "Vertical Thrust (Jump)",
+    "A3_A_2": "UI Select",
+    "A3_B_2": "UI Up",
+    "A3_C_2": "UI Down",
+    "A3_D_2": "UI Left",
+    "A3_E_2": "UI Right",
+    "EN1_A_2": "Recall / Dismiss Ship",
+    "EN1_B_2": "Toggle Turret"
+  }
+}
