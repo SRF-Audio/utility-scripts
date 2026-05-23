@@ -1,0 +1,17 @@
+---
+# Hetzner ArgoCD RBAC policy. Mirrors the homelab argocd-rbac-cm:
+#   - homepage service account: readonly (for status widgets)
+#   - GitHub user 16975040     : admin    (Stephen)
+# Any other GitHub login defaults to readonly via the chart's default policy.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rbac-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-rbac-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  policy.csv: |
+    g, homepage, role:readonly
+    g, 16975040, role:admin

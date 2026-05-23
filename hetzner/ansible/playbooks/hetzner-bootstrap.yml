@@ -9,15 +9,19 @@
 # - 1Password CLI is configured on the control machine
 #
 # What this playbook does:
-# 1. (hetzner_node) Format + mount the Hetzner block volume
-# 2. (hetzner_node) Harden SSH: key-only auth, drop-in sshd config
-# 3. (hetzner_node) Install Tailscale and join the tailnet
-# 4. (hetzner_node) Install k3s single-node with local-path storage on the volume
-# 5. (local)        Retrieve + merge kubeconfig (context: "hetzner")
-# 6. (local)        Deploy ArgoCD + apply Hetzner-specific overrides
-# 7. (local)        Deploy 1Password Operator
-# 8. (local)        Register GitHub repo with ArgoCD
-# 9. (local)        Apply hetzner/argocd/root.yml — ArgoCD syncs all apps via waves
+# 1.  (hetzner_node) Format + mount the Hetzner block volume
+# 2.  (hetzner_node) Harden SSH: key-only auth, drop-in sshd config
+# 3.  (hetzner_node) Install Tailscale and join the tailnet
+# 4.  (hetzner_node) Install k3s single-node with local-path storage on the volume
+# 5.  (local)        Retrieve + merge kubeconfig (context: "hetzner")
+# 6.  (local)        Install ArgoCD (no dex config from the role — overridden below)
+# 7.  (local)        Apply argocd-cmd-params-cm + ingress + hetzner-infra AppProject
+# 8.  (local)        Deploy 1Password Operator
+# 9.  (local)        Apply OnePasswordItem for argocd-github-oauth, wait for Secret
+# 10. (local)        Apply argocd-cm (with dex GitHub connector) + argocd-rbac-cm
+# 11. (local)        Restart argocd-dex-server + argocd-server to load OAuth config
+# 12. (local)        Register GitHub repo with ArgoCD
+# 13. (local)        Apply hetzner/argocd/root.yml — ArgoCD syncs all apps via waves
 
 - name: Prepare Hetzner node — harden, mount volume, install Tailscale and k3s
   hosts: hetzner
@@ -251,8 +255,10 @@
         # that would require passwordless sudo.
         k8s_validator_install_packages: false
 
-  roles:
-    - role: argocd_deploy
+  tasks:
+    - name: Install ArgoCD via argocd_deploy role
+      ansible.builtin.include_role:
+        name: argocd_deploy
       vars:
         argocd_deploy_kubeconfig: >-
           {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
@@ -261,17 +267,11 @@
         argocd_deploy_cluster_name: "{{ hetzner_cluster_name }}"
         argocd_deploy_configure_dex: false
 
-    - role: k8s_object_manager
-      vars:
-        k8s_object_manager_kubeconfig: >-
-          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
-        k8s_object_manager_context: >-
-          {{ kubeconfig_manager_artifacts.context_name }}
-        k8s_object_manager_src: "{{ playbook_dir }}/../../../hetzner/k8s/argocd/argocd-cm.yml"
-        k8s_object_manager_state: present
-        k8s_object_manager_apply: true
-
-    - role: k8s_object_manager
+    # cmd-params-cm sets server.insecure: true; ingress depends on that.
+    # Both can be applied before argocd-cm — they don't reference any OAuth state.
+    - name: Apply argocd-cmd-params-cm
+      ansible.builtin.include_role:
+        name: k8s_object_manager
       vars:
         k8s_object_manager_kubeconfig: >-
           {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
@@ -281,7 +281,9 @@
         k8s_object_manager_state: present
         k8s_object_manager_apply: true
 
-    - role: k8s_object_manager
+    - name: Apply ArgoCD Tailscale ingress
+      ansible.builtin.include_role:
+        name: k8s_object_manager
       vars:
         k8s_object_manager_kubeconfig: >-
           {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
@@ -295,7 +297,9 @@
     # its ArgoCD Application. The 1Password Operator Application uses a PUBLIC Helm repo
     # (https://1password.github.io/connect-helm-charts/), NOT the private GitHub repo —
     # so it only needs the hetzner-infra project to exist, not GitHub SSH credentials.
-    - role: k8s_object_manager
+    - name: Apply hetzner-infra AppProject
+      ansible.builtin.include_role:
+        name: k8s_object_manager
       vars:
         k8s_object_manager_kubeconfig: >-
           {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
@@ -308,9 +312,11 @@
 
     # Deploy 1Password Operator via ArgoCD Application (public Helm repo — syncs immediately).
     # Waits up to 5 min for onepassword-connect and onepassword-connect-operator to be Available.
-    # After this role completes, the OnePasswordItem CRD exists and argocd_github_repo_create
+    # After this completes, the OnePasswordItem CRD exists and argocd_github_repo_create
     # can create OnePasswordItem resources.
-    - role: onepassword_operator_deploy
+    - name: Deploy 1Password Operator
+      ansible.builtin.include_role:
+        name: onepassword_operator_deploy
       vars:
         onepassword_operator_deploy_kubeconfig: >-
           {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
@@ -328,10 +334,98 @@
                     field='credential',
                     vault='HomeLab') }}
 
-    # Register GitHub repo with ArgoCD. Now that the 1Password Operator is running,
-    # the OnePasswordItem CRD exists and this role can create OnePasswordItem resources
-    # to retrieve the GitHub SSH deploy key from 1Password.
-    - role: argocd_github_repo_create
+    # Apply the OnePasswordItem that materializes argocd-github-oauth Secret.
+    # Must run AFTER onepassword_operator_deploy (so the CRD exists) and BEFORE
+    # argocd-cm (so dex sees the secret on first read of the new dex.config).
+    - name: Apply argocd-github-oauth OnePasswordItem
+      ansible.builtin.include_role:
+        name: k8s_object_manager
+      vars:
+        k8s_object_manager_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        k8s_object_manager_context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
+        k8s_object_manager_src: >-
+          {{ playbook_dir }}/../../../hetzner/k8s/argocd/onepassword-argocd-github-oauth.yml
+        k8s_object_manager_state: present
+        k8s_object_manager_apply: true
+
+    - name: Wait for 1Password Operator to materialize argocd-github-oauth Secret
+      kubernetes.core.k8s_info:
+        kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
+        api_version: v1
+        kind: Secret
+        namespace: argocd
+        name: argocd-github-oauth
+      register: _argocd_github_oauth_secret
+      until:
+        - _argocd_github_oauth_secret.resources is defined
+        - _argocd_github_oauth_secret.resources | length > 0
+        - _argocd_github_oauth_secret.resources[0].data is defined
+        - (_argocd_github_oauth_secret.resources[0].data['argocd-hetzner-client-id'] | default('')) | length > 0
+        - (_argocd_github_oauth_secret.resources[0].data['argocd-hetzner-client-secret'] | default('')) | length > 0
+      retries: 30
+      delay: 5
+      failed_when: >-
+        _argocd_github_oauth_secret.resources is not defined or
+        _argocd_github_oauth_secret.resources | length == 0 or
+        _argocd_github_oauth_secret.resources[0].data is not defined or
+        (_argocd_github_oauth_secret.resources[0].data['argocd-hetzner-client-id'] | default('')) | length == 0 or
+        (_argocd_github_oauth_secret.resources[0].data['argocd-hetzner-client-secret'] | default('')) | length == 0
+
+    # Apply argocd-cm WITH dex.config now that the referenced secret exists.
+    - name: Apply argocd-cm with dex GitHub connector
+      ansible.builtin.include_role:
+        name: k8s_object_manager
+      vars:
+        k8s_object_manager_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        k8s_object_manager_context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
+        k8s_object_manager_src: "{{ playbook_dir }}/../../../hetzner/k8s/argocd/argocd-cm.yml"
+        k8s_object_manager_state: present
+        k8s_object_manager_apply: true
+
+    - name: Apply argocd-rbac-cm (homepage readonly, GitHub UID 16975040 admin)
+      ansible.builtin.include_role:
+        name: k8s_object_manager
+      vars:
+        k8s_object_manager_kubeconfig: >-
+          {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+        k8s_object_manager_context: >-
+          {{ kubeconfig_manager_artifacts.context_name }}
+        k8s_object_manager_src: "{{ playbook_dir }}/../../../hetzner/k8s/argocd/argocd-rbac-cm.yml"
+        k8s_object_manager_state: present
+        k8s_object_manager_apply: true
+
+    # ArgoCD's argocd-server watches argocd-cm and reloads dex automatically,
+    # but external secret refs ($argocd-github-oauth:*) are resolved only when
+    # dex (re)starts. On fresh installs dex came up before the new cm — bounce
+    # both so the GitHub connector is loaded with the correct secret values.
+    - name: Restart argocd-dex-server to pick up GitHub connector
+      ansible.builtin.command:
+        cmd: >-
+          kubectl --kubeconfig={{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+          --context={{ kubeconfig_manager_artifacts.context_name }}
+          -n argocd rollout restart deployment/argocd-dex-server
+      changed_when: true
+
+    - name: Restart argocd-server to pick up new url + RBAC
+      ansible.builtin.command:
+        cmd: >-
+          kubectl --kubeconfig={{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
+          --context={{ kubeconfig_manager_artifacts.context_name }}
+          -n argocd rollout restart deployment/argocd-server
+      changed_when: true
+
+    # Register GitHub repo with ArgoCD. The 1Password Operator is running, so
+    # this role's OnePasswordItem for the SSH deploy key will materialize.
+    - name: Register GitHub repo with ArgoCD
+      ansible.builtin.include_role:
+        name: argocd_github_repo_create
       vars:
         argocd_github_repo_create_kubeconfig: >-
           {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
@@ -340,7 +434,9 @@
 
     # Apply root ArgoCD Application. The GitHub SSH repo is now registered, so ArgoCD
     # can sync all apps in hetzner/argocd/apps/ (projects, operators, platform, apps).
-    - role: k8s_object_manager
+    - name: Apply root ArgoCD Application
+      ansible.builtin.include_role:
+        name: k8s_object_manager
       vars:
         k8s_object_manager_kubeconfig: >-
           {{ kubeconfig_manager_artifacts.target_kubeconfig_path }}
@@ -350,4 +446,6 @@
         k8s_object_manager_state: present
         k8s_object_manager_apply: true
 
-    - role: k9s_install
+    - name: Install k9s
+      ansible.builtin.include_role:
+        name: k9s_install

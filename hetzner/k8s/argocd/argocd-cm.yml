@@ -4,8 +4,12 @@
 # argocd-cm that the role template generates.
 #
 # Key differences from homelab argocd-cm:
-# - url points to argocd-hetzner.rohu-shark.ts.net
-# - dex.config is omitted (no GitHub OAuth — use admin password, it's Tailscale-only)
+# - url + dex redirectURI point to argocd-hetzner.rohu-shark.ts.net
+# - dex.config GitHub clientID/clientSecret reference the `argocd-github-oauth`
+#   Secret (materialized by the 1Password Operator from the "ArgoCD Hetzner
+#   GitHub OAuth" 1Password item) instead of being templated by Ansible.
+#   The Secret must be labeled `app.kubernetes.io/part-of: argocd` for ArgoCD
+#   to resolve `$argocd-github-oauth:<key>` references.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -29,3 +33,12 @@ data:
     end
     hs.status = "Progressing"
     return hs
+  dex.config: |
+    connectors:
+    - type: github
+      id: github
+      name: GitHub
+      config:
+        clientID: $argocd-github-oauth:argocd-hetzner-client-id
+        clientSecret: $argocd-github-oauth:argocd-hetzner-client-secret
+        redirectURI: https://argocd-hetzner.rohu-shark.ts.net/api/dex/callback
