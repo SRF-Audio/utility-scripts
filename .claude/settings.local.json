@@ -32,7 +32,11 @@
       "Bash(where python.exe)",
       "Read(//c/Program Files/**)",
       "Read(//c/Users/steph/AppData/Local/Programs/**)",
-      "Bash(C:/Users/steph/AppData/Local/Programs/Python/Python312/python.exe -c ' *)"
+      "Bash(C:/Users/steph/AppData/Local/Programs/Python/Python312/python.exe -c ' *)",
+      "Read(//c/Users/steph/AppData/Local/**)",
+      "Read(//c/Users/steph/AppData/Roaming/**)",
+      "Read(//c/Program Files \\(x86\\)/**)",
+      "Read(//c/Users/steph/Documents/**)"
     ],
     "additionalDirectories": [
       "C:\\Users\\steph\\GitHub\\utility-scripts\\vkb_hosas\\profiles",
