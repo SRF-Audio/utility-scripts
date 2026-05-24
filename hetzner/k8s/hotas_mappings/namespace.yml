@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: apps-ed-hotas
+  name: apps-hotas-mappings
   labels:
-    app.kubernetes.io/name: ed-hotas
+    app.kubernetes.io/name: hotas-mappings
     app.kubernetes.io/managed-by: argocd

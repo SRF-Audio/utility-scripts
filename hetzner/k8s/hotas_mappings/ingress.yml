@@ -2,34 +2,34 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ed-hotas
-  namespace: apps-ed-hotas
+  name: hotas-mappings
+  namespace: apps-hotas-mappings
   labels:
-    app.kubernetes.io/name: ed-hotas
+    app.kubernetes.io/name: hotas-mappings
     app.kubernetes.io/component: webserver
     app.kubernetes.io/managed-by: argocd
   annotations:
     tailscale.com/tags: "tag:k8s,tag:server-apps"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/name: "Elite Controls"
-    gethomepage.dev/description: "Boopidoo HOTAS bindings cheat sheet"
+    gethomepage.dev/name: "HOTAS Mappings"
+    gethomepage.dev/description: "VKB & Boopidoo HOTAS binding reference"
     gethomepage.dev/group: "Games"
     gethomepage.dev/icon: "si-elitedangerous"
-    gethomepage.dev/href: "https://elite-controls.rohu-shark.ts.net"
-    gethomepage.dev/siteMonitor: "http://ed-hotas.apps-ed-hotas.svc.cluster.local:80"
+    gethomepage.dev/href: "https://hotas-mappings.rohu-shark.ts.net"
+    gethomepage.dev/siteMonitor: "http://hotas-mappings.apps-hotas-mappings.svc.cluster.local:80"
 spec:
   ingressClassName: tailscale
   rules:
-    - host: elite-controls.rohu-shark.ts.net
+    - host: hotas-mappings.rohu-shark.ts.net
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: ed-hotas
+                name: hotas-mappings
                 port:
                   number: 80
   tls:
     - hosts:
-        - elite-controls.rohu-shark.ts.net
+        - hotas-mappings.rohu-shark.ts.net

@@ -2,7 +2,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ed-hotas
+  name: hotas-mappings
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "30"
@@ -11,10 +11,10 @@ spec:
   source:
     repoURL: https://github.com/SRF-Audio/utility-scripts
     targetRevision: main
-    path: hetzner/k8s/ed_hotas
+    path: hetzner/k8s/hotas_mappings
   destination:
     server: https://kubernetes.default.svc
-    namespace: apps-ed-hotas
+    namespace: apps-hotas-mappings
   syncPolicy:
     automated:
       prune: true

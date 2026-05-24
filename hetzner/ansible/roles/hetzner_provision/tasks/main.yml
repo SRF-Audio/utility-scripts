@@ -45,24 +45,16 @@
   no_log: true
   register: hetzner_provision_server_result
 
-- name: Create Hetzner Cloud block volume {{ hetzner_provision_volume_name }}
+- name: Create and attach Hetzner Cloud block volume {{ hetzner_provision_volume_name }}
   hetzner.hcloud.volume:
     api_token: "{{ hetzner_provision_api_token }}"
     name: "{{ hetzner_provision_volume_name }}"
     size: "{{ hetzner_provision_volume_size_gb }}"
-    location: "{{ hetzner_provision_location }}"
-    state: present
-  no_log: true
-  register: hetzner_provision_volume_result
-
-- name: Attach volume {{ hetzner_provision_volume_name }} to server {{ hetzner_provision_server_name }}
-  hetzner.hcloud.volume_attachment:
-    api_token: "{{ hetzner_provision_api_token }}"
-    volume: "{{ hetzner_provision_volume_name }}"
     server: "{{ hetzner_provision_server_name }}"
     automount: false
     state: present
   no_log: true
+  register: hetzner_provision_volume_result
 
 - name: Store provisioned server facts
   ansible.builtin.set_fact:

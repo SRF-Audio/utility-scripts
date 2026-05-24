@@ -1,10 +1,11 @@
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: ed-hotas-html
-  namespace: apps-ed-hotas
+  name: hotas-mappings-html
+  namespace: apps-hotas-mappings
   labels:
-    app.kubernetes.io/name: ed-hotas
+    app.kubernetes.io/name: hotas-mappings
     app.kubernetes.io/component: webserver
     app.kubernetes.io/managed-by: argocd
 data:
@@ -17,7 +18,7 @@ data:
     <title>Elite Controls</title>
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Barlow:wght@400;500;600;700&display=swap');
-    
+
     /* ============================================================
        Unified document base (kept from VKB view; Boopidoo styles
        are namespaced under .boopidoo-view so they don't touch
@@ -37,7 +38,7 @@ data:
       background: var(--bg); color: var(--fg);
       font-family: 'Barlow', ui-sans-serif, system-ui, -apple-system, sans-serif;
     }
-    
+
     /* ============================================================
        Unified sticky header (Boopidoo dark theme)
        ============================================================ */
@@ -74,7 +75,7 @@ data:
       color: #f59e0b;
       border-bottom-color: #f59e0b;
     }
-    
+
     /* ============================================================
        VKB section styles (preserved from original VKB index.html)
        ============================================================ */
@@ -91,7 +92,7 @@ data:
       padding: 0.25rem 0.5rem; border-radius: 4px; font: inherit;
     }
     .vkb-toolbar button:hover { background: #2a2a2a; cursor: pointer; }
-    
+
     .stage {
       /* The diagram preserves its aspect ratio. 792:612 = 1.294 */
       position: relative; margin: 0 auto;
@@ -101,7 +102,7 @@ data:
       background-repeat: no-repeat;
       container-type: inline-size;
     }
-    
+
     .label {
       position: absolute;
       background: var(--label-bg);
@@ -116,13 +117,13 @@ data:
     .label.empty { background: var(--empty-bg); color: transparent; }
     .label.modifier { background: #ffe7c2; font-weight: 600; }
     .label.section { background: #c8e4ff; font-weight: 600; }
-    
+
     /* The static row-symbol cells (_1) — render but greyed so the diagram still reads */
     .label.symbol { background: rgba(220,220,220,0.7); color: #333;
                     justify-content: center; font-size: clamp(7px, 0.9cqw, 11px); }
-    
+
     .vkb-footer { padding: 0.5rem 1rem; font-size: 0.8rem; color: #777; text-align: center; }
-    
+
     /* ============================================================
        Boopidoo section styles (verbatim from configmap.yml,
        namespaced under .boopidoo-view).
@@ -266,7 +267,7 @@ data:
     </style>
     </head>
     <body>
-    
+
     <header class="app-header">
       <div class="brand">Elite Controls</div>
       <nav>
@@ -274,12 +275,9 @@ data:
         <a href="?view=vkb" class="nav-link" data-view="vkb">VKB Gladiator</a>
       </nav>
     </header>
-    
+
     <!-- ============================================================
          BOOPIDOO SECTION
-         Content is verbatim from hetzner/k8s/ed_hotas/configmap.yml
-         (data.index.html body), wrapped in <div class="boopidoo-view">
-         so the namespaced styles apply.
          ============================================================ -->
     <div id="boopidoo-section" hidden>
     <div class="boopidoo-view">
@@ -633,7 +631,7 @@ data:
     </div>
     </div>
     </div>
-    
+
     <!-- ============================================================
          VKB SECTION
          ============================================================ -->
@@ -651,19 +649,19 @@ data:
         <span style="flex:1"></span>
         <button id="toggle-empty">Hide empty</button>
       </div>
-    
+
       <div class="stage" id="stage"></div>
-    
+
       <div class="vkb-footer"><span id="status"></span></div>
     </div>
-    
+
     <script>
     // ============================================================
     // VKB asset base — PNG backgrounds served from GitHub raw so
     // the cluster ConfigMap can stay text-only.
     // ============================================================
-    const ASSET_BASE = 'https://raw.githubusercontent.com/SRF-Audio/utility-scripts/main/vkb_hosas/assets/';
-    
+    const ASSET_BASE = 'https://raw.githubusercontent.com/SRF-Audio/utility-scripts/main/hetzner/k8s/hotas_mappings/assets/';
+
     // ============================================================
     // View switching
     // ============================================================
@@ -671,9 +669,9 @@ data:
       const v = new URLSearchParams(location.search).get('view') || '';
       return v.startsWith('vkb') ? 'vkb' : 'boopidoo';
     }
-    
+
     let vkbInitialized = false;
-    
+
     function showView(view) {
       document.getElementById('boopidoo-section').hidden = (view !== 'boopidoo');
       document.getElementById('vkb-section').hidden = (view !== 'vkb');
@@ -691,9 +689,9 @@ data:
         });
       }
     }
-    
+
     window.addEventListener('popstate', () => showView(getView()));
-    
+
     document.querySelectorAll('.nav-link').forEach(a => {
       a.addEventListener('click', e => {
         e.preventDefault();
@@ -702,7 +700,7 @@ data:
         showView(v);
       });
     });
-    
+
     // ============================================================
     // Boopidoo zoom — scope to .boopidoo-view (not <body>) so the
     // VKB layout's 100vw stage isn't mangled. Only meaningful when
@@ -716,7 +714,7 @@ data:
     }
     applyBoopidooZoom();
     window.addEventListener('resize', applyBoopidooZoom);
-    
+
     // ============================================================
     // VKB viewer — lazy-initialized when the VKB view is shown.
     // All fetches use flat paths (no profiles/ or assets/ prefix)
@@ -725,13 +723,13 @@ data:
     let fields, profileIndex, currentProfile;
     let stage, sideEl, profEl, metaEl, statusEl, toggleEmpty;
     let hideEmpty = false;
-    
+
     async function loadJSON(url) {
       const r = await fetch(url);
       if (!r.ok) throw new Error(`${url}: ${r.status}`);
       return r.json();
     }
-    
+
     async function initVKB() {
       stage       = document.getElementById('stage');
       sideEl      = document.getElementById('side');
@@ -739,31 +737,31 @@ data:
       metaEl      = document.getElementById('meta');
       statusEl    = document.getElementById('status');
       toggleEmpty = document.getElementById('toggle-empty');
-    
+
       fields = await loadJSON('fields.json');
       profileIndex = await loadJSON('_index.json');
-    
+
       profileIndex.profiles.forEach(p => {
         const o = document.createElement('option');
         o.value = p.id; o.textContent = p.name;
         profEl.appendChild(o);
       });
-    
+
       // URL-driven defaults
       const params = new URLSearchParams(location.search);
       if (params.get('side'))    sideEl.value = params.get('side');
       if (params.get('profile')) profEl.value = params.get('profile');
-    
+
       sideEl.onchange = profEl.onchange = renderVKB;
       toggleEmpty.onclick = () => {
         hideEmpty = !hideEmpty;
         toggleEmpty.textContent = hideEmpty ? 'Show empty' : 'Hide empty';
         renderVKB();
       };
-    
+
       await renderVKB();
     }
-    
+
     async function renderVKB() {
       try {
         await _renderVKB();
@@ -772,44 +770,44 @@ data:
         else console.error(e);
       }
     }
-    
+
     async function _renderVKB() {
       const side = sideEl.value;
       const profileId = profEl.value;
       const profile = await loadJSON(`${profileId}.json`);
       currentProfile = profile;
-    
+
       // Update URL without reload — keep view=vkb alongside side/profile
       const u = new URL(location);
       u.searchParams.set('view', 'vkb');
       u.searchParams.set('side', side);
       u.searchParams.set('profile', profileId);
       history.replaceState(null, '', u);
-    
+
       const data = fields[side];
       metaEl.textContent = `${profile.name} · ${side.toUpperCase()} · v${profile.version || '–'}`;
       stage.style.backgroundImage = `url(${ASSET_BASE}${data.image})`;
       stage.innerHTML = '';
-    
+
       const sideBindings = profile[side] || {};
       let filled = 0;
-    
+
       for (const f of data.fields) {
         const value = sideBindings[f.id];
         const isValueCol = f.value_col;
         const empty = !value;
-    
+
         if (hideEmpty && isValueCol && empty) continue;
         // Skip the static label/symbol cells unless explicitly overridden — these
         // are already burned into the background image so we don't redraw them.
         if (!isValueCol && !value) continue;
-    
+
         const el = document.createElement('div');
         el.className = 'label';
         if (!isValueCol) el.classList.add('symbol');
         if (empty) el.classList.add('empty');
         if (value && /modifier/i.test(value)) el.classList.add('modifier');
-    
+
         const n = f.norm;
         el.style.left   = (n.left   * 100) + '%';
         el.style.top    = (n.top    * 100) + '%';
@@ -817,15 +815,15 @@ data:
         el.style.height = (n.height * 100) + '%';
         el.title = `${f.id}: ${value || '(unbound)'}`;
         el.textContent = value || '';
-    
+
         stage.appendChild(el);
         if (value) filled++;
       }
-    
+
       const total = data.fields.filter(f => f.value_col).length;
       statusEl.textContent = `${filled}/${total} bindings shown`;
     }
-    
+
     // ============================================================
     // Initial render
     // ============================================================

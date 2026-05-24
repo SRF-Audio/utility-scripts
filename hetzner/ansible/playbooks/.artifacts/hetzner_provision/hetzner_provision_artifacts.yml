@@ -4,6 +4,6 @@ hetzner_provision_artifacts:
     server_name: hetzner-node
     ssh_key_name: hetzner-bootstrap
     ssh_private_key_file: ~/.ssh/coachlight-homelab.pem
-    timestamp: '2026-04-11T14:49:22Z'
-    volume_id: 105381294
+    timestamp: '2026-05-24T16:26:50Z'
+    volume_id: '105381294'
     volume_name: hetzner-node-vol

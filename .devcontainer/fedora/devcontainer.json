@@ -7,7 +7,7 @@
     "remoteEnv": {
         "SSH_AUTH_SOCK": "/ssh-agent"
     },
-    "postCreateCommand": "ansible-galaxy collection install -r /workspace/synology-backup/ansible/requirements.yml",
+    "postCreateCommand": "ansible-galaxy collection install -r /workspace/synology-backup/ansible/requirements.yml -r /workspace/hetzner/ansible/requirements.yml",
     "customizations": {
         "vscode": {
             "extensions": [

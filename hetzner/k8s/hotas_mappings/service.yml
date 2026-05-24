@@ -2,16 +2,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: ed-hotas
-  namespace: apps-ed-hotas
+  name: hotas-mappings
+  namespace: apps-hotas-mappings
   labels:
-    app.kubernetes.io/name: ed-hotas
+    app.kubernetes.io/name: hotas-mappings
     app.kubernetes.io/component: webserver
     app.kubernetes.io/managed-by: argocd
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/name: ed-hotas
+    app.kubernetes.io/name: hotas-mappings
     app.kubernetes.io/component: webserver
   ports:
     - name: http
