@@ -44,7 +44,6 @@ spec:
               cpu: "100m"
             limits:
               memory: "512Mi"
-              cpu: "500m"
           persistence:
             enabled: true
             storageClass: local-path-retain
