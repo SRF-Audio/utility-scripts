@@ -48,10 +48,10 @@ spec:
               mountPath: /usr/src/paperless/consume
           resources:
             requests:
-              memory: "1Gi"
+              memory: "2Gi"
               cpu: "500m"
             limits:
-              memory: "4Gi"
+              memory: "3Gi"
               cpu: "2"
           livenessProbe:
             httpGet:
