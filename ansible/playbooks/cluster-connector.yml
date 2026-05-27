@@ -189,8 +189,9 @@
             (_op_items_raw.stdout | from_json)
             | selectattr('title', 'equalto', 'Hetzner k3s Kubeconfig')
             | sort(attribute='updated_at')
+            | map(attribute='id')
+            | list
             | last
-            | attr('id')
           }}
 
     - name: Read hetzner kubeconfig from 1Password by item UUID
