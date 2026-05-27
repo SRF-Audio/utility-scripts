@@ -72,6 +72,26 @@ spec:
         lokiCanary:
           enabled: false
 
+        # Chart defaults are 8192Mi (chunks) and 1024Mi (results) — way too large
+        # for a single-node homelab. Sized to actual usage with headroom.
+        chunksCache:
+          allocatedMemory: 256
+          resources:
+            requests:
+              memory: "300Mi"
+              cpu: "50m"
+            limits:
+              memory: "400Mi"
+
+        resultsCache:
+          allocatedMemory: 64
+          resources:
+            requests:
+              memory: "100Mi"
+              cpu: "50m"
+            limits:
+              memory: "150Mi"
+
         test:
           enabled: false
 
