@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  role_name: dotfiles
+  author: sfroeber
+  description: Symlinks version-controlled dotfiles from utility-scripts repo into $HOME.
+  min_ansible_version: "2.14"
+dependencies: []

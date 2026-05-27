@@ -1,0 +1,102 @@
+---
+# dotfiles/tasks/main.yml
+#
+# Idempotently symlinks version-controlled dotfiles from the utility-scripts
+# repo into $HOME.  Existing regular files are moved to dotfiles_backup_dir
+# before being replaced; existing symlinks are re-pointed if they differ.
+
+- name: Assert utility-scripts repo exists
+  ansible.builtin.stat:
+    path: "{{ dotfiles_repo }}"
+  register: _dotfiles_repo_stat
+
+- name: Fail if repo is missing
+  ansible.builtin.fail:
+    msg: >-
+      utility-scripts repo not found at {{ dotfiles_repo }}.
+      Clone it first: git clone git@github.com:sfroeber/utility-scripts.git ~/GitHub/utility-scripts
+  when: not _dotfiles_repo_stat.stat.exists
+
+# ── Prerequisite directories ──────────────────────────────────────────────────
+
+- name: Ensure required home subdirectories exist
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - .ssh
+    - .ssh/config.d
+    - .tmux
+    - .local/bin
+    - .claude
+    - .claude/projects/-home-sfroeber-GitHub-utility-scripts
+
+- name: Ensure backup directory exists
+  ansible.builtin.file:
+    path: "{{ dotfiles_backup_dir }}"
+    state: directory
+    mode: "0700"
+
+# ── Helper: back up and symlink a single file ─────────────────────────────────
+# We use a loop + include_tasks pattern so the backup+link logic is DRY.
+
+- name: Symlink standard dotfiles
+  ansible.builtin.include_tasks: symlink.yml
+  vars:
+    _link_src: "{{ dotfiles_repo }}/{{ item.src }}"
+    _link_dest: "{{ ansible_env.HOME }}/{{ item.dest }}"
+  loop: "{{ dotfiles_symlinks }}"
+  loop_control:
+    label: "{{ item.dest }}"
+
+- name: Symlink SSH config.d entries
+  ansible.builtin.include_tasks: symlink.yml
+  vars:
+    _link_src: "{{ dotfiles_repo }}/{{ item.src }}"
+    _link_dest: "{{ ansible_env.HOME }}/{{ item.dest }}"
+  loop: "{{ dotfiles_ssh_config_d_symlinks }}"
+  loop_control:
+    label: "{{ item.dest }}"
+
+- name: Symlink Claude config files
+  ansible.builtin.include_tasks: symlink.yml
+  vars:
+    _link_src: "{{ dotfiles_repo }}/{{ item.src }}"
+    _link_dest: "{{ ansible_env.HOME }}/{{ item.dest }}"
+  loop: "{{ dotfiles_claude_symlinks }}"
+  loop_control:
+    label: "{{ item.dest }}"
+
+- name: Symlink Claude directory entries (mcp-wrappers, commands)
+  ansible.builtin.include_tasks: symlink.yml
+  vars:
+    _link_src: "{{ dotfiles_repo }}/{{ item.src }}"
+    _link_dest: "{{ ansible_env.HOME }}/{{ item.dest }}"
+  loop: "{{ dotfiles_claude_dir_symlinks }}"
+  loop_control:
+    label: "{{ item.dest }}"
+
+- name: Symlink Claude project memory directory
+  ansible.builtin.include_tasks: symlink.yml
+  vars:
+    _link_src: "{{ dotfiles_repo }}/{{ dotfiles_claude_memory_symlink.src }}"
+    _link_dest: "{{ ansible_env.HOME }}/{{ dotfiles_claude_memory_symlink.dest }}"
+
+# ── Ensure script bits are set ────────────────────────────────────────────────
+
+- name: Ensure local-bin scripts are executable
+  ansible.builtin.file:
+    path: "{{ dotfiles_repo }}/{{ item }}"
+    mode: "0755"
+  loop:
+    - dotfiles/local-bin/tmux-homelab
+    - dotfiles/local-bin/tailscale_tmux_status
+
+- name: Ensure MCP wrapper scripts are executable
+  ansible.builtin.file:
+    path: "{{ dotfiles_repo }}/claude/mcp-wrappers/{{ item }}"
+    mode: "0700"
+  loop:
+    - github.sh
+    - trello.sh

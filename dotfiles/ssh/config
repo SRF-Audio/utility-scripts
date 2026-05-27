@@ -1,0 +1,13 @@
+# ~/.ssh/config — router only, all entries live in config.d/
+#
+# Numbering convention:
+#   10 — global defaults
+#   20 — personal / homelab static hosts
+#   30 — homelab k3s nodes          (written by ansible: cluster-connector)
+#   35 — hetzner node               (written by ansible: cluster-connector)
+#   40 — synology NAS               (written by ansible: synology-backup)
+#   50 — work hosts
+#
+# SSH reads entries in order; first match wins per directive.
+
+Include ~/.ssh/config.d/*.conf

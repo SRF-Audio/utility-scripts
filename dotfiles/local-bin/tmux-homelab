@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SESSION="homelab"
+WORKDIR="$HOME/GitHub/utility-scripts/ansible"
+
+if tmux has-session -t "$SESSION" 2>/dev/null; then
+  exec tmux attach -t "$SESSION"
+fi
+
+tmux new-session -d -s "$SESSION" -c "$WORKDIR"
+
+WINDOW_TARGET="${SESSION}:1"
+MAIN_PANE="$(tmux list-panes -t "$WINDOW_TARGET" -F '#{pane_id}' | head -n1)"
+
+RIGHT_COL=$(tmux split-window -h -t "$MAIN_PANE" -c "$WORKDIR" -P -F '#{pane_id}')
+tmux resize-pane -t "{left}" -x 50%
+
+K9S_PANE=$(tmux split-window -v -t "$MAIN_PANE" -c "$WORKDIR" -P -F '#{pane_id}')
+BTOP_PANE=$(tmux split-window -v -t "$RIGHT_COL" -c "$WORKDIR" -P -F '#{pane_id}')
+
+tmux resize-pane -t "{top}" -y 50%
+
+SSH_PANE_2=$(tmux split-window -v -t "$RIGHT_COL" -c "$WORKDIR" -P -F '#{pane_id}')
+SSH_PANE_1="$RIGHT_COL"
+
+# Titles only (themes may style by title later)
+tmux select-pane -t "$MAIN_PANE" -T "main"
+tmux select-pane -t "$K9S_PANE"  -T "k9s"
+tmux select-pane -t "$BTOP_PANE" -T "btop"
+tmux select-pane -t "$SSH_PANE_1" -T "ssh-1"
+tmux select-pane -t "$SSH_PANE_2" -T "ssh-2"
+
+tmux send-keys -t "$K9S_PANE"  "cd \"$WORKDIR\" && k9s" C-m
+tmux send-keys -t "$BTOP_PANE" "btop" C-m
+
+tmux select-pane -t "$MAIN_PANE"
+tmux attach -t "$SESSION"

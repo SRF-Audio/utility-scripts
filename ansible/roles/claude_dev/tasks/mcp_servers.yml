@@ -1,22 +1,35 @@
 ---
-- name: Create MCP wrappers directory
-  ansible.builtin.file:
+# claude_dev/tasks/mcp_servers.yml
+#
+# MCP wrapper scripts and settings.json are now version-controlled in the repo
+# under claude/mcp-wrappers/ and claude/settings.json, and symlinked into
+# ~/.claude/ by the dotfiles role.
+#
+# This task file asserts those symlinks are in place so claude_dev fails
+# loudly if dotfiles hasn't run yet.
+
+- name: Check that ~/.claude/mcp-wrappers is symlinked
+  ansible.builtin.stat:
     path: "{{ claude_dev_wrapper_dir }}"
-    state: directory
-    mode: "0700"
+    follow: false
+  register: _mcp_wrappers_stat
 
-- name: Generate MCP wrapper scripts for servers with secrets
-  ansible.builtin.template:
-    src: mcp_wrapper.sh.j2
-    dest: "{{ claude_dev_wrapper_dir }}/{{ item.name }}.sh"
-    mode: "0700"
-  loop: "{{ claude_dev_mcp_servers | selectattr('op_secrets') | rejectattr('op_secrets', 'equalto', {}) | list }}"
-  loop_control:
-    label: "{{ item.name }}"
+- name: Warn if mcp-wrappers is not a symlink
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: {{ claude_dev_wrapper_dir }} is not a symlink to the dotfiles repo.
+      Run the dotfiles role to set it up.
+  when: not _mcp_wrappers_stat.stat.islnk
 
-- name: Generate Claude Code settings.json with MCP configuration
-  ansible.builtin.template:
-    src: claude_settings.json.j2
-    dest: "{{ claude_dev_config_dir }}/settings.json"
-    mode: "0600"
-    backup: true
+- name: Check that ~/.claude/settings.json is symlinked
+  ansible.builtin.stat:
+    path: "{{ claude_dev_config_dir }}/settings.json"
+    follow: false
+  register: _settings_stat
+
+- name: Warn if settings.json is not a symlink
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: {{ claude_dev_config_dir }}/settings.json is not a symlink to the dotfiles repo.
+      Run the dotfiles role to set it up.
+  when: not _settings_stat.stat.islnk

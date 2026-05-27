@@ -1,0 +1,18 @@
+---
+# dotfiles.yml
+#
+# Symlinks all version-controlled dotfiles from the utility-scripts repo
+# into $HOME.  Safe to run standalone or as part of site.yml.
+#
+# Usage:
+#   ansible-playbook playbooks/dotfiles.yml
+#   ansible-playbook site.yml --tags dotfiles
+
+- name: Set up dotfiles symlinks
+  hosts: local
+  gather_facts: true
+  connection: local
+  roles:
+    - role: dotfiles
+      tags:
+        - dotfiles

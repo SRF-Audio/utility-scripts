@@ -46,13 +46,11 @@
       when: not _cc_ssh_key_stat.stat.exists
       no_log: true
 
-    - name: Ensure ~/.ssh/config exists with correct permissions
+    - name: Ensure ~/.ssh/config.d exists
       ansible.builtin.file:
-        path: "{{ lookup('env', 'HOME') }}/.ssh/config"
-        state: touch
-        mode: "0600"
-        modification_time: preserve
-        access_time: preserve
+        path: "{{ lookup('env', 'HOME') }}/.ssh/config.d"
+        state: directory
+        mode: "0700"
 
   roles:
     - role: k9s_install
@@ -95,7 +93,9 @@
 
     - name: Write SSH config entries for all homelab k3s nodes
       ansible.builtin.blockinfile:
-        path: "{{ lookup('env', 'HOME') }}/.ssh/config"
+        path: "{{ lookup('env', 'HOME') }}/.ssh/config.d/30-homelab-k3s.conf"
+        create: true
+        mode: "0600"
         marker: "# {mark} ANSIBLE MANAGED — homelab-k3s-nodes"
         block: |
           Host k3s-cp-1
@@ -235,7 +235,9 @@
 
     - name: Write hetzner-node SSH config entry
       ansible.builtin.blockinfile:
-        path: "{{ lookup('env', 'HOME') }}/.ssh/config"
+        path: "{{ lookup('env', 'HOME') }}/.ssh/config.d/35-hetzner.conf"
+        create: true
+        mode: "0600"
         marker: "# {mark} ANSIBLE MANAGED — hetzner-node"
         block: |
           Host hetzner-node

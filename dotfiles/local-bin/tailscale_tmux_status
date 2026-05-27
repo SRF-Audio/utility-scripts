@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if ! command -v tailscale >/dev/null 2>&1; then
+  printf "tailscale: n/a"
+  exit 0
+fi
+
+online="false"
+
+if command -v jq >/dev/null 2>&1; then
+  online=$(tailscale status --json 2>/dev/null | jq -r '.Self.Online' || echo "false")
+else
+  if ! tailscale status 2>&1 | grep -q 'Tailscale is stopped.'; then
+    online="true"
+  fi
+fi
+
+if [ "$online" = "true" ]; then
+  printf "tailscale: up"
+else
+  printf "tailscale: down"
+fi

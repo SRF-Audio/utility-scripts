@@ -1,0 +1,62 @@
+---
+# Path to the utility-scripts repo on the target machine.
+dotfiles_repo: "{{ ansible_env.HOME }}/GitHub/utility-scripts"
+
+dotfiles_backup_dir: "{{ ansible_env.HOME }}/.dotfiles-backup"
+
+# Map of dotfile symlinks: dest (in $HOME) → src (in repo).
+# Paths are relative to dotfiles_repo for src, relative to $HOME for dest.
+dotfiles_symlinks:
+  # Shell
+  - src: dotfiles/zshrc
+    dest: .zshrc
+  - src: dotfiles/p10k.zsh
+    dest: .p10k.zsh
+  - src: dotfiles/npmrc
+    dest: .npmrc
+  # tmux
+  - src: dotfiles/tmux.conf
+    dest: .tmux.conf
+  - src: dotfiles/tmux/theme-home.conf
+    dest: .tmux/theme-home.conf
+  - src: dotfiles/tmux/theme-work.conf
+    dest: .tmux/theme-work.conf
+  # SSH (main config only — config.d/ entries handled separately)
+  - src: dotfiles/ssh/config
+    dest: .ssh/config
+  # Scripts
+  - src: dotfiles/local-bin/tmux-homelab
+    dest: .local/bin/tmux-homelab
+  - src: dotfiles/local-bin/tailscale_tmux_status
+    dest: .local/bin/tailscale_tmux_status
+
+# SSH config.d entries to symlink (static, version-controlled).
+# Ansible-generated entries (30-homelab-k3s.conf, 35-hetzner.conf, 40-synology.conf)
+# are written directly by their respective roles.
+dotfiles_ssh_config_d_symlinks:
+  - src: dotfiles/ssh/config.d/10-defaults.conf
+    dest: .ssh/config.d/10-defaults.conf
+  - src: dotfiles/ssh/config.d/20-personal.conf
+    dest: .ssh/config.d/20-personal.conf
+  - src: dotfiles/ssh/config.d/50-work.conf
+    dest: .ssh/config.d/50-work.conf
+
+# Claude Code config symlinks.
+dotfiles_claude_symlinks:
+  - src: claude/settings.json
+    dest: .claude/settings.json
+  - src: claude/CLAUDE.md
+    dest: .claude/CLAUDE.md
+
+# Claude directory symlinks (whole directories).
+dotfiles_claude_dir_symlinks:
+  - src: claude/mcp-wrappers
+    dest: .claude/mcp-wrappers
+  - src: claude/commands
+    dest: .claude/commands
+
+# Project memory symlink.
+# Claude Code stores project memory under a path derived from the working directory.
+dotfiles_claude_memory_symlink:
+  src: claude/memory
+  dest: .claude/projects/-home-sfroeber-GitHub-utility-scripts/memory
