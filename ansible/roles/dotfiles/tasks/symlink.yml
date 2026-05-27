@@ -2,9 +2,10 @@
 # symlink.yml — called with _link_src and _link_dest variables.
 #
 # Logic:
-#   1. If dest is a regular file (not a symlink) → back it up, then remove it.
-#   2. If dest is already a symlink to the right target → no-op.
-#   3. If dest is a symlink to somewhere else → re-point it.
+#   1. If dest is already a symlink to the right target → no-op.
+#   2. If dest is a symlink to somewhere else → re-point it.
+#   3. If dest is a regular file or non-empty directory → back it up with
+#      cp -a (handles both), then remove it with rm -rf.
 #   4. Create the symlink.
 
 - name: "Stat {{ _link_dest }}"
@@ -13,23 +14,28 @@
     follow: false
   register: _sym_stat
 
-- name: "Back up {{ _link_dest }} if it is a regular file"
-  ansible.builtin.copy:
-    src: "{{ _link_dest }}"
-    dest: "{{ dotfiles_backup_dir }}/{{ _link_dest | basename }}.bak"
-    remote_src: true
-    mode: preserve
+- name: "Back up {{ _link_dest }} (file or directory) before replacing"
+  ansible.builtin.command:
+    argv:
+      - cp
+      - -a
+      - "{{ _link_dest }}"
+      - "{{ dotfiles_backup_dir }}/{{ _link_dest | basename }}.bak"
   when:
     - _sym_stat.stat.exists
     - not _sym_stat.stat.islnk
+  changed_when: true
 
 - name: "Remove {{ _link_dest }} before symlinking"
-  ansible.builtin.file:
-    path: "{{ _link_dest }}"
-    state: absent
+  ansible.builtin.command:
+    argv:
+      - rm
+      - -rf
+      - "{{ _link_dest }}"
   when:
     - _sym_stat.stat.exists
     - not (_sym_stat.stat.islnk and _sym_stat.stat.lnk_source == _link_src)
+  changed_when: true
 
 - name: "Create symlink {{ _link_dest }} → {{ _link_src }}"
   ansible.builtin.file:
