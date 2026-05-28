@@ -32,6 +32,9 @@ synology_restic_backup_retry_delay: 300
 synology_restic_backup_config_dir: "/etc/restic-backup"
 synology_restic_backup_log_dir: "/var/log/restic-backup"
 synology_restic_backup_scripts_dir: "/usr/local/bin/restic-backup"
+# Cache must live on a data volume — the DSM root partition (/dev/md0) is
+# only ~2.3 GiB and will fill up if restic caches index data there.
+synology_restic_backup_cache_dir: "/volume2/restic-cache"
 
 # ---------------------------------------------------------------------------
 # Backup source
