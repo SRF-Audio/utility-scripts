@@ -11,3 +11,108 @@
 # SSH reads entries in order; first match wins per directive.
 
 Include ~/.ssh/config.d/*.conf
+# BEGIN NEXGEN DEV CLUSTER
+# NexGen SSH profile for dev
+# Managed by Ansible - do not edit manually.
+
+Host nexgen-dev-proxy-tunnel
+  HostName 52.95.251.48
+  User ec2-user
+  IdentityFile /home/devuser/.ssh/nexgen-dev-key.pem
+  IdentitiesOnly yes
+  DynamicForward 127.0.0.1:1080
+  ExitOnForwardFailure yes
+  StrictHostKeyChecking accept-new
+  ControlMaster auto
+  ControlPath ~/.ssh/cm-%r@%h:%p
+  ControlPersist 60m
+  ServerAliveInterval 30
+  ServerAliveCountMax 3
+
+Host nexgen-dev-bastion
+  HostName 52.95.251.48
+  User ec2-user
+  IdentityFile /home/devuser/.ssh/nexgen-dev-key.pem
+  IdentitiesOnly yes
+  StrictHostKeyChecking accept-new
+  ControlMaster auto
+  ControlPath ~/.ssh/cm-%r@%h:%p
+  ControlPersist 60m
+  ServerAliveInterval 30
+  ServerAliveCountMax 3
+
+# RKE2 server nodes accessible through the bastion
+Host nexgen-dev-rke2-server-0
+  HostName 10.10.2.214
+  User ec2-user
+  IdentityFile /home/devuser/.ssh/nexgen-dev-key.pem
+  IdentitiesOnly yes
+  ProxyJump nexgen-dev-bastion
+  StrictHostKeyChecking accept-new
+  ControlMaster auto
+  ControlPath ~/.ssh/cm-%r@%h:%p
+  ControlPersist 60m
+  ServerAliveInterval 30
+  ServerAliveCountMax 3
+Host nexgen-dev-rke2-server-1
+  HostName 10.10.2.125
+  User ec2-user
+  IdentityFile /home/devuser/.ssh/nexgen-dev-key.pem
+  IdentitiesOnly yes
+  ProxyJump nexgen-dev-bastion
+  StrictHostKeyChecking accept-new
+  ControlMaster auto
+  ControlPath ~/.ssh/cm-%r@%h:%p
+  ControlPersist 60m
+  ServerAliveInterval 30
+  ServerAliveCountMax 3
+Host nexgen-dev-rke2-server-2
+  HostName 10.10.3.124
+  User ec2-user
+  IdentityFile /home/devuser/.ssh/nexgen-dev-key.pem
+  IdentitiesOnly yes
+  ProxyJump nexgen-dev-bastion
+  StrictHostKeyChecking accept-new
+  ControlMaster auto
+  ControlPath ~/.ssh/cm-%r@%h:%p
+  ControlPersist 60m
+  ServerAliveInterval 30
+  ServerAliveCountMax 3
+# RKE2 agent nodes accessible through the bastion
+Host nexgen-dev-rke2-agent-0
+  HostName 10.10.5.63
+  User ec2-user
+  IdentityFile /home/devuser/.ssh/nexgen-dev-key.pem
+  IdentitiesOnly yes
+  ProxyJump nexgen-dev-bastion
+  StrictHostKeyChecking accept-new
+  ControlMaster auto
+  ControlPath ~/.ssh/cm-%r@%h:%p
+  ControlPersist 60m
+  ServerAliveInterval 30
+  ServerAliveCountMax 3
+Host nexgen-dev-rke2-agent-1
+  HostName 10.10.4.233
+  User ec2-user
+  IdentityFile /home/devuser/.ssh/nexgen-dev-key.pem
+  IdentitiesOnly yes
+  ProxyJump nexgen-dev-bastion
+  StrictHostKeyChecking accept-new
+  ControlMaster auto
+  ControlPath ~/.ssh/cm-%r@%h:%p
+  ControlPersist 60m
+  ServerAliveInterval 30
+  ServerAliveCountMax 3
+Host nexgen-dev-rke2-agent-2
+  HostName 10.10.4.57
+  User ec2-user
+  IdentityFile /home/devuser/.ssh/nexgen-dev-key.pem
+  IdentitiesOnly yes
+  ProxyJump nexgen-dev-bastion
+  StrictHostKeyChecking accept-new
+  ControlMaster auto
+  ControlPath ~/.ssh/cm-%r@%h:%p
+  ControlPersist 60m
+  ServerAliveInterval 30
+  ServerAliveCountMax 3
+# END NEXGEN DEV CLUSTER
