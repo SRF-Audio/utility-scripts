@@ -139,6 +139,7 @@ setup_symlinks() {
   _symlink "$repo/claude/CLAUDE.md"                  "$HOME/.claude/CLAUDE.md"
   _symlink "$repo/claude/settings.json"              "$HOME/.claude/settings.json"
   _symlink "$repo/claude/commands"                   "$HOME/.claude/commands"
+  _symlink "$repo/claude/skills"                     "$HOME/.claude/skills"
   _symlink "$repo/claude/mcp-wrappers"               "$HOME/.claude/mcp-wrappers"
   chmod +x "$repo/claude/mcp-wrappers/"*.sh 2>/dev/null || true
 
