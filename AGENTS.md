@@ -312,6 +312,7 @@ Each persistence layer has a purpose. Use the right one:
 | Git commits | History — what happened and why | Permanent |
 | `docs/` and `docs/spikes/` | Decisions and plans that still need action | Until completed or obsolete |
 | `AGENTS.md` (root + subdirectory) | Evergreen guidance for how agents should behave | Permanent (update in place) |
+| `CLAUDE.md` (per project directory) | Codebase documentation for that directory only — file layout, schemas, naming conventions, deployment steps | Current while code exists |
 | Memory (`~/.claude/projects/.../memory/`) | Cross-conversation context about user, project state, feedback | Until outdated |
 | Conversation context | Ephemeral working state for the current task | This session only |
 
@@ -321,6 +322,7 @@ Each persistence layer has a purpose. Use the right one:
 2. **Docs are for what's still ahead.** If a spike or migration guide is complete and the work is done, delete it. No "superseded" markers, no archives.
 3. **Evergreen guidance goes in AGENTS.md.** If you learn something that should permanently change how agents operate in this repo, update the relevant `AGENTS.md` — don't leave it in docs or memory.
 4. **Memory is for cross-conversation state.** User preferences, project status, references to external systems. Not for things derivable from code.
+5. **CLAUDE.md is codebase documentation only.** It describes the code in its directory: file layout, data schemas, naming conventions, how to deploy. It must not contain user-profile information, hardware specs, player background, or coaching instructions — those belong in memory because they are relevant across multiple directories and conversations. When a "project" has no home directory (e.g., fitness coaching, gaming context), put its instructions in a memory file instead.
 
 ### Every change to infrastructure must be traceable
 

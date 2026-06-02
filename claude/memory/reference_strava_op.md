@@ -9,9 +9,10 @@ metadata:
 
 Strava API credentials are stored in 1Password:
 
-- **Account:** `my.1password.com` · **Vault:** `Stephen and Christine` · **Item:** `Strava` (a LOGIN item; its username/password are the website login, kept separate from the API fields)
+- **Account:** `my.1password.com` · **Vault:** `HomeLab` · **Item:** `Strava`
 - **Section:** `Strava API` with fields: `client_id` (text), `client_secret` (password), `refresh_token` (password)
-- Read via e.g. `op read "op://Stephen and Christine/Strava/Strava API/refresh_token" --account my.1password.com`
+- Read via e.g. `op read "op://HomeLab/Strava/Strava API/refresh_token" --account my.1password.com`
+- Moved from `Stephen and Christine` vault so the service account token (HomeLab-scoped) can access it without needing the desktop app running.
 
 Auth model: OAuth2 refresh-token flow → POST `https://www.strava.com/oauth/token` (`grant_type=refresh_token`) yields a 6h access token.
 

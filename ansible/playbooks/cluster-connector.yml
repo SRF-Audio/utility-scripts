@@ -73,7 +73,7 @@
 
   tasks:
     - name: Fetch homelab kubeconfig from k3s-cp-1
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: k3s_kubeconfig_retriever
       vars:
         # k3s-cp-1 is the first host in the k3s_control_plane group (default),
@@ -81,7 +81,7 @@
         k3s_kubeconfig_retriever_control_plane_host: k3s-cp-1
 
     - name: Merge homelab kubeconfig into ~/.kube/config
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: kubeconfig_manager
       vars:
         kubeconfig_manager_source_kubeconfig_path: >-
@@ -141,7 +141,7 @@
               StrictHostKeyChecking accept-new
 
     - name: Validate homelab cluster connectivity
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: k8s_validator
       vars:
         k8s_validator_kubeconfig: >-
@@ -225,7 +225,7 @@
           {{ _hetzner_api_server | regex_replace('^https://(.+):6443$', '\1') }}
 
     - name: Merge hetzner kubeconfig into ~/.kube/config
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: kubeconfig_manager
       vars:
         kubeconfig_manager_source_kubeconfig_path: "{{ _hetzner_kubeconfig_path }}"
@@ -249,7 +249,7 @@
               StrictHostKeyChecking accept-new
 
     - name: Validate hetzner cluster connectivity
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: k8s_validator
       vars:
         k8s_validator_kubeconfig: >-

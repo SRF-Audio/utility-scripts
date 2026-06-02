@@ -8,3 +8,5 @@
 - [Hetzner Homepage & Ingress Work](project_hetzner_homepage.md) — Completed: Homepage + Tailscale ingresses for all Hetzner UIs; annotation patterns documented
 - [Hetzner NetBox Deployment](project_hetzner_netbox.md) — Architecture, 1Password field requirements, chart secret mapping; critical notes on operator empty-field behavior
 - [Strava API in 1Password](reference_strava_op.md) — Where Strava creds live (item/section/fields) + the activity:read_all vs activity:write scope gotcha; strava-auth/strava-sessions skills
+- [Fitness & Training Project](project_fitness.md) — Athlete profile, sport priorities (wind/cycling/tri), coaching instructions, tools, and O'Fallon→The Hague location context (move 2026-07-22)
+- [Gaming & Sim Rigs](project_gaming.md) — Hardware specs (VKB VR rig + Boopidoo laptop rig), per-rig binding constraints, player background for ED/MSFS2024/DCS/Project Wingman

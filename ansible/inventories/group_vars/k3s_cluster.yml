@@ -1,1 +1,6 @@
-
+---
+# Tailscale FQDN as ansible_host for all k3s nodes.
+# Overrides the all.yml ts_ip/lan_ip fallback logic — these nodes don't have
+# ts_ip set, and the LAN IPs are only reachable on-site. Using the Tailscale
+# MagicDNS name works from any machine on the tailnet.
+ansible_host: "{{ inventory_hostname }}.rohu-shark.ts.net"

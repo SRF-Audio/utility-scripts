@@ -19,7 +19,7 @@ import urllib.request
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-OP_VAULT = os.environ.get("STRAVA_OP_VAULT", "Stephen and Christine")
+OP_VAULT = os.environ.get("STRAVA_OP_VAULT", "HomeLab")
 OP_ITEM = os.environ.get("STRAVA_OP_ITEM", "Strava")
 OP_SECTION = os.environ.get("STRAVA_OP_SECTION", "Strava API")
 OP_ACCOUNT = os.environ.get("STRAVA_OP_ACCOUNT", "my.1password.com")
