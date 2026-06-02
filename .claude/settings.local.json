@@ -36,11 +36,16 @@
       "Read(//c/Users/steph/AppData/Local/**)",
       "Read(//c/Users/steph/AppData/Roaming/**)",
       "Read(//c/Program Files \\(x86\\)/**)",
-      "Read(//c/Users/steph/Documents/**)"
+      "Read(//c/Users/steph/Documents/**)",
+      "Bash(git config *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\steph\\GitHub\\utility-scripts\\vkb_hosas\\profiles",
       "\\tmp"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "github",
+    "fetch"
+  ]
 }
