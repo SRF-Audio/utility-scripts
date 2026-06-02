@@ -281,354 +281,50 @@ data:
          ============================================================ -->
     <div id="boopidoo-section" hidden>
     <div class="boopidoo-view">
-    <h1>Elite Dangerous &mdash; Boopidoo 4-Mode HOTAS</h1>
-    <div class="subtitle">Profile: boopidoo_hotas_4way &middot; Latching switch = mode selector</div>
-    <div class="legend-row">
-      <span class="legend-label">Modes:</span>
-      <div class="legend-item"><span class="legend-tag" style="color:var(--mode-travel)">T</span>Travel / Docking &middot; Pos 1</div>
-      <div class="legend-item"><span class="legend-tag" style="color:var(--mode-explo)">E</span>Exploration &middot; Pos 2</div>
-      <div class="legend-item"><span class="legend-tag" style="color:var(--mode-mining)">M</span>Mining &middot; Pos 3</div>
-      <div class="legend-item"><span class="legend-tag" style="color:var(--mode-combat)">C</span>Combat &middot; Pos 4</div>
-    </div>
-    <div class="legend-row">
-      <span class="legend-label">Common:</span>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--c-flight)"></div>FLIGHT</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--c-fire)"></div>FIRE</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--c-ui)"></div>UI NAV</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--c-panel)"></div>PANEL FOCUS</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--c-power)"></div>POWER PIPS</div>
-    </div>
-    <div class="device">
-      <div class="top-row">
-        <div>
-          <div class="btn-group-label">LEFT BUTTONS &middot; TOP ROW</div>
-          <div class="btn-group">
-            <div class="small-btn">
-              <div class="small-btn-circle b-flight"></div>
-              <span class="small-btn-id">Joy_2</span>
-              <div class="small-btn-fn c-flight">SPD 0%</div>
-              <div class="small-btn-fn2 c-ui">Prev Panel</div>
-            </div>
-            <div class="small-btn">
-              <div class="small-btn-circle b-flight"></div>
-              <span class="small-btn-id">Joy_7</span>
-              <div class="small-btn-fn c-flight">SPD 50%</div>
-            </div>
-            <div class="small-btn">
-              <div class="small-btn-circle b-flight"></div>
-              <span class="small-btn-id">Joy_8</span>
-              <div class="small-btn-fn c-flight">SPD 100%</div>
-            </div>
+      <h1 id="bp-title"></h1>
+      <div class="subtitle" id="bp-subtitle"></div>
+      <div style="text-align:center;margin-bottom:16px;">
+        <select id="bp-profile" style="font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--key-bg);color:var(--text);border:1px solid var(--panel-border);border-radius:4px;padding:3px 8px;cursor:pointer;"></select>
+      </div>
+      <div id="bp-legend-modes" class="legend-row"></div>
+      <div class="legend-row">
+        <span class="legend-label">Common:</span>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--c-flight)"></div>FLIGHT</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--c-fire)"></div>FIRE</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--c-ui)"></div>UI NAV</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--c-panel)"></div>PANEL FOCUS</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--c-power)"></div>POWER PIPS</div>
+      </div>
+      <div class="device">
+        <div class="top-row">
+          <div>
+            <div class="btn-group-label">LEFT BUTTONS &middot; TOP ROW</div>
+            <div class="btn-group" id="bp-top-left"></div>
+          </div>
+          <div>
+            <div class="btn-group-label">RIGHT BUTTONS &middot; TOP ROW</div>
+            <div class="btn-group" id="bp-top-right"></div>
           </div>
         </div>
-        <div>
-          <div class="btn-group-label">RIGHT BUTTONS &middot; TOP ROW</div>
-          <div class="btn-group">
-            <div class="small-btn">
-              <div class="small-btn-circle b-flight"></div>
-              <span class="small-btn-id">Joy_13</span>
-              <div class="small-btn-fn c-flight">FA Toggle</div>
-            </div>
-            <div class="small-btn">
-              <div class="small-btn-circle b-flight"></div>
-              <span class="small-btn-id">Joy_14</span>
-              <div class="small-btn-fn c-flight">FSD Jump</div>
-              <div class="small-btn-fn2 c-ui">Next Panel</div>
-            </div>
-            <div class="small-btn">
-              <div class="small-btn-circle b-flight"></div>
-              <span class="small-btn-id">Joy_19</span>
-              <div class="small-btn-fn c-flight">S-Cruise</div>
-            </div>
+        <div class="push-btn-section" id="bp-push-btns"></div>
+        <div class="main-row">
+          <div class="stick-panel" id="bp-left-stick"></div>
+          <div class="keypad-section">
+            <div class="keypad-title">4&times;4 Keypad</div>
+            <div class="keypad-grid" id="bp-keypad"></div>
           </div>
+          <div class="stick-panel" id="bp-right-stick"></div>
         </div>
-      </div>
-      <div class="push-btn-section">
-        <div class="push-btn-info">
-          <div class="pbtn-label">Joy_1 &middot; LEFT PUSH</div>
-          <div class="pbtn-fn c-flight">Head Look</div>
-          <div class="dual"><div class="pbtn-fn c-ui" style="font-size:10px;">UI Back (panel ctx)</div></div>
-        </div>
-        <div class="push-btn-info">
-          <div class="pbtn-label">Joy_20 &middot; RIGHT PUSH</div>
-          <div class="pbtn-fn c-flight">BOOST</div>
-          <div class="dual"><div class="pbtn-fn c-ui" style="font-size:10px;">UI Toggle (panel ctx)</div></div>
-        </div>
-      </div>
-      <div class="main-row">
-        <div class="stick-panel">
-          <div class="stick-label">Left Stick</div>
-          <div class="stick-visual"></div>
-          <div class="axis-row"><span class="axis-dir">X (L/R)</span><span class="axis-fn c-flight">Sway</span></div>
-          <div class="axis-row"><span class="axis-dir">Y (F/B)</span><span class="axis-fn c-flight">Surge</span></div>
-          <div class="axis-row"><span class="axis-dir">Twist</span><span class="axis-fn c-flight">Heave</span></div>
-          <div class="stick-btn">
-            <span class="btn-label">Joy_25 &middot; STICK PRESS</span>
-            <span class="c-fire">Secondary Fire</span>
+        <div class="bottom-row">
+          <div class="pov-section">
+            <div class="pov-label">POV Hat &middot; 8-Way</div>
+            <div class="pov-grid" id="bp-pov"></div>
           </div>
-        </div>
-        <div class="keypad-section">
-          <div class="keypad-title">4&times;4 Keypad</div>
-          <div class="keypad-grid">
-            <!-- Row 1: 1 2 3 A -->
-            <div class="key key-modes">
-              <div class="key-cap">1<span class="key-joy">Joy_3</span></div>
-              <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Cargo Scoop</span></div>
-              <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">FSS Enter</span></div>
-              <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Cargo Scoop</span></div>
-              <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Hardpoints</span></div>
-            </div>
-            <div class="key key-modes">
-              <div class="key-cap">2<span class="key-joy">Joy_4</span></div>
-              <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Landing Gear</span></div>
-              <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">Discovery Scan</span></div>
-              <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Hardpoints</span></div>
-              <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Target Ahead</span></div>
-            </div>
-            <div class="key key-modes">
-              <div class="key-cap">3<span class="key-joy">Joy_5</span></div>
-              <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Lights</span></div>
-              <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">FSS Quit</span></div>
-              <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Fire Group &#9664;</span></div>
-              <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Fire Group &#9664;</span></div>
-            </div>
-            <div class="key key-modes">
-              <div class="key-cap">A<span class="key-joy">Joy_6</span></div>
-              <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Rot-Corr Off</span></div>
-              <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">FSS Target</span></div>
-              <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Fire Group &#9654;</span></div>
-              <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Fire Group &#9654;</span></div>
-            </div>
-            <!-- Row 2: 4 5 6 B -->
-            <div class="key key-modes">
-              <div class="key-cap">4<span class="key-joy">Joy_9</span></div>
-              <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Next Route Sys</span></div>
-              <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">DSS 3rd-Person</span></div>
-              <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Target Asteroid</span></div>
-              <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Hostile &#9664;</span></div>
-            </div>
-            <div class="key key-modes">
-              <div class="key-cap">5<span class="key-joy">Joy_10</span></div>
-              <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">HUD Mode</span></div>
-              <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">DSS View Toggle</span></div>
-              <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Lights</span></div>
-              <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Hostile &#9654;</span></div>
-            </div>
-            <div class="key key-modes">
-              <div class="key-cap">6<span class="key-joy">Joy_11</span></div>
-              <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">System Map</span></div>
-              <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">Genus &#9664;</span></div>
-              <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">System Map</span></div>
-              <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Highest Threat</span></div>
-            </div>
-            <div class="key key-modes">
-              <div class="key-cap">B<span class="key-joy">Joy_12</span></div>
-              <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Galaxy Map</span></div>
-              <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">Genus &#9654;</span></div>
-              <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Next Route Sys</span></div>
-              <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Subsystem &#9654;</span></div>
-            </div>
-            <!-- Row 3: 7 8 9 C -->
-            <div class="key key-modes">
-              <div class="key-cap">7<span class="key-joy">Joy_15</span></div>
-              <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Head Look</span></div>
-              <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">Photo Cam</span></div>
-              <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Night Vision</span></div>
-              <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Heatsink</span></div>
-            </div>
-            <div class="key key-modes">
-              <div class="key-cap">8<span class="key-joy">Joy_16</span></div>
-              <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Quick Comms</span></div>
-              <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">Vanity &#9664;</span></div>
-              <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">HUD Mode</span></div>
-              <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Chaff</span></div>
-            </div>
-            <div class="key key-modes">
-              <div class="key-cap">9<span class="key-joy">Joy_17</span></div>
-              <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Night Vision</span></div>
-              <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text">Vanity &#9654;</span></div>
-              <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Orbit Lines</span></div>
-              <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">Shield Cell</span></div>
-            </div>
-            <div class="key key-modes">
-              <div class="key-cap">C<span class="key-joy">Joy_18</span></div>
-              <div class="mode-row travel"><span class="mode-tag">T</span><span class="mode-text">Codex</span></div>
-              <div class="mode-row explo"><span class="mode-tag">E</span><span class="mode-text" style="opacity:0.4;">&mdash;</span></div>
-              <div class="mode-row mining"><span class="mode-tag">M</span><span class="mode-text">Eject Cargo</span></div>
-              <div class="mode-row combat"><span class="mode-tag">C</span><span class="mode-text">ECM</span></div>
-            </div>
-            <!-- Row 4: * 0 # D  (common power) -->
-            <div class="key key-power">
-              <div class="key-cap">*<span class="key-joy">Joy_21</span></div>
-              <div class="key-fn">WEP Pip</div>
-            </div>
-            <div class="key key-power">
-              <div class="key-cap">0<span class="key-joy">Joy_22</span></div>
-              <div class="key-fn">SYS Pip</div>
-            </div>
-            <div class="key key-power">
-              <div class="key-cap">#<span class="key-joy">Joy_23</span></div>
-              <div class="key-fn">ENG Pip</div>
-            </div>
-            <div class="key key-power">
-              <div class="key-cap">D<span class="key-joy">Joy_24</span></div>
-              <div class="key-fn">Reset 2-2-2</div>
-            </div>
-          </div>
-        </div>
-        <div class="stick-panel">
-          <div class="stick-label">Right Stick</div>
-          <div class="stick-visual"></div>
-          <div class="axis-row"><span class="axis-dir">X (L/R)</span><span class="axis-fn c-flight">Roll</span></div>
-          <div class="axis-row"><span class="axis-dir">Y (F/B)</span><span class="axis-fn c-flight">Pitch &updownarrow; inv</span></div>
-          <div class="axis-row"><span class="axis-dir">Twist</span><span class="axis-fn c-flight">Yaw</span></div>
-          <div class="stick-btn">
-            <span class="btn-label">Joy_26 &middot; STICK PRESS</span>
-            <span class="c-fire">Primary Fire</span>
-          </div>
+          <div class="switch-section" id="bp-switch"></div>
         </div>
       </div>
-      <div class="bottom-row">
-        <div class="pov-section">
-          <div class="pov-label">POV Hat &middot; 8-Way</div>
-          <div class="pov-grid">
-            <div class="pov-cell diagonal"><div><span class="pov-fn-label">&#8598;</span>Chat</div></div>
-            <div class="pov-cell cardinal"><div><span class="pov-fn-label">&uarr;</span>UI Up</div></div>
-            <div class="pov-cell diagonal"><div><span class="pov-fn-label">&#8599;</span>Systems</div></div>
-            <div class="pov-cell cardinal"><div><span class="pov-fn-label">&larr;</span>UI Left</div></div>
-            <div class="pov-cell center">
-              <div>
-                <span class="pov-fn-label">PRESS</span>
-                <div style="font-size:10px;font-weight:700;">UI Select</div>
-              </div>
-            </div>
-            <div class="pov-cell cardinal"><div><span class="pov-fn-label">&rarr;</span>UI Right</div></div>
-            <div class="pov-cell diagonal"><div><span class="pov-fn-label">&#8601;</span>Nav</div></div>
-            <div class="pov-cell cardinal"><div><span class="pov-fn-label">&darr;</span>UI Down</div></div>
-            <div class="pov-cell diagonal"><div><span class="pov-fn-label">&#8600;</span>Contacts</div></div>
-          </div>
-        </div>
-        <div class="switch-section">
-          <div class="switch-label">4-Way Slide Switch &middot; MODE SELECTOR</div>
-          <div class="switch-positions">
-            <div class="switch-pos travel">
-              <span class="sw-num">Joy_30</span>
-              <span class="sw-mode">TRAVEL</span>
-              <span class="sw-pos">Pos 1 &middot; leftmost</span>
-            </div>
-            <div class="switch-pos explo">
-              <span class="sw-num">Joy_29</span>
-              <span class="sw-mode">EXPLORATION</span>
-              <span class="sw-pos">Pos 2</span>
-            </div>
-            <div class="switch-pos mining">
-              <span class="sw-num">Joy_28</span>
-              <span class="sw-mode">MINING</span>
-              <span class="sw-pos">Pos 3</span>
-            </div>
-            <div class="switch-pos combat">
-              <span class="sw-num">Joy_27</span>
-              <span class="sw-mode">COMBAT</span>
-              <span class="sw-pos">Pos 4 &middot; rightmost</span>
-            </div>
-          </div>
-          <div style="font-size:10px;color:var(--text-muted);margin-top:10px;">Latching switch &mdash; exactly one position is held at all times. Each position acts as a modifier on rows 1&ndash;3 of the keypad.</div>
-        </div>
-      </div>
-    </div>
-    <!-- SRV reference -->
-    <div class="context-section">
-      <div class="context-header">
-        <div class="context-title">SRV Context</div>
-        <div class="context-subtitle">no modifier &mdash; context-isolated from ship</div>
-      </div>
-      <div class="two-col-tables">
-        <table class="binding-table">
-          <tr><th>Physical</th><th>Joy ID</th><th>Action</th></tr>
-          <tr><td>Right Stick X</td><td class="joy">Joy_XAxis</td><td class="action">Steering (Roll)</td></tr>
-          <tr><td>Right Stick Y</td><td class="joy">Joy_YAxis</td><td class="action">Pitch / turret aim</td></tr>
-          <tr><td>Right Stick Twist</td><td class="joy">Joy_ZAxis</td><td class="action">Turret Yaw</td></tr>
-          <tr><td>Left Stick X</td><td class="joy">Joy_RXAxis</td><td class="action">Turret Pitch</td></tr>
-          <tr><td>Left Stick Twist</td><td class="joy">Joy_RZAxis</td><td class="action">Throttle</td></tr>
-          <tr><td>Right Stick Press</td><td class="joy">Joy_26</td><td class="action">Primary Fire (turret)</td></tr>
-          <tr><td>Left Stick Press</td><td class="joy">Joy_25</td><td class="action">Secondary Fire</td></tr>
-          <tr><td>Right Push (Boost)</td><td class="joy">Joy_20</td><td class="action">Vertical Thrust (jump)</td></tr>
-          <tr><td>Left Push</td><td class="joy">Joy_1</td><td class="action">UI Focus</td></tr>
-          <tr><td>Top-L Left</td><td class="joy">Joy_2</td><td class="action">Full Stop</td></tr>
-          <tr><td>Top-L Right</td><td class="joy">Joy_8</td><td class="action">Full Forward</td></tr>
-        </table>
-        <table class="binding-table">
-          <tr><th>Physical</th><th>Joy ID</th><th>Action</th></tr>
-          <tr><td>Top-R Left</td><td class="joy">Joy_13</td><td class="action">Drive Assist Toggle</td></tr>
-          <tr><td>Top-R Mid</td><td class="joy">Joy_14</td><td class="action">Handbrake</td></tr>
-          <tr><td>Top-R Right</td><td class="joy">Joy_19</td><td class="action">Recall / Dismiss Ship</td></tr>
-          <tr><td>Keypad 1</td><td class="joy">Joy_3</td><td class="action">Headlights</td></tr>
-          <tr><td>Keypad 2</td><td class="joy">Joy_4</td><td class="action">Toggle Turret</td></tr>
-          <tr><td>Keypad 3 / A</td><td class="joy">Joy_5 / Joy_6</td><td class="action">Fire Group &#9664; / &#9654;</td></tr>
-          <tr><td>Keypad 4 / 5</td><td class="joy">Joy_9 / Joy_10</td><td class="action">Galaxy / System Map</td></tr>
-          <tr><td>Keypad 6</td><td class="joy">Joy_11</td><td class="action">Select Target</td></tr>
-          <tr><td>Keypad B</td><td class="joy">Joy_12</td><td class="action">Reverse Throttle Toggle</td></tr>
-          <tr><td>Keypad 7</td><td class="joy">Joy_15</td><td class="action">Photo Cam</td></tr>
-          <tr><td>Keypad 8</td><td class="joy">Joy_16</td><td class="action">Cargo Scoop (materials)</td></tr>
-        </table>
-      </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:10px;">Sticks mirror flight: right stick = aim/steer, left stick twist = throttle, boost button = jump. POV hat cardinals = UI nav, diagonals = panel focus (same as ship). Bottom-row power-pip bindings shared with ship context.</div>
-    </div>
-    <!-- On-Foot reference -->
-    <div class="context-section">
-      <div class="context-header">
-        <div class="context-title">On-Foot / Humanoid Context</div>
-        <div class="context-subtitle">no modifier &mdash; Odyssey FPS layout</div>
-      </div>
-      <div class="two-col-tables">
-        <table class="binding-table">
-          <tr><th>Physical</th><th>Joy ID</th><th>Action</th></tr>
-          <tr><td>Right Stick X</td><td class="joy">Joy_XAxis</td><td class="action">Look Yaw</td></tr>
-          <tr><td>Right Stick Y</td><td class="joy">Joy_YAxis</td><td class="action">Look Pitch</td></tr>
-          <tr><td>Left Stick X</td><td class="joy">Joy_RXAxis</td><td class="action">Strafe</td></tr>
-          <tr><td>Left Stick Y</td><td class="joy">Joy_RYAxis</td><td class="action">Move Forward/Back</td></tr>
-          <tr><td>Right Stick Press</td><td class="joy">Joy_26</td><td class="action">Primary Fire</td></tr>
-          <tr><td>Left Stick Press</td><td class="joy">Joy_25</td><td class="action">Aim / Zoom</td></tr>
-          <tr><td>Right Push</td><td class="joy">Joy_20</td><td class="action">Jump</td></tr>
-          <tr><td>Left Push</td><td class="joy">Joy_1</td><td class="action">Crouch</td></tr>
-          <tr><td>Top-L Left</td><td class="joy">Joy_2</td><td class="action">Reload</td></tr>
-          <tr><td>Top-L Mid</td><td class="joy">Joy_7</td><td class="action">Melee</td></tr>
-          <tr><td>Top-L Right</td><td class="joy">Joy_8</td><td class="action">Primary Interact</td></tr>
-          <tr><td>Top-R Left</td><td class="joy">Joy_13</td><td class="action">Sprint</td></tr>
-          <tr><td>Top-R Mid</td><td class="joy">Joy_14</td><td class="action">Walk (quiet)</td></tr>
-          <tr><td>Top-R Right</td><td class="joy">Joy_19</td><td class="action">Secondary Interact</td></tr>
-        </table>
-        <table class="binding-table">
-          <tr><th>Physical</th><th>Joy ID</th><th>Action</th></tr>
-          <tr><td>POV &#8598;</td><td class="joy">Up+Left combo</td><td class="action">Emote Wheel</td></tr>
-          <tr><td>POV &#8599;</td><td class="joy">Up+Right combo</td><td class="action">Ping</td></tr>
-          <tr><td>POV &#8601;</td><td class="joy">Down+Left combo</td><td class="action">Flashlight</td></tr>
-          <tr><td>POV &#8600;</td><td class="joy">Down+Right combo</td><td class="action">Night Vision</td></tr>
-          <tr><td>POV Press</td><td class="joy">Joy_32</td><td class="action">Item Wheel</td></tr>
-          <tr><td>Keypad 1 / 2</td><td class="joy">Joy_3 / Joy_4</td><td class="action">Primary / Secondary Weapon</td></tr>
-          <tr><td>Keypad 3</td><td class="joy">Joy_5</td><td class="action">Hide / Holster</td></tr>
-          <tr><td>Keypad A</td><td class="joy">Joy_6</td><td class="action">Next Weapon</td></tr>
-          <tr><td>Keypad 4 / 5</td><td class="joy">Joy_9 / Joy_10</td><td class="action">Galaxy / System Map</td></tr>
-          <tr><td>Keypad 6 / B</td><td class="joy">Joy_11 / Joy_12</td><td class="action">Mission Help / Tool Mode</td></tr>
-          <tr><td>Keypad 7 / 8 / 9</td><td class="joy">Joy_15 / 16 / 17</td><td class="action">Suit / Comp Analyser / Recharge tool</td></tr>
-          <tr><td>Keypad C</td><td class="joy">Joy_18</td><td class="action">Next Grenade Type</td></tr>
-          <tr><td>Keypad *</td><td class="joy">Joy_21</td><td class="action">Battery</td></tr>
-          <tr><td>Keypad 0 / # / D</td><td class="joy">Joy_22 / 23 / 24</td><td class="action">Throw Grenade / Health Pack / Hack Terminal</td></tr>
-        </table>
-      </div>
-    </div>
-    <!-- Notes -->
-    <div class="notes">
-      <p><span class="note-icon">&#9658;</span> <strong>How to read mode-multiplexed keys:</strong> keypad rows 1&ndash;3 show four lines per key, one per mode. The colored letter (T / E / M / C) is the active slide-switch position. Slide to that position, then press the key.</p>
-      <p><span class="note-icon">&#9658;</span> <strong>Slide switch is always-on:</strong> exactly one of Joy_27&ndash;30 is held at any moment. Sliding between positions briefly releases one and engages the next &mdash; no mode-multiplexed action has a plain (no-modifier) binding, so a slide-gap is harmless.</p>
-      <p><span class="note-icon">&#9658;</span> <strong>Common bindings (active in all modes):</strong> all stick axes, both stick presses, top row, push buttons, POV hat (cardinals + diagonals), and keypad bottom row.</p>
-      <p><span class="note-icon">&#9658;</span> <strong>POV hat diagonals = direct cockpit panel focus:</strong> &#8598; Chat, &#8599; Systems, &#8601; Nav, &#8600; Contacts. Mnemonic: &#8598;/&#8601; = left-side panels (Chat top-left, Nav left); &#8599;/&#8600; = right-side panels (Systems top-right, Contacts bottom-right).</p>
-      <p><span class="note-icon">&#9658;</span> <strong>HeadLookToggle:</strong> Key 7 in Travel mode (modal) and Left Push (Joy_1) always-on. Off Joy_32 (hat press) &mdash; that button was firing HeadLook on every UI Select at stations. UIFocus is unbound on stick (POV diagonals direct-focus panels, making it redundant).</p>
-      <p><span class="note-icon">&#9658;</span> <strong>Bottom-row power management:</strong> <code>* 0 # D</code> = WEP / SYS / ENG / Reset 2-2-2 (combat priority order left-to-right, reset on the right corner).</p>
-      <p><span class="note-icon">&#9658;</span> <strong>Throttle vs. translation:</strong> left-stick Y is <code>AheadThrust</code> &mdash; direct fore/aft maneuvering thrust, spring-centered to zero thrust (not zero speed). Speed is set by the 0% / 50% / 100% buttons; the Y axis gives a delta on top of that. Both coexist. Left twist is <code>VerticalThrustRaw</code> (heave). Axes match VKB joystick layout: stick Y = surge, twist = heave.</p>
-      <p><span class="note-icon">&#9658;</span> <strong>Pitch axis</strong> is inverted (pull back = nose up).</p>
-      <p><span class="note-icon">&#9658;</span> <strong>Diagonal hat encoding:</strong> ED uses a two-key combo internally (primary cardinal + Modifier child element pointing to the second cardinal). Not a single <code>Joy_POV1UpLeft</code> key &mdash; that identifier does not exist in ED&rsquo;s binding schema.</p>
-    </div>
+      <div id="bp-contexts"></div>
+      <div id="bp-notes"></div>
     </div>
     </div>
 
@@ -671,6 +367,7 @@ data:
     }
 
     let vkbInitialized = false;
+    let bpInitialized  = false;
 
     function showView(view) {
       document.getElementById('boopidoo-section').hidden = (view !== 'boopidoo');
@@ -680,6 +377,10 @@ data:
       });
       if (view === 'boopidoo') {
         applyBoopidooZoom();
+        if (!bpInitialized) {
+          bpInitialized = true;
+          initBoopidoo().catch(e => console.error('Boopidoo init error:', e));
+        }
       }
       if (view === 'vkb' && !vkbInitialized) {
         vkbInitialized = true;
@@ -714,6 +415,146 @@ data:
     }
     applyBoopidooZoom();
     window.addEventListener('resize', applyBoopidooZoom);
+
+    // ============================================================
+    // Boopidoo — data-driven rendering, lazy-init on first visit.
+    // Profile JSON fetched from _boopidoo_index.json on demand.
+    // ============================================================
+    let bpProfileEl;
+
+    async function initBoopidoo() {
+      bpProfileEl = document.getElementById('bp-profile');
+      const idx = await loadJSON('_boopidoo_index.json');
+      idx.profiles.forEach(p => {
+        const o = document.createElement('option');
+        o.value = p.id; o.textContent = p.name;
+        bpProfileEl.appendChild(o);
+      });
+      const params = new URLSearchParams(location.search);
+      if (params.get('bpprofile')) bpProfileEl.value = params.get('bpprofile');
+      bpProfileEl.onchange = renderBoopidoo;
+      await renderBoopidoo();
+    }
+
+    async function renderBoopidoo() {
+      try {
+        const profile = await loadJSON(bpProfileEl.value + '.json');
+        _renderBoopidoo(profile);
+      } catch (e) { console.error('Boopidoo render error:', e); }
+    }
+
+    function _renderBoopidoo(p) {
+      document.getElementById('bp-title').textContent = p.name || '';
+      document.getElementById('bp-subtitle').textContent = p.subtitle || '';
+      const ml = document.getElementById('bp-legend-modes');
+      ml.innerHTML = (p.modes && p.modes.length) ?
+        '<span class="legend-label">Modes:</span>' +
+        p.modes.map(m => `<div class="legend-item"><span class="legend-tag" style="color:var(--mode-${m.style})">${m.tag}</span>${m.legend}</div>`).join('') : '';
+      _bpBtnGroup('bp-top-left',  p.top_left  || []);
+      _bpBtnGroup('bp-top-right', p.top_right || []);
+      _bpPushBtns(p.push_left, p.push_right);
+      _bpStick('bp-left-stick',  'Left Stick',  p.left_stick  || {});
+      _bpStick('bp-right-stick', 'Right Stick', p.right_stick || {});
+      _bpKeypad(p.keypad || [], p.modes || []);
+      _bpPov(p.pov || {});
+      _bpSwitch(p.modes || [], p.switch_note || '');
+      _bpContexts(p.contexts || []);
+      _bpNotes(p.notes || []);
+    }
+
+    function _bpBtnGroup(id, btns) {
+      document.getElementById(id).innerHTML = btns.map(b =>
+        `<div class="small-btn">
+          <div class="small-btn-circle b-${b.cat}"></div>
+          <span class="small-btn-id">${b.joy}</span>
+          <div class="small-btn-fn c-${b.cat}">${b.fn}</div>
+          ${b.fn2 ? `<div class="small-btn-fn2 c-${b.cat2 || 'ui'}">${b.fn2}</div>` : ''}
+        </div>`).join('');
+    }
+
+    function _bpPushBtns(pl, pr) {
+      function ph(b, lbl) {
+        return `<div class="push-btn-info">
+          <div class="pbtn-label">${b.joy} &middot; ${lbl}</div>
+          <div class="pbtn-fn c-${b.cat}">${b.fn}</div>
+          ${b.fn2 ? `<div class="dual"><div class="pbtn-fn c-${b.cat2 || b.cat}" style="font-size:10px;">${b.fn2}</div></div>` : ''}
+        </div>`;
+      }
+      document.getElementById('bp-push-btns').innerHTML = ph(pl, 'LEFT PUSH') + ph(pr, 'RIGHT PUSH');
+    }
+
+    function _bpStick(id, lbl, s) {
+      function ax(dir, a) {
+        return a ? `<div class="axis-row"><span class="axis-dir">${dir}</span><span class="axis-fn c-${a.cat || 'flight'}">${a.fn}</span></div>` : '';
+      }
+      document.getElementById(id).innerHTML =
+        `<div class="stick-label">${lbl}</div>
+        <div class="stick-visual"></div>
+        ${ax('X (L/R)', s.x)}${ax('Y (F/B)', s.y)}${ax('Twist', s.twist)}
+        ${s.press ? `<div class="stick-btn"><span class="btn-label">${s.press.joy} &middot; STICK PRESS</span><span class="c-${s.press.cat}">${s.press.fn}</span></div>` : ''}`;
+    }
+
+    function _bpKeypad(keys, modes) {
+      document.getElementById('bp-keypad').innerHTML = keys.map(k => {
+        if (k.type === 'mode') {
+          const rows = (k.modes || []).map((fn, i) => {
+            const m = modes[i] || {};
+            const empty = !fn;
+            return `<div class="mode-row ${m.style || ''}"><span class="mode-tag">${m.tag || ''}</span><span class="mode-text"${empty ? ' style="opacity:0.4;"' : ''}>${fn || '&mdash;'}</span></div>`;
+          }).join('');
+          return `<div class="key key-modes"><div class="key-cap">${k.cap}<span class="key-joy">${k.joy}</span></div>${rows}</div>`;
+        }
+        return `<div class="key key-power"><div class="key-cap">${k.cap}<span class="key-joy">${k.joy}</span></div><div class="key-fn">${k.fn}</div></div>`;
+      }).join('');
+    }
+
+    function _bpPov(pov) {
+      const cells = [
+        {k:'nw',cls:'diagonal',a:'&#8598;'},{k:'n',cls:'cardinal',a:'&uarr;'},{k:'ne',cls:'diagonal',a:'&#8599;'},
+        {k:'w',cls:'cardinal',a:'&larr;'},{k:'ctr',cls:'center',a:'PRESS'},{k:'e',cls:'cardinal',a:'&rarr;'},
+        {k:'sw',cls:'diagonal',a:'&#8601;'},{k:'s',cls:'cardinal',a:'&darr;'},{k:'se',cls:'diagonal',a:'&#8600;'}
+      ];
+      document.getElementById('bp-pov').innerHTML = cells.map(c => {
+        const fn = pov[c.k] || '';
+        if (c.k === 'ctr') return `<div class="pov-cell ${c.cls}"><div><span class="pov-fn-label">${c.a}</span><div style="font-size:10px;font-weight:700;">${fn}</div></div></div>`;
+        return `<div class="pov-cell ${c.cls}"><div><span class="pov-fn-label">${c.a}</span>${fn}</div></div>`;
+      }).join('');
+    }
+
+    function _bpSwitch(modes, note) {
+      const el = document.getElementById('bp-switch');
+      if (!modes.length) { el.innerHTML = ''; return; }
+      el.innerHTML =
+        `<div class="switch-label">4-Way Slide Switch &middot; MODE SELECTOR</div>
+        <div class="switch-positions">
+          ${modes.map(m => `<div class="switch-pos ${m.style}"><span class="sw-num">${m.joy}</span><span class="sw-mode">${m.name}</span><span class="sw-pos">${m.pos}</span></div>`).join('')}
+        </div>
+        ${note ? `<div style="font-size:10px;color:var(--text-muted);margin-top:10px;">${note}</div>` : ''}`;
+    }
+
+    function _bpContexts(contexts) {
+      document.getElementById('bp-contexts').innerHTML = contexts.map(ctx =>
+        `<div class="context-section">
+          <div class="context-header">
+            <div class="context-title">${ctx.title}</div>
+            <div class="context-subtitle">${ctx.subtitle || ''}</div>
+          </div>
+          <div class="two-col-tables">
+            ${ctx.tables.map(tbl =>
+              `<table class="binding-table">
+                <tr><th>Physical</th><th>Joy ID</th><th>Action</th></tr>
+                ${tbl.map(r => `<tr><td>${r[0]}</td><td class="joy">${r[1]}</td><td class="action">${r[2]}</td></tr>`).join('')}
+              </table>`).join('')}
+          </div>
+          ${ctx.footer ? `<div style="font-size:11px;color:var(--text-muted);margin-top:10px;">${ctx.footer}</div>` : ''}
+        </div>`).join('');
+    }
+
+    function _bpNotes(notes) {
+      const el = document.getElementById('bp-notes');
+      if (!notes.length) { el.innerHTML = ''; return; }
+      el.innerHTML = `<div class="notes">${notes.map(n => `<p><span class="note-icon">&#9658;</span> ${n}</p>`).join('')}</div>`;
+    }
 
     // ============================================================
     // VKB viewer — lazy-initialized when the VKB view is shown.
@@ -2566,4 +2407,154 @@ data:
       "version": "0.1",
       "lh": {},
       "rh": {}
+    }
+  _boopidoo_index.json: |
+    {
+      "profiles": [
+        { "id": "boopidoo-ed", "name": "Elite Dangerous" }
+      ]
+    }
+  boopidoo-ed.json: |
+    {
+      "name": "Elite Dangerous",
+      "subtitle": "Boopidoo 4-Mode HOTAS · boopidoo_hotas_4way · Latching switch = mode selector",
+      "version": "1.0",
+      "modes": [
+        { "tag": "T", "name": "TRAVEL",      "legend": "Travel / Docking · Pos 1",    "joy": "Joy_30", "pos": "Pos 1 · leftmost", "style": "travel" },
+        { "tag": "E", "name": "EXPLORATION", "legend": "Exploration · Pos 2",          "joy": "Joy_29", "pos": "Pos 2",                  "style": "explo"  },
+        { "tag": "M", "name": "MINING",      "legend": "Mining · Pos 3",              "joy": "Joy_28", "pos": "Pos 3",                  "style": "mining" },
+        { "tag": "C", "name": "COMBAT",      "legend": "Combat · Pos 4",              "joy": "Joy_27", "pos": "Pos 4 · rightmost", "style": "combat" }
+      ],
+      "top_left": [
+        { "joy": "Joy_2",  "fn": "SPD 0%",   "fn2": "Prev Panel", "cat": "flight", "cat2": "ui" },
+        { "joy": "Joy_7",  "fn": "SPD 50%",                       "cat": "flight" },
+        { "joy": "Joy_8",  "fn": "SPD 100%",                      "cat": "flight" }
+      ],
+      "top_right": [
+        { "joy": "Joy_13", "fn": "FA Toggle",                      "cat": "flight" },
+        { "joy": "Joy_14", "fn": "FSD Jump",  "fn2": "Next Panel", "cat": "flight", "cat2": "ui" },
+        { "joy": "Joy_19", "fn": "S-Cruise",                       "cat": "flight" }
+      ],
+      "push_left":  { "joy": "Joy_1",  "fn": "Head Look", "fn2": "UI Back (panel ctx)",   "cat": "flight", "cat2": "ui" },
+      "push_right": { "joy": "Joy_20", "fn": "BOOST",     "fn2": "UI Toggle (panel ctx)", "cat": "flight", "cat2": "ui" },
+      "left_stick": {
+        "x":     { "fn": "Sway",  "cat": "flight" },
+        "y":     { "fn": "Surge", "cat": "flight" },
+        "twist": { "fn": "Heave", "cat": "flight" },
+        "press": { "joy": "Joy_25", "fn": "Secondary Fire", "cat": "fire" }
+      },
+      "right_stick": {
+        "x":     { "fn": "Roll",         "cat": "flight" },
+        "y":     { "fn": "Pitch ↕ inv", "cat": "flight" },
+        "twist": { "fn": "Yaw",          "cat": "flight" },
+        "press": { "joy": "Joy_26", "fn": "Primary Fire", "cat": "fire" }
+      },
+      "keypad": [
+        { "cap": "1", "joy": "Joy_3",  "type": "mode",   "modes": ["Cargo Scoop",    "FSS Enter",       "Cargo Scoop",     "Hardpoints"    ] },
+        { "cap": "2", "joy": "Joy_4",  "type": "mode",   "modes": ["Landing Gear",   "Discovery Scan",  "Hardpoints",      "Target Ahead"  ] },
+        { "cap": "3", "joy": "Joy_5",  "type": "mode",   "modes": ["Lights",         "FSS Quit",        "Fire Group ◄","Fire Group ◄"] },
+        { "cap": "A", "joy": "Joy_6",  "type": "mode",   "modes": ["Rot-Corr Off",   "FSS Target",      "Fire Group ►","Fire Group ►"] },
+        { "cap": "4", "joy": "Joy_9",  "type": "mode",   "modes": ["Next Route Sys", "DSS 3rd-Person",  "Target Asteroid", "Hostile ◄"] },
+        { "cap": "5", "joy": "Joy_10", "type": "mode",   "modes": ["HUD Mode",       "DSS View Toggle", "Lights",          "Hostile ►"] },
+        { "cap": "6", "joy": "Joy_11", "type": "mode",   "modes": ["System Map",     "Genus ◄",    "System Map",      "Highest Threat"] },
+        { "cap": "B", "joy": "Joy_12", "type": "mode",   "modes": ["Galaxy Map",     "Genus ►",    "Next Route Sys",  "Subsystem ►"] },
+        { "cap": "7", "joy": "Joy_15", "type": "mode",   "modes": ["Head Look",      "Photo Cam",       "Night Vision",    "Heatsink"      ] },
+        { "cap": "8", "joy": "Joy_16", "type": "mode",   "modes": ["Quick Comms",    "Vanity ◄",   "HUD Mode",        "Chaff"         ] },
+        { "cap": "9", "joy": "Joy_17", "type": "mode",   "modes": ["Night Vision",   "Vanity ►",   "Orbit Lines",     "Shield Cell"   ] },
+        { "cap": "C", "joy": "Joy_18", "type": "mode",   "modes": ["Codex",          "",                "Eject Cargo",     "ECM"           ] },
+        { "cap": "*", "joy": "Joy_21", "type": "common", "fn": "WEP Pip",     "cat": "power" },
+        { "cap": "0", "joy": "Joy_22", "type": "common", "fn": "SYS Pip",     "cat": "power" },
+        { "cap": "#", "joy": "Joy_23", "type": "common", "fn": "ENG Pip",     "cat": "power" },
+        { "cap": "D", "joy": "Joy_24", "type": "common", "fn": "Reset 2-2-2", "cat": "power" }
+      ],
+      "pov": {
+        "nw": "Chat",    "n": "UI Up",      "ne": "Systems",
+        "w":  "UI Left", "ctr": "UI Select","e":  "UI Right",
+        "sw": "Nav",     "s": "UI Down",    "se": "Contacts"
+      },
+      "switch_note": "Latching switch — exactly one position is held at all times. Each position acts as a modifier on rows 1–3 of the keypad.",
+      "contexts": [
+        {
+          "title": "SRV Context",
+          "subtitle": "no modifier — context-isolated from ship",
+          "tables": [
+            [
+              ["Right Stick X",      "Joy_XAxis",  "Steering (Roll)"],
+              ["Right Stick Y",      "Joy_YAxis",  "Pitch / turret aim"],
+              ["Right Stick Twist",  "Joy_ZAxis",  "Turret Yaw"],
+              ["Left Stick X",       "Joy_RXAxis", "Turret Pitch"],
+              ["Left Stick Twist",   "Joy_RZAxis", "Throttle"],
+              ["Right Stick Press",  "Joy_26",     "Primary Fire (turret)"],
+              ["Left Stick Press",   "Joy_25",     "Secondary Fire"],
+              ["Right Push (Boost)", "Joy_20",     "Vertical Thrust (jump)"],
+              ["Left Push",          "Joy_1",      "UI Focus"],
+              ["Top-L Left",         "Joy_2",      "Full Stop"],
+              ["Top-L Right",        "Joy_8",      "Full Forward"]
+            ],
+            [
+              ["Top-R Left",    "Joy_13",          "Drive Assist Toggle"],
+              ["Top-R Mid",     "Joy_14",          "Handbrake"],
+              ["Top-R Right",   "Joy_19",          "Recall / Dismiss Ship"],
+              ["Keypad 1",      "Joy_3",           "Headlights"],
+              ["Keypad 2",      "Joy_4",           "Toggle Turret"],
+              ["Keypad 3 / A",  "Joy_5 / Joy_6",   "Fire Group ◄ / ►"],
+              ["Keypad 4 / 5",  "Joy_9 / Joy_10",  "Galaxy / System Map"],
+              ["Keypad 6",      "Joy_11",          "Select Target"],
+              ["Keypad B",      "Joy_12",          "Reverse Throttle Toggle"],
+              ["Keypad 7",      "Joy_15",          "Photo Cam"],
+              ["Keypad 8",      "Joy_16",          "Cargo Scoop (materials)"]
+            ]
+          ],
+          "footer": "Sticks mirror flight: right stick = aim/steer, left stick twist = throttle, boost button = jump. POV hat cardinals = UI nav, diagonals = panel focus (same as ship). Bottom-row power-pip bindings shared with ship context."
+        },
+        {
+          "title": "On-Foot / Humanoid Context",
+          "subtitle": "no modifier — Odyssey FPS layout",
+          "tables": [
+            [
+              ["Right Stick X",    "Joy_XAxis",  "Look Yaw"],
+              ["Right Stick Y",    "Joy_YAxis",  "Look Pitch"],
+              ["Left Stick X",     "Joy_RXAxis", "Strafe"],
+              ["Left Stick Y",     "Joy_RYAxis", "Move Forward/Back"],
+              ["Right Stick Press","Joy_26",     "Primary Fire"],
+              ["Left Stick Press", "Joy_25",     "Aim / Zoom"],
+              ["Right Push",       "Joy_20",     "Jump"],
+              ["Left Push",        "Joy_1",      "Crouch"],
+              ["Top-L Left",       "Joy_2",      "Reload"],
+              ["Top-L Mid",        "Joy_7",      "Melee"],
+              ["Top-L Right",      "Joy_8",      "Primary Interact"],
+              ["Top-R Left",       "Joy_13",     "Sprint"],
+              ["Top-R Mid",        "Joy_14",     "Walk (quiet)"],
+              ["Top-R Right",      "Joy_19",     "Secondary Interact"]
+            ],
+            [
+              ["POV ↖",           "Up+Left combo",    "Emote Wheel"],
+              ["POV ↗",           "Up+Right combo",   "Ping"],
+              ["POV ↙",           "Down+Left combo",  "Flashlight"],
+              ["POV ↘",           "Down+Right combo", "Night Vision"],
+              ["POV Press",            "Joy_32",           "Item Wheel"],
+              ["Keypad 1 / 2",         "Joy_3 / Joy_4",   "Primary / Secondary Weapon"],
+              ["Keypad 3",             "Joy_5",            "Hide / Holster"],
+              ["Keypad A",             "Joy_6",            "Next Weapon"],
+              ["Keypad 4 / 5",         "Joy_9 / Joy_10",  "Galaxy / System Map"],
+              ["Keypad 6 / B",         "Joy_11 / Joy_12", "Mission Help / Tool Mode"],
+              ["Keypad 7 / 8 / 9",     "Joy_15 / 16 / 17","Suit / Comp Analyser / Recharge tool"],
+              ["Keypad C",             "Joy_18",           "Next Grenade Type"],
+              ["Keypad *",             "Joy_21",           "Battery"],
+              ["Keypad 0 / # / D",     "Joy_22 / 23 / 24","Throw Grenade / Health Pack / Hack Terminal"]
+            ]
+          ]
+        }
+      ],
+      "notes": [
+        "<strong>How to read mode-multiplexed keys:</strong> keypad rows 1&ndash;3 show four lines per key, one per mode. The colored letter (T / E / M / C) is the active slide-switch position. Slide to that position, then press the key.",
+        "<strong>Slide switch is always-on:</strong> exactly one of Joy_27&ndash;30 is held at any moment. Sliding between positions briefly releases one and engages the next &mdash; no mode-multiplexed action has a plain (no-modifier) binding, so a slide-gap is harmless.",
+        "<strong>Common bindings (active in all modes):</strong> all stick axes, both stick presses, top row, push buttons, POV hat (cardinals + diagonals), and keypad bottom row.",
+        "<strong>POV hat diagonals = direct cockpit panel focus:</strong> &#8598; Chat, &#8599; Systems, &#8601; Nav, &#8600; Contacts. Mnemonic: &#8598;/&#8601; = left-side panels (Chat top-left, Nav left); &#8599;/&#8600; = right-side panels (Systems top-right, Contacts bottom-right).",
+        "<strong>HeadLookToggle:</strong> Key 7 in Travel mode (modal) and Left Push (Joy_1) always-on. Off Joy_32 (hat press) &mdash; that button was firing HeadLook on every UI Select at stations. UIFocus is unbound on stick (POV diagonals direct-focus panels, making it redundant).",
+        "<strong>Bottom-row power management:</strong> <code>* 0 # D</code> = WEP / SYS / ENG / Reset 2-2-2 (combat priority order left-to-right, reset on the right corner).",
+        "<strong>Throttle vs. translation:</strong> left-stick Y is <code>AheadThrust</code> &mdash; direct fore/aft maneuvering thrust, spring-centered to zero thrust (not zero speed). Speed is set by the 0% / 50% / 100% buttons; the Y axis gives a delta on top of that. Both coexist. Left twist is <code>VerticalThrustRaw</code> (heave). Axes match VKB joystick layout: stick Y = surge, twist = heave.",
+        "<strong>Pitch axis</strong> is inverted (pull back = nose up).",
+        "<strong>Diagonal hat encoding:</strong> ED uses a two-key combo internally (primary cardinal + Modifier child element pointing to the second cardinal). Not a single <code>Joy_POV1UpLeft</code> key &mdash; that identifier does not exist in ED&rsquo;s binding schema."
+      ]
     }
