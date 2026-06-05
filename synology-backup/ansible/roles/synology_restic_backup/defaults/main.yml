@@ -155,6 +155,18 @@ synology_restic_backup_op_trello_alert_list_id_field: "alert_list_id"
 synology_restic_backup_storage_warn_gib: 16000
 
 # ---------------------------------------------------------------------------
+# Restore test
+# ---------------------------------------------------------------------------
+# Directory on the NAS used as the root for the restore-verification script.
+# The script restores into <restore_test_dir>/target/ and cleans up on success.
+# On failure the directory is left in place for inspection.
+synology_restic_backup_restore_test_dir: "/volume2/restic-restore-test"
+
+# Maximum number of files to SHA-256 spot-check against the live source.
+# If the restored share contains fewer files than this, all files are checked.
+synology_restic_backup_restore_test_sample_size: 100
+
+# ---------------------------------------------------------------------------
 # Restore documentation
 # ---------------------------------------------------------------------------
 synology_restic_backup_restore_doc_path: "{{ synology_restic_backup_config_dir }}/RESTORE_PROCEDURE.txt"

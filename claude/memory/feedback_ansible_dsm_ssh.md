@@ -13,3 +13,5 @@ Use `ansible_password` from 1Password + `ansible_become: true` with passwordless
 - DSM has no `crontab` binary — use `ansible.builtin.blockinfile` on `/etc/crontab` (system crontab format with username column)
 - DSM has no `ssh-keyscan` — pre-populate known_hosts from control host
 - 1Password SSH Key items return PKCS#8 format by default; use `op read "op://vault/item/field?ssh-format=openssh"` for OpenSSH format
+- **Direct SSH (non-Ansible):** The 1Password SSH agent (`~/.1password/agent.sock`) does NOT reliably serve the NAS key from the control host. Use the key file directly: `ssh -i ~/.ssh/coachlight-homelab.pem stephenfroeber@192.168.226.6`
+- Internal IP (`192.168.226.6`) is more reliable than Tailscale hostname for direct SSH; hostname `srfaudio.rohu-shark.ts.net` also works

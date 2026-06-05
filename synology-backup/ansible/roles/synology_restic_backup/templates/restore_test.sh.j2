@@ -1,0 +1,295 @@
+#!/bin/bash
+# Managed by Ansible role synology_restic_backup — do not edit by hand.
+# Re-run the Ansible playbook to update this file.
+#
+# Restore-verification script: restores a single share from the restic repository
+# into a temporary directory and verifies file count, total size, and SHA-256
+# hashes of a sample of files against the live source.
+#
+# Usage: restore_test.sh <share_name> [snapshot_id]
+#
+#   share_name   — basename of the backup path (e.g. "docker" for /volume2/docker)
+#   snapshot_id  — restic snapshot ID or "latest" (default: latest)
+#
+# On success: cleans up the restore directory, logs PASSED, exits 0.
+# On failure: leaves the restore directory in place for inspection, fires the
+#             alert command, logs FAILED, exits 1.
+# The lock directory is always cleaned up via trap regardless of outcome.
+set -euo pipefail
+
+readonly LOCK_DIR="/var/lock/restic-backup-restore-test.lock"
+readonly BACKUP_LOCK_DIR="/var/lock/restic-backup-backup.lock"
+readonly LOG_FILE="{{ synology_restic_backup_log_dir }}/restore_test.log"
+readonly RESTIC="{{ synology_restic_backup_restic_install_dir }}/restic"
+readonly PASSWORD_FILE="{{ synology_restic_backup_config_dir }}/.restic-password"
+readonly ALERT_CMD="{{ synology_restic_backup_alert_command }}"
+readonly RESTORE_BASE="{{ synology_restic_backup_restore_test_dir }}"
+readonly SAMPLE_SIZE="{{ synology_restic_backup_restore_test_sample_size }}"
+readonly JOB="restore-test"
+
+_log() { echo "$(date -Iseconds) [${JOB}] $1"; }
+
+# Write directly to LOG_FILE so alert messages are captured even on the two
+# early-exit paths (lock contention, backup-lock guard) that fire before the
+# main log-redirect block opens.  Matches the pattern used in check.sh.
+_alert() {
+    local message="$1"
+    echo "$(date -Iseconds) [${JOB}] ALERT: ${message}" >> "${LOG_FILE}"
+    if [[ -n "${ALERT_CMD}" ]]; then
+        eval "${ALERT_CMD}" <<< "${message}" 2>> "${LOG_FILE}" || true
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# Argument parsing and validation
+# ---------------------------------------------------------------------------
+if [[ $# -lt 1 ]]; then
+    echo "Usage: $(basename "$0") <share_name> [snapshot_id]" >&2
+    echo "  share_name   basename of a backup path (e.g. docker, homes)" >&2
+    echo "  snapshot_id  restic snapshot ID or 'latest' (default: latest)" >&2
+    exit 1
+fi
+
+readonly SHARE_NAME="$1"
+readonly SNAPSHOT_ID="${2:-latest}"
+
+# Reject anything that could cause path traversal or shell injection.
+if [[ ! "${SHARE_NAME}" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+    echo "ERROR: share_name '${SHARE_NAME}' is invalid. Only letters, digits, hyphens, and underscores are allowed." >&2
+    exit 1
+fi
+
+readonly SOURCE_PATH="/volume2/${SHARE_NAME}"
+readonly RESTORE_TARGET="${RESTORE_BASE}/target"
+
+# ---------------------------------------------------------------------------
+# Acquire own lock — must happen before the log-redirect block so the trap
+# covers the entire run.  On contention, write directly to the log since
+# stdout is not yet redirected.
+# ---------------------------------------------------------------------------
+if ! mkdir "${LOCK_DIR}" 2>/dev/null; then
+    stale_pid=$(cat "${LOCK_DIR}/pid" 2>/dev/null || echo "unknown")
+    echo "$(date -Iseconds) [${JOB}] ALERT: Lock contention: ${LOCK_DIR} is held (pid=${stale_pid}). If no restore-test is running, remove the lock: rmdir ${LOCK_DIR}" >> "${LOG_FILE}"
+    exit 1
+fi
+echo $$ > "${LOCK_DIR}/pid"
+trap 'rm -rf "${LOCK_DIR}" 2>/dev/null || true' EXIT INT TERM
+
+# ---------------------------------------------------------------------------
+# All stdout/stderr from here on is captured to the log file.
+# ---------------------------------------------------------------------------
+{
+    _log "START — share=${SHARE_NAME} snapshot=${SNAPSHOT_ID}"
+
+    # -----------------------------------------------------------------------
+    # Backup lock guard — checked inside the log block so the message is
+    # captured.  Do not compete with a running backup for the SFTP connection.
+    # -----------------------------------------------------------------------
+    if [[ -d "${BACKUP_LOCK_DIR}" ]]; then
+        _alert "Backup lock ${BACKUP_LOCK_DIR} is held — restore test aborted to avoid competing with a running backup."
+        exit 1
+    fi
+
+    # -----------------------------------------------------------------------
+    # Environment
+    # -----------------------------------------------------------------------
+    export RESTIC_REPOSITORY="sftp:storagebox:{{ synology_restic_backup_storagebox_repo_path }}"
+    export RESTIC_PASSWORD
+    RESTIC_PASSWORD=$(cat "${PASSWORD_FILE}")
+    export RESTIC_CACHE_DIR="{{ synology_restic_backup_cache_dir }}"
+    mkdir -p "${RESTIC_CACHE_DIR}"
+
+    # -----------------------------------------------------------------------
+    # Clear any previous test artifacts — always runs before source validation
+    # so stale data from a prior failed run is not left on disk on early exit.
+    # -----------------------------------------------------------------------
+    if [[ -d "${RESTORE_BASE}" ]]; then
+        _log "Removing previous restore directory ${RESTORE_BASE}"
+        rm -rf "${RESTORE_BASE}"
+    fi
+
+    # -----------------------------------------------------------------------
+    # Validate source path
+    # -----------------------------------------------------------------------
+    if [[ ! -d "${SOURCE_PATH}" ]]; then
+        _alert "Source path ${SOURCE_PATH} does not exist on this NAS. Check the share name."
+        exit 1
+    fi
+
+    mkdir -p "${RESTORE_TARGET}"
+    _log "Restore target created: ${RESTORE_TARGET}"
+
+    # -----------------------------------------------------------------------
+    # Re-check backup lock immediately before opening the SFTP session to
+    # close the race window between the guard above and the restic call.
+    # -----------------------------------------------------------------------
+    if [[ -d "${BACKUP_LOCK_DIR}" ]]; then
+        _alert "Backup lock ${BACKUP_LOCK_DIR} was acquired after restore test started — aborting to avoid SFTP contention."
+        exit 1
+    fi
+
+    # -----------------------------------------------------------------------
+    # Restore from restic.
+    # Restic verifies SHA-256 of every pack chunk during restore automatically.
+    # -----------------------------------------------------------------------
+    _log "Running: restic restore ${SNAPSHOT_ID} --path ${SOURCE_PATH} --target ${RESTORE_TARGET} --include ${SOURCE_PATH}"
+
+    set +e
+    "${RESTIC}" restore "${SNAPSHOT_ID}" \
+        --path "${SOURCE_PATH}" \
+        --target "${RESTORE_TARGET}" \
+        --include "${SOURCE_PATH}" \
+        --verbose
+    restore_rc=$?
+    set -e
+
+    if [[ ${restore_rc} -ne 0 ]]; then
+        _alert "restic restore failed with rc=${restore_rc} for share=${SHARE_NAME} snapshot=${SNAPSHOT_ID}. Restore directory left at ${RESTORE_BASE}. Check ${LOG_FILE} for details."
+        exit 1
+    fi
+
+    _log "restic restore completed (rc=0)"
+
+    # -----------------------------------------------------------------------
+    # Verify the restored share path exists inside the target.
+    # Restic reconstructs the full original path: SOURCE_PATH appears under
+    # RESTORE_TARGET (e.g. /volume2/restic-restore-test/target/volume2/docker).
+    # -----------------------------------------------------------------------
+    readonly RESTORED_SHARE_PATH="${RESTORE_TARGET}${SOURCE_PATH}"
+
+    if [[ ! -d "${RESTORED_SHARE_PATH}" ]]; then
+        _alert "Restored path ${RESTORED_SHARE_PATH} not found — snapshot may not contain ${SOURCE_PATH}. Restore directory left at ${RESTORE_BASE}."
+        exit 1
+    fi
+
+    # -----------------------------------------------------------------------
+    # File count verification.
+    # Source find uses the same exclude list as the backup job so the counts
+    # are comparable.  Correct prune syntax: list targets first, then -prune,
+    # then -o -type f -print.  Uses -print (newline-delimited) + wc -l for
+    # BusyBox compatibility; filenames with literal newlines are not expected.
+    # -----------------------------------------------------------------------
+    _log "Counting files in source and restore..."
+
+    set +e
+    source_count=$(find "${SOURCE_PATH}" \
+        \( -name "@eaDir" -o -name "#recycle" -o -name "#snapshot" -o -name "lost+found" \) -prune \
+        -o -type f -print 2>/dev/null | wc -l)
+    restore_count=$(find "${RESTORED_SHARE_PATH}" -type f -print 2>/dev/null | wc -l)
+    set -e
+
+    _log "File count — source: ${source_count}, restored: ${restore_count}"
+
+    if [[ ${restore_count} -ne ${source_count} ]]; then
+        _alert "File count MISMATCH for share=${SHARE_NAME}: source=${source_count} restored=${restore_count}. Restore directory left at ${RESTORE_BASE}."
+        exit 1
+    fi
+
+    _log "File count OK (${restore_count} files)"
+
+    # -----------------------------------------------------------------------
+    # Total size verification.
+    # Uses find + xargs + stat -c '%s' (BusyBox-compatible) to sum file sizes.
+    # du --files0-from is GNU coreutils only and not available on DSM BusyBox.
+    # Mismatches are warnings only — running services may write files after the
+    # 02:00 snapshot, so source size may legitimately exceed the restored size.
+    # -----------------------------------------------------------------------
+    _log "Measuring total size of source and restore..."
+
+    set +e
+    source_bytes=$(find "${SOURCE_PATH}" \
+        \( -name "@eaDir" -o -name "#recycle" -o -name "#snapshot" -o -name "lost+found" \) -prune \
+        -o -type f -print0 2>/dev/null \
+        | xargs -0 stat -c '%s' 2>/dev/null \
+        | awk '{sum += $1} END {print sum+0}')
+    restore_bytes=$(find "${RESTORED_SHARE_PATH}" -type f -print0 2>/dev/null \
+        | xargs -0 stat -c '%s' 2>/dev/null \
+        | awk '{sum += $1} END {print sum+0}')
+    set -e
+
+    _log "Total size — source: ${source_bytes} bytes, restored: ${restore_bytes} bytes"
+
+    if [[ "${source_bytes}" -ne "${restore_bytes}" ]]; then
+        _log "WARNING: Size mismatch for share=${SHARE_NAME} (source=${source_bytes} restored=${restore_bytes}). This may reflect files written by running services after the snapshot. Continuing."
+    else
+        _log "Total size OK (${restore_bytes} bytes)"
+    fi
+
+    # -----------------------------------------------------------------------
+    # SHA-256 spot-check.
+    # Builds the file list with a while-read loop (bash 4.0+ compatible;
+    # avoids mapfile -d '' which requires bash 4.4, not available on all
+    # DSM 7 builds).  Selects an evenly-spaced sample to get coverage across
+    # the tree without sort -R (GNU coreutils only, not in DSM BusyBox sort).
+    # -----------------------------------------------------------------------
+    _log "Building file list for SHA-256 spot-check..."
+
+    all_restored_files=()
+    while IFS= read -r -d '' f; do
+        all_restored_files+=("$f")
+    done < <(find "${RESTORED_SHARE_PATH}" -type f -print0 2>/dev/null)
+
+    total_files=${% raw %}{#{% endraw %}all_restored_files[@]}
+
+    if [[ ${total_files} -eq 0 ]]; then
+        _log "WARNING: No files found in restored directory — SHA-256 spot-check skipped."
+    else
+        sample_files=()
+        if [[ ${total_files} -le ${SAMPLE_SIZE} ]]; then
+            _log "Checking all ${total_files} files (total <= SAMPLE_SIZE=${SAMPLE_SIZE})"
+            sample_files=("${all_restored_files[@]}")
+        else
+            _log "Sampling ${SAMPLE_SIZE} of ${total_files} files for SHA-256 check (evenly spaced)"
+            step=$(( total_files / SAMPLE_SIZE ))
+            for (( i=0; i<total_files && ${% raw %}{#{% endraw %}sample_files[@]}<SAMPLE_SIZE; i+=step )); do
+                sample_files+=("${all_restored_files[$i]}")
+            done
+        fi
+
+        hash_failures=0
+        skipped=0
+        checked=0
+
+        for restored_file in "${sample_files[@]}"; do
+            source_file="${SOURCE_PATH}${restored_file#${RESTORED_SHARE_PATH}}"
+
+            if [[ ! -f "${source_file}" ]]; then
+                _log "WARNING: Source file not found (may have been created/moved after snapshot): ${source_file}"
+                skipped=$(( skipped + 1 ))
+                continue
+            fi
+
+            set +e
+            restored_hash=$(sha256sum "${restored_file}" | awk '{print $1}')
+            source_hash=$(sha256sum "${source_file}" | awk '{print $1}')
+            set -e
+
+            if [[ "${restored_hash}" != "${source_hash}" ]]; then
+                _log "SHA-256 MISMATCH: ${source_file}"
+                _log "  source:   ${source_hash}"
+                _log "  restored: ${restored_hash}"
+                hash_failures=$(( hash_failures + 1 ))
+            fi
+
+            checked=$(( checked + 1 ))
+        done
+
+        _log "SHA-256 spot-check: ${checked} files checked, ${skipped} skipped (not in live source), ${hash_failures} mismatches"
+
+        if [[ ${hash_failures} -gt 0 ]]; then
+            _alert "SHA-256 spot-check FAILED for share=${SHARE_NAME}: ${hash_failures} hash mismatch(es) out of ${checked} checked. Restore directory left at ${RESTORE_BASE}."
+            exit 1
+        fi
+
+        _log "SHA-256 spot-check OK"
+    fi
+
+    # -----------------------------------------------------------------------
+    # All checks passed — clean up restore directory.
+    # -----------------------------------------------------------------------
+    _log "All checks passed — cleaning up restore directory"
+    rm -rf "${RESTORE_BASE}"
+
+    _log "END — PASSED (share=${SHARE_NAME} snapshot=${SNAPSHOT_ID})"
+
+} >> "${LOG_FILE}" 2>&1

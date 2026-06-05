@@ -226,6 +226,15 @@
     mode: "0750"
   become: true
 
+- name: Deploy restore test script
+  ansible.builtin.template:
+    src: restore_test.sh.j2
+    dest: "{{ synology_restic_backup_scripts_dir }}/restore_test.sh"
+    owner: root
+    group: root
+    mode: "0750"
+  become: true
+
 # ---------------------------------------------------------------------------
 # Repository initialisation
 # ---------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 # Synology NAS → Hetzner Backup: Project Status
 
-**Last updated:** 2026-05-01 (session 5 — per-share backup deployed after diagnosing SSH pipe breaks)
+**Last updated:** 2026-06-05 (session 7 — C2 restore test complete; restore_test.sh deployed)
 
 **Agent context:** This document is the authoritative state of this project. Read it before doing anything else. It captures findings, decisions, and outstanding work so any new agent or conversation can pick up without re-auditing the codebase.
 
@@ -73,7 +73,7 @@ Create a bit-for-bit backup of a Synology DS1813+ NAS (9.7TB used, /volume2) to 
 | # | Finding | Status |
 | - | ------- | ------ |
 | C1 | No failure alerting on cron jobs — backup could fail for weeks silently | ✅ Done 2026-04-20 — all three wrapper scripts rewritten: exit codes captured cleanly, failures call `_alert()`; Trello card creation implemented via `trello_alert.sh`; enable with `synology_restic_backup_trello_alerts_enabled: true` |
-| C2 | Restore has never been tested — backup is unverified until at least one restore test is run | ❌ Open — requires first successful per-share backup run |
+| C2 | Restore has never been tested — backup is unverified until at least one restore test is run | ✅ Done 2026-06-05 — `restore_test.sh proxmox-backup` passed: correct snapshot selected, 1 file restored, file count/size/SHA-256 all matched |
 | C3 | Retention policy is irrelevant for transit use case | ✅ Resolved (decision: keep defaults, no change needed) |
 | C4 | Monolithic backup fails before completing — SSH connection drops after 4–57 hours, losing all progress | ✅ Done 2026-05-01 — rewritten as per-share sequential backup; each share is an independent restic invocation with retry; completed shares save snapshots immediately |
 
@@ -107,10 +107,62 @@ Create a bit-for-bit backup of a Synology DS1813+ NAS (9.7TB used, /volume2) to 
 
 ## What Needs to Happen Next (Ordered)
 
-1. **Monitor per-share backup progress** — per-share backup started 2026-05-01 08:20 CDT. Check `sudo tail -f /var/log/restic-backup/backup.log` and `restic snapshots` to confirm shares are completing and saving snapshots
-2. **Verify all 9 shares have a snapshot** — `restic snapshots` should show one snapshot per share once the first full run completes
-3. **Run restore test (C2)** — restore at least one directory to a temp location, verify contents
-4. **Pre-pack checklist** — before powering down NAS: confirm last snapshot date, confirm repo health, document restic repo URL and password location for recovery
+1. ~~**Monitor per-share backup progress**~~ ✅ Done 2026-06-04 — all 9 shares have snapshots, daily runs completing successfully
+2. ~~**Verify all 9 shares have a snapshot**~~ ✅ Done 2026-06-04 — 45 snapshots across 9 shares; all present
+3. ~~**Run restore test (C2)**~~ ✅ Done 2026-06-05 — `restore_test.sh` deployed and passing; see Observed Backup Behaviour section for usage
+4. **Pre-pack checklist** — before powering down NAS (~2026-06-20): confirm last snapshot date, run `restic check`, document restic repo URL and password location for recovery
+
+---
+
+## Observed Backup Behaviour (as of 2026-06-04)
+
+**k3s-cluster-storage is the slow share.** It has active data changes (~50–100 GiB delta per day as of early June) and takes 3–21 hours to complete per run due to Spectrum modem pipe breaks triggering the retry loop. The share always eventually completes (no ALERTs in the log), but it spans late night into the following morning. The remaining 8 shares all complete within minutes (mostly unchanged data). This is expected behaviour and does not require intervention.
+
+**Restore test script** (`/usr/local/bin/restic-backup/restore_test.sh`):
+
+Deployed 2026-06-05. Takes a share name and optional snapshot ID. Restores to `/volume2/restic-restore-test`, verifies file count + size + SHA-256 spot-check (up to 100 files) against live source, cleans up on success, leaves restore directory on failure for inspection. Fires Trello alert on any failure.
+
+```bash
+# Run as root on the NAS:
+sudo /usr/local/bin/restic-backup/restore_test.sh proxmox-backup        # smallest real share
+sudo /usr/local/bin/restic-backup/restore_test.sh docker                # 1.5 GiB
+sudo /usr/local/bin/restic-backup/restore_test.sh proxmox-backup abc123 # specific snapshot
+
+# Watch log:
+sudo tail -f /var/log/restic-backup/restore_test.log
+```
+
+Does NOT support subdirectory paths — takes share basenames only. For subdirectory testing, use restic directly (see manual restic commands below).
+
+**Daily run pattern (typical):**
+- `02:00`: docker, home-assistant-backup, homes complete (~18 min total)
+- `02:18` – `~06:00–10:00`: k3s-cluster-storage (variable; 1–4 attempts due to pipe breaks)
+- Immediately after k3s: NetBackup, paperless, proxmox-backup, proxmox-cluster-storage, time-machine (~5 min total)
+- `"END — all shares completed successfully"` appears in log once complete
+
+**Direct SSH to NAS (for manual restic commands):**
+
+```bash
+ssh -i ~/.ssh/coachlight-homelab.pem stephenfroeber@192.168.226.6
+```
+
+The 1Password SSH agent (`~/.1password/agent.sock`) does not reliably serve the NAS key from the control host. Use the coachlight-homelab key file directly. Note: Tailscale hostname `srfaudio.rohu-shark.ts.net` also works.
+
+**Running restic commands manually on the NAS:**
+
+Always set `RESTIC_CACHE_DIR` — otherwise restic defaults to `/root/.cache/restic/` which lives on the small (2.3G) root partition:
+
+```bash
+ssh -i ~/.ssh/coachlight-homelab.pem stephenfroeber@192.168.226.6 \
+  'sudo bash -c "
+    export RESTIC_REPOSITORY=sftp:storagebox:restic
+    export RESTIC_PASSWORD_FILE=/etc/restic-backup/.restic-password
+    export RESTIC_CACHE_DIR=/volume2/restic-cache
+    /usr/local/bin/restic snapshots
+  "'
+```
+
+**Root partition:** DSM root is only 2.3G. As of 2026-06-04 it is at 85% used (334M free) after clearing the stale pre-playbook cache at `/root/.cache/restic/` (418M). The deployed scripts write cache to `/volume2/restic-cache` — only manual restic invocations risk filling root if `RESTIC_CACHE_DIR` is omitted.
 
 ---
 
@@ -145,6 +197,8 @@ Create a bit-for-bit backup of a Synology DS1813+ NAS (9.7TB used, /volume2) to 
 - Existing servers: `hetzner-node` (nbg1, running)
 - Storage Boxes: BX61, ID 562357, `u579903.your-storagebox.de`
 - Storage Box usage as of 2026-05-01: 1.5 TB / 20 TB (7%) — from prior failed monolithic runs; data preserved by restic dedup
+- Storage Box snapshots as of 2026-06-04: 45 snapshots across all 9 shares; all shares backed up daily since ~2026-05-31
+- Restore-size (logical total across all 45 snapshots): 63.9 TiB / 10.4M files — deduplicated on-disk size will be much lower (run `restic stats` without `--mode` to get raw-data size)
 
 ---
 

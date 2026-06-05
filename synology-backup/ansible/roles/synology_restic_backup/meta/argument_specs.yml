@@ -172,6 +172,25 @@ argument_specs:
           Emit an alert during the weekly check job when the restic repository
           size exceeds this threshold. Unit: GiB (integer). 0 disables the check.
 
+      # --- Restore test ---
+      synology_restic_backup_restore_test_dir:
+        type: str
+        required: false
+        description: >-
+          Directory on the NAS used as the root for the restore-verification
+          script. The script restores into <restore_test_dir>/target/ and
+          removes the directory on success. On failure it is left in place for
+          manual inspection. Must reside on a data volume with sufficient free
+          space for the share under test.
+      synology_restic_backup_restore_test_sample_size:
+        type: int
+        required: false
+        description: >-
+          Maximum number of files the restore test script will SHA-256
+          spot-check against the live source. If the restored share contains
+          fewer files than this value, every file is checked. Set to 0 to
+          disable the spot-check (not recommended).
+
       # --- Schedule ---
       synology_restic_backup_cron_backup_minute:
         type: str
