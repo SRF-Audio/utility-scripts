@@ -3,17 +3,19 @@ set -euo pipefail
 
 SESSION="homelab"
 WORKDIR="$HOME/GitHub/utility-scripts/ansible"
+GITLAB_DIR="$HOME/GitLab"
+GITHUB_DIR="$HOME/GitHub"
 
 if tmux has-session -t "$SESSION" 2>/dev/null; then
   exec tmux attach -t "$SESSION"
 fi
 
-tmux new-session -d -s "$SESSION" -c "$WORKDIR"
+tmux new-session -d -s "$SESSION" -c "$GITLAB_DIR"
 
 WINDOW_TARGET="${SESSION}:1"
 MAIN_PANE="$(tmux list-panes -t "$WINDOW_TARGET" -F '#{pane_id}' | head -n1)"
 
-RIGHT_COL=$(tmux split-window -h -t "$MAIN_PANE" -c "$WORKDIR" -P -F '#{pane_id}')
+RIGHT_COL=$(tmux split-window -h -t "$MAIN_PANE" -c "$GITHUB_DIR" -P -F '#{pane_id}')
 tmux resize-pane -t "{left}" -x 50%
 
 K9S_PANE=$(tmux split-window -v -t "$MAIN_PANE" -c "$WORKDIR" -P -F '#{pane_id}')
@@ -31,8 +33,9 @@ tmux select-pane -t "$BTOP_PANE" -T "btop"
 tmux select-pane -t "$SSH_PANE_1" -T "ssh-1"
 tmux select-pane -t "$SSH_PANE_2" -T "ssh-2"
 
-tmux send-keys -t "$K9S_PANE"  "cd \"$WORKDIR\" && k9s" C-m
-tmux send-keys -t "$BTOP_PANE" "btop" C-m
+tmux send-keys -t "$K9S_PANE"   "cd \"$WORKDIR\" && k9s" C-m
+tmux send-keys -t "$BTOP_PANE"  "btop" C-m
+tmux send-keys -t "$SSH_PANE_2" "claude" C-m
 
 tmux select-pane -t "$MAIN_PANE"
 tmux attach -t "$SESSION"
