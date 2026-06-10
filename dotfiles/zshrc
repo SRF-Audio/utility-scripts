@@ -30,6 +30,11 @@ if command -v op &>/dev/null; then
   eval "$(op completion zsh 2>/dev/null)"
 fi
 
+# ── Distrobox ─────────────────────────────────────────────────────────────────
+if [[ -n "${CONTAINER_ID:-}" ]]; then
+  alias tailscale='distrobox-host-exec tailscale'
+fi
+
 # ── Powerlevel10k ─────────────────────────────────────────────────────────────
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 

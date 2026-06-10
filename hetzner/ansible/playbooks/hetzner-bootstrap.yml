@@ -51,6 +51,8 @@
         hetzner_tailscale_setup_advertise_tags:
           - tag:k8s
           - tag:server-apps
+        hetzner_tailscale_setup_extra_flags:
+          - --advertise-exit-node
 
   tasks:
     - name: Check if volume is already formatted
