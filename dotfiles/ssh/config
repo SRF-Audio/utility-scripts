@@ -43,7 +43,7 @@ Host nexgen-dev-bastion
 
 # RKE2 server nodes accessible through the bastion
 Host nexgen-dev-rke2-server-0
-  HostName 10.10.2.214
+  HostName 10.10.3.219
   User ec2-user
   IdentityFile /home/devuser/.ssh/nexgen-dev-key.pem
   IdentitiesOnly yes
@@ -55,7 +55,7 @@ Host nexgen-dev-rke2-server-0
   ServerAliveInterval 30
   ServerAliveCountMax 3
 Host nexgen-dev-rke2-server-1
-  HostName 10.10.2.125
+  HostName 10.10.3.241
   User ec2-user
   IdentityFile /home/devuser/.ssh/nexgen-dev-key.pem
   IdentitiesOnly yes
@@ -67,7 +67,7 @@ Host nexgen-dev-rke2-server-1
   ServerAliveInterval 30
   ServerAliveCountMax 3
 Host nexgen-dev-rke2-server-2
-  HostName 10.10.3.124
+  HostName 10.10.2.223
   User ec2-user
   IdentityFile /home/devuser/.ssh/nexgen-dev-key.pem
   IdentitiesOnly yes
@@ -80,7 +80,7 @@ Host nexgen-dev-rke2-server-2
   ServerAliveCountMax 3
 # RKE2 agent nodes accessible through the bastion
 Host nexgen-dev-rke2-agent-0
-  HostName 10.10.5.63
+  HostName 10.10.5.30
   User ec2-user
   IdentityFile /home/devuser/.ssh/nexgen-dev-key.pem
   IdentitiesOnly yes
@@ -92,7 +92,7 @@ Host nexgen-dev-rke2-agent-0
   ServerAliveInterval 30
   ServerAliveCountMax 3
 Host nexgen-dev-rke2-agent-1
-  HostName 10.10.4.233
+  HostName 10.10.4.107
   User ec2-user
   IdentityFile /home/devuser/.ssh/nexgen-dev-key.pem
   IdentitiesOnly yes
@@ -104,7 +104,7 @@ Host nexgen-dev-rke2-agent-1
   ServerAliveInterval 30
   ServerAliveCountMax 3
 Host nexgen-dev-rke2-agent-2
-  HostName 10.10.4.57
+  HostName 10.10.5.191
   User ec2-user
   IdentityFile /home/devuser/.ssh/nexgen-dev-key.pem
   IdentitiesOnly yes
