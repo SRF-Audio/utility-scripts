@@ -38,6 +38,21 @@ fi
 # ── Powerlevel10k ─────────────────────────────────────────────────────────────
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
+# ── Kubernetes ────────────────────────────────────────────────────────────────
+kubemerge() {
+  # Rebuild ~/.kube/config by merging all ~/.kube/*.yaml cluster files.
+  # Each cluster should have its own *.yaml file for full portability.
+  local yamls=(~/.kube/*.yaml(N))
+  [[ ${#yamls[@]} -eq 0 ]] && { echo "No cluster configs found in ~/.kube/*.yaml"; return 1; }
+  cp ~/.kube/config ~/.kube/config.bak
+  local joined
+  joined=$(IFS=:; echo "${yamls[*]}")
+  KUBECONFIG="$joined" kubectl config view --flatten > /tmp/kubeconfig-merged \
+    && mv /tmp/kubeconfig-merged ~/.kube/config \
+    && chmod 600 ~/.kube/config \
+    && echo "Merged ${#yamls[@]} config(s) → ~/.kube/config"
+}
+
 # ── tmux auto-launch ──────────────────────────────────────────────────────────
 # Skips when: already in tmux, inside VS Code, or NO_TMUX=1 is set.
 if [[ -o interactive ]]; then
