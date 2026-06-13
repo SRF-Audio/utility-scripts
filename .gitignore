@@ -1,4 +1,5 @@
 ansible/.vault_password.txt
+.claude/settings.local.json
 .lock
 *.bu
 *.ign
@@ -8,6 +9,7 @@ hetzner/ansible/playbooks/.artifacts/*
 */**/*.tmp
 */**/*.bak
 */**/*.old
+__pycache__/
 ansible/roles/tailscale_operator_deploy/templates/infra-tailscale-operator.yml
 ansible/roles/onepassword_operator_deploy/templates/application.yml
 ansible/roles/paperless_ngx_deploy/templates/application.yml

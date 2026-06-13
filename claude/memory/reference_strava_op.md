@@ -1,21 +1,19 @@
 ---
 name: reference-strava-op
-description: "Where Strava API credentials live in 1Password, and the scope gotcha for reading activities"
-metadata: 
-  node_type: memory
+description: "Where Strava API credentials live in 1Password, and the refresh-token sharing constraint with the kite uploader"
+metadata:
   type: reference
-  originSessionId: dbb4452b-740d-48de-bca4-c8590d8583e4
 ---
 
-Strava API credentials are stored in 1Password:
+Strava API credentials in 1Password:
 
 - **Account:** `my.1password.com` · **Vault:** `HomeLab` · **Item:** `Strava`
-- **Section:** `Strava API` with fields: `client_id` (text), `client_secret` (password), `refresh_token` (password)
-- Read via e.g. `op read "op://HomeLab/Strava/Strava API/refresh_token" --account my.1password.com`
-- Moved from `Stephen and Christine` vault so the service account token (HomeLab-scoped) can access it without needing the desktop app running.
+- **Section:** `Strava API` — `client_id` (text), `client_secret` (password), `refresh_token` (password)
+- e.g. `op read "op://HomeLab/Strava/Strava API/refresh_token" --account my.1password.com`
+- Lives in HomeLab (not a personal vault) so the HomeLab-scoped service account token can read it without the desktop app.
 
-Auth model: OAuth2 refresh-token flow → POST `https://www.strava.com/oauth/token` (`grant_type=refresh_token`) yields a 6h access token.
+The `fitness-coach` skill consumes these (bundled `strava.py` — `auth`/`list`/`detail`/`stats`) and its STRAVA.md documents the OAuth flow, scopes, and troubleshooting — `activity:read_all` is required to read; `activity:write` alone does not grant read.
 
-**Scope gotcha:** reading activities (`GET /athlete/activities`) needs `activity:read_all`; uploading (the kite-sessions-to-strava project) needs `activity:write`. These are separate — write does NOT grant read. The Strava API app's Authorization Callback Domain must be `localhost` for the local OAuth redirect.
+**Shared-token constraint:** SRF-Audio/kite-sessions-to-strava reads the same three values as env vars `STRAVA_CLIENT_ID/SECRET/REFRESH_TOKEN`. Re-running `strava.py auth` rotates the refresh token — update the uploader's copy afterward.
 
-Two Claude skills use this: `strava-auth` (mints the refresh token) and `strava-sessions` (views activities), in `~/GitHub/utility-scripts/claude/skills/`. Related upload project: SRF-Audio/kite-sessions-to-strava (reads the same 3 values as env vars `STRAVA_CLIENT_ID/SECRET/REFRESH_TOKEN`).
+Note: the token-rotation logic in `strava.py` also writes a rotated refresh token back to 1Password automatically during normal use, so the uploader can drift even without a manual re-auth.

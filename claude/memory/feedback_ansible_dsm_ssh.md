@@ -1,6 +1,11 @@
-# Ansible SSH to Synology DSM
+---
+name: feedback-ansible-dsm-ssh
+description: How to connect Ansible (and direct SSH) to a Synology NAS — the specific workarounds required
+metadata:
+  type: feedback
+---
 
-**How to connect Ansible to a Synology NAS — the specific workarounds required**
+# Ansible SSH to Synology DSM
 
 Use `ansible_password` from 1Password + `ansible_become: true` with passwordless sudo. Do NOT use the ssh connection plugin's default behavior with DSM.
 

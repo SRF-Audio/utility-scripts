@@ -58,6 +58,7 @@ Two k3s clusters are in use. Always use the explicit `--context` flag — never 
 | --- | --- |
 | `coachlight-k3s-cluster` | Homelab cluster (Proxmox, multi-node). GitOps via ArgoCD at `argocd.rohu-shark.ts.net`. |
 | `hetzner` | Single-node Hetzner Cloud cluster (current prod while relocating to Netherlands). GitOps via ArgoCD at `argocd-hetzner.rohu-shark.ts.net`. API server via Tailscale IP only — port 6443 is firewalled. |
+| `k3d-dev` (or `k3d-<name>`) | Local dev cluster on Aurora-DX laptop via k3d. Not GitOps-managed. API server on a dynamic local port (loopback only). Accessible from Distrobox because Distrobox uses `--network host`. Managed via `cluster-connector.yml --tags cluster_connector_k3d_local`. |
 
 ### Infrastructure Stack
 
@@ -383,6 +384,15 @@ Each persistence layer has a purpose. Use the right one:
 | `.github/workflows/` | CI pipelines | `act` (local testing), `gh run` |
 | `helm/` | Custom Helm charts | `helm lint`, `helm template` |
 | `docs/` | Documentation, ADRs, spikes | Read-only reference |
+
+### Local Dev (k3d on Aurora-DX)
+
+k3d runs on the Aurora-DX host (not inside Distrobox — k3s cannot run inside a rootless Podman container due to cgroup delegation limits on an immutable OS). The cluster's API server binds to a dynamic loopback port.
+
+- **Set up / refresh kubeconfig**: from `~/GitHub/utility-scripts/ansible/`, run `ansible-playbook -i inventories/hosts.yml playbooks/cluster-connector.yml --tags cluster_connector_k3d_local` — on the Aurora-DX host, not inside Distrobox.
+- **Custom cluster name**: add `-e k3d_cluster_name=mycluster`; the kubeconfig context will be `k3d-mycluster`.
+- **Distrobox access**: works automatically — Distrobox uses `--network host`, so `127.0.0.1:<port>` in the kubeconfig resolves identically inside and outside the container.
+- **Do not apply GitOps rules** to `k3d-*` contexts — they are throwaway dev clusters, not managed by ArgoCD.
 
 ### Decision Framework
 

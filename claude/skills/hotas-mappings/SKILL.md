@@ -1,6 +1,6 @@
 ---
 name: hotas-mappings
-description: Query and update HOTAS controller mappings for all sims and rigs. Handles per-game queries ("what's unmapped?", "what goes on A3 hat?") and cross-game consistency work ("map MSFS like ED"). Runs a 6-phase agent flow to keep context tight and validate before writing.
+description: HOTAS controller mappings and sim-rig context for all sims and rigs (VKB Gladiator HOSAS, Boopidoo compact HOTAS). Query/update mappings ("what's unmapped?", "what goes on A3 hat?", "map MSFS like ED") via a 6-phase agent flow. Also the reference for rig hardware specs, binding constraints, and player background — use for any flight/space sim advice (Elite Dangerous, MSFS 2024, DCS, Project Wingman), not just mapping edits.
 ---
 
 # HOTAS Mappings Skill
@@ -36,8 +36,20 @@ description: Query and update HOTAS controller mappings for all sims and rigs. H
 
 ## Rigs
 
-- **vkb** — VKB Gladiator NXT Omni L + R (HOSAS). No keyboard in VR; all bindings on sticks/pedals. Full D1 modifier layer available. Available Aug/Sep 2026. Profile IDs: `ed-flight`, `ed-galmap`, `ed-onfoot`, `ed-srv`, `msfs2024`, `dcs-f16`.
-- **boopidoo** — compact custom HOTAS (2× 3-axis sticks, 10 buttons, 4×4 keypad, HAT, 4-pos slide switch). Current primary rig. Data-driven JSON profiles with 4-mode keypad multiplexing. Profile IDs: `boopidoo-ed` (active), `boopidoo-msfs`/`boopidoo-dcs` (future).
+- **vkb** — VKB Gladiator NXT Omni L + R (HOSAS) + VKB T-Rudder Mk V pedals, on the **desktop** (specs in CLAUDE.md Machines; PSVR2 via SteamVR; games via Proton/Lutris on the Fedora side or native on the Win11 gaming SSD — VKB has good Linux HID support). **VR constraint: no keyboard access during play** — every binding lands on HOTAS/pedals; no head-look bindings needed (HMD handles it). Lean fully on analog ministicks (A1), hats (A3/A4/C1), button clusters, and the D1 modifier layer. Available ~Aug/Sep 2026. Profile IDs: `ed-flight`, `ed-galmap`, `ed-onfoot`, `ed-srv`, `msfs2024`, `dcs-f16`.
+- **boopidoo** — custom compact HOTAS (Etsy) on the **laptop** (specs in CLAUDE.md Machines; flat screen, no VR; gaming on the Win11 SSD or Aurora-DX side). 6DOF upgrade: two 3-axis spring-loaded sticks with push buttons, 10 push buttons, 4×4 keypad (or three 2-pos flip switches), HAT/POV with push, 4-pos slide switch — up to 39 controls; no pedals. **Current primary rig until ~Aug/Sep 2026.** Mapping philosophy: 6DOF sticks carry full translational + rotational thrust; keypad/switches handle mode and system functions (4-mode keypad multiplexing). Profile IDs: `boopidoo-ed` (active), `boopidoo-msfs`/`boopidoo-dcs` (future).
+
+## Player background (for sim advice)
+
+- Retired USAF Battle Management Controller (weapons director) — understands energy management, radar/sensor envelopes, weapons employment logic; use those as analogies for ED/DCS concepts rather than dumbing down. BS Aeronautics (Embry-Riddle).
+- 500+ hours No Man's Sky; active in MSFS 2024 and DCS; **new to Elite Dangerous-specific mechanics** (meta, engineering, BGS). Project Wingman planned.
+- Senior cloud engineer — no hand-holding on setup, Proton/Linux tweaks, or third-party tools.
+
+## Advising rules
+
+- **Always ask which rig if not specified** — optimal mappings differ significantly between the two setups.
+- VKB: account for VR (no keyboard); exploit ministicks, hats, D1 layer.
+- Boopidoo: 6DOF sticks for axes; keypad for mode/UI functions.
 
 ---
 

@@ -1,6 +1,14 @@
 {
-  "model": "sonnet[1m]",
+  "model": "claude-fable-5[1m]",
   "theme": "dark",
+  "permissions": {
+    "allow": [
+      "Bash(op account *)",
+      "Bash(op item *)",
+      "Bash(op vault *)",
+      "Bash(python3 *)"
+    ]
+  },
   "mcpServers": {
     "fetch": {
       "args": [

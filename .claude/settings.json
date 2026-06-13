@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git config *)",
+      "Bash(git show *)",
+      "Bash(python3 *)",
+      "Read(//tmp/**)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "github",
+    "fetch"
+  ]
+}

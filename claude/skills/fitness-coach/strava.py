@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""View Strava fitness sessions.
+"""Strava: one-time OAuth setup and activity viewing.
 
-Reads client_id/client_secret/refresh_token from 1Password (via `op`), refreshes
-a short-lived access token (cached locally), and queries the Strava API.
+Credentials (client_id/client_secret/refresh_token) live in 1Password and are
+only ever read/written via the `op` CLI — never echoed or passed on the
+command line. Short-lived access tokens are cached locally.
 
 Subcommands:
+  auth    One-time OAuth: mint a refresh token and store it in 1Password.
   list    Recent activities (optionally filtered by sport).
   detail  Full detail for one activity by id.
   stats   Aggregate totals per sport over a time window.
@@ -12,6 +14,8 @@ Subcommands:
 import argparse
 import json
 import os
+import shlex
+import shutil
 import stat
 import subprocess
 import sys
@@ -19,38 +23,68 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import webbrowser
 from datetime import datetime, timedelta, timezone
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 OP_VAULT = os.environ.get("STRAVA_OP_VAULT", "HomeLab")
 OP_ITEM = os.environ.get("STRAVA_OP_ITEM", "Strava")
 OP_SECTION = os.environ.get("STRAVA_OP_SECTION", "Strava API")
 OP_ACCOUNT = os.environ.get("STRAVA_OP_ACCOUNT", "my.1password.com")
 
+AUTHORIZE_URL = "https://www.strava.com/oauth/authorize"
 TOKEN_URL = "https://www.strava.com/oauth/token"
 API = "https://www.strava.com/api/v3"
 CACHE = os.path.join(
     os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache")),
-    "strava-sessions", "token.json",
+    "strava", "token.json",
 )
 
 
 # --- 1Password -------------------------------------------------------------
 
+def _op_cmd():
+    override = os.environ.get("STRAVA_OP_CMD")
+    if override:
+        return shlex.split(override)
+    # Inside a distrobox the container's `op` can't reach the host 1Password
+    # session — route through the host instead.
+    if os.environ.get("CONTAINER_ID") and shutil.which("distrobox-host-exec"):
+        return ["distrobox-host-exec", "op"]
+    return ["op"]
+
+
+OP_CMD = _op_cmd()
+
+
 def op_read(field):
     ref = f"op://{OP_VAULT}/{OP_ITEM}/{OP_SECTION}/{field}"
     r = subprocess.run(
-        ["op", "read", ref, "--account", OP_ACCOUNT],
+        OP_CMD + ["read", ref, "--account", OP_ACCOUNT],
         capture_output=True, text=True,
     )
     return r.stdout.strip() if r.returncode == 0 else None
 
 
-def op_write(field, value):
-    assign = f"{OP_SECTION}.{field}[password]={value}"
-    subprocess.run(
-        ["op", "item", "edit", OP_ITEM, assign, "--account", OP_ACCOUNT],
+def op_write(field, value, concealed=True, fatal=True):
+    field_type = "password" if concealed else "text"
+    assign = f"{OP_SECTION}.{field}[{field_type}]={value}"
+    r = subprocess.run(
+        OP_CMD + ["item", "edit", OP_ITEM, assign, "--account", OP_ACCOUNT],
         capture_output=True, text=True,
     )
+    if r.returncode != 0 and fatal:
+        sys.exit(f"op item edit failed: {r.stderr.strip()}")
+
+
+def post_form(url, data, err_prefix="Request failed"):
+    body = urllib.parse.urlencode(data).encode()
+    req = urllib.request.Request(url, data=body, method="POST")
+    try:
+        with urllib.request.urlopen(req) as resp:
+            return json.load(resp)
+    except urllib.error.HTTPError as e:
+        sys.exit(f"{err_prefix} ({e.code}): {e.read().decode(errors='replace')}")
 
 
 # --- token management ------------------------------------------------------
@@ -78,24 +112,96 @@ def get_access_token():
     cid, cs, rt = op_read("client_id"), op_read("client_secret"), op_read("refresh_token")
     if not all([cid, cs, rt]):
         sys.exit("Missing client_id/client_secret/refresh_token in 1Password. "
-                 "Run the strava-auth skill first.")
+                 "Run `strava.py auth` first.")
 
-    body = urllib.parse.urlencode({
+    tok = post_form(TOKEN_URL, {
         "client_id": cid, "client_secret": cs,
         "grant_type": "refresh_token", "refresh_token": rt,
-    }).encode()
-    req = urllib.request.Request(TOKEN_URL, data=body, method="POST")
-    try:
-        with urllib.request.urlopen(req) as resp:
-            tok = json.load(resp)
-    except urllib.error.HTTPError as e:
-        sys.exit(f"Token refresh failed ({e.code}): {e.read().decode(errors='replace')}\n"
-                 "If this is an auth error, re-run the strava-auth skill.")
+    }, err_prefix="Token refresh failed (if this is an auth error, re-run `strava.py auth`)")
 
     if tok.get("refresh_token") and tok["refresh_token"] != rt:
-        op_write("refresh_token", tok["refresh_token"])  # Strava rotated it
+        op_write("refresh_token", tok["refresh_token"], fatal=False)  # Strava rotated it
     _cache_store(tok["access_token"], tok["expires_at"])
     return tok["access_token"]
+
+
+# --- auth (one-time OAuth) ---------------------------------------------------
+
+class _Catcher(BaseHTTPRequestHandler):
+    code = None
+    scope = ""
+    error = None
+
+    def do_GET(self):
+        params = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        if "code" in params:
+            _Catcher.code = params["code"][0]
+            _Catcher.scope = params.get("scope", [""])[0]
+            msg = "Strava authorized. Close this tab and return to the terminal."
+        else:
+            _Catcher.error = params.get("error", ["unknown"])[0]
+            msg = f"Authorization failed: {_Catcher.error}"
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html")
+        self.end_headers()
+        self.wfile.write(f"<html><body><h2>{msg}</h2></body></html>".encode())
+
+    def log_message(self, *_):
+        pass
+
+
+def cmd_auth(args):
+    client_id = op_read("client_id")
+    client_secret = op_read("client_secret")
+    if not client_id or not client_secret:
+        sys.exit(
+            f"client_id/client_secret not found in 1Password item '{OP_ITEM}' "
+            f"(section '{OP_SECTION}'). Add them first — see SKILL.md."
+        )
+
+    redirect_uri = f"http://localhost:{args.port}/exchange"
+    auth_url = f"{AUTHORIZE_URL}?" + urllib.parse.urlencode({
+        "client_id": client_id,
+        "response_type": "code",
+        "redirect_uri": redirect_uri,
+        "approval_prompt": "force",
+        "scope": args.scope,
+    })
+
+    print("Authorize this app in your browser:\n")
+    print(f"  {auth_url}\n")
+    print(f"Listening for the redirect on {redirect_uri} ...")
+    if not args.no_browser:
+        try:
+            webbrowser.open(auth_url)
+        except Exception:
+            pass
+
+    server = HTTPServer(("127.0.0.1", args.port), _Catcher)
+    while _Catcher.code is None and _Catcher.error is None:
+        server.handle_request()
+    if _Catcher.error:
+        sys.exit(f"Authorization failed: {_Catcher.error}")
+
+    print(f"Authorization code received. Scopes granted: {_Catcher.scope or '(none reported)'}")
+    if "activity:read" not in _Catcher.scope:
+        print("WARNING: no read scope granted — viewing sessions will fail. "
+              "Re-run and approve activity:read_all.", file=sys.stderr)
+
+    tok = post_form(TOKEN_URL, {
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "code": _Catcher.code,
+        "grant_type": "authorization_code",
+    }, err_prefix="Token exchange failed")
+
+    op_write("refresh_token", tok["refresh_token"], concealed=True)
+    print(f"\nStored refresh_token in 1Password ('{OP_ITEM}' / section '{OP_SECTION}').")
+    athlete = tok.get("athlete") or {}
+    if athlete:
+        name = f"{athlete.get('firstname', '')} {athlete.get('lastname', '')}".strip()
+        print(f"Authorized as: {name} (athlete id {athlete.get('id')})")
+    print("Done — list/detail/stats will work now.")
 
 
 # --- API -------------------------------------------------------------------
@@ -111,7 +217,7 @@ def api_get(token, path, params=None):
     except urllib.error.HTTPError as e:
         detail = e.read().decode(errors="replace")
         if e.code == 401:
-            detail += "\n(401 — token lacks scope or is invalid. Re-run strava-auth with activity:read_all.)"
+            detail += "\n(401 — token lacks scope or is invalid. Re-run `strava.py auth` and approve activity:read_all.)"
         sys.exit(f"Strava API error {e.code}: {detail}")
 
 
@@ -243,29 +349,40 @@ def cmd_stats(token, args):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="View Strava fitness sessions.")
+    ap = argparse.ArgumentParser(description="Strava: OAuth setup and activity viewing.")
     sub = ap.add_subparsers(dest="cmd", required=True)
+
+    p_auth = sub.add_parser("auth", help="One-time OAuth setup (mints refresh token).")
+    p_auth.add_argument("--scope", default="activity:read_all,activity:write",
+                        help="Comma-separated Strava scopes (default: activity:read_all,activity:write).")
+    p_auth.add_argument("--port", type=int, default=8721,
+                        help="Local port for the OAuth redirect (default: 8721).")
+    p_auth.add_argument("--no-browser", action="store_true",
+                        help="Do not auto-open the browser; just print the URL.")
+    p_auth.set_defaults(func=cmd_auth, needs_token=False)
 
     p_list = sub.add_parser("list", help="Recent activities.")
     p_list.add_argument("-n", "--count", type=int, default=30)
     p_list.add_argument("-s", "--sport", help="Filter by sport/type (e.g. Kitesurf, Run, Ride).")
     p_list.add_argument("--json", action="store_true")
-    p_list.set_defaults(func=cmd_list)
+    p_list.set_defaults(func=cmd_list, needs_token=True)
 
     p_det = sub.add_parser("detail", help="Full detail for one activity.")
     p_det.add_argument("id")
     p_det.add_argument("--json", action="store_true")
-    p_det.set_defaults(func=cmd_detail)
+    p_det.set_defaults(func=cmd_detail, needs_token=True)
 
     p_stat = sub.add_parser("stats", help="Aggregate totals per sport over a window.")
     p_stat.add_argument("-d", "--days", type=int, default=28)
     p_stat.add_argument("-s", "--sport", help="Filter by sport/type.")
     p_stat.add_argument("--json", action="store_true")
-    p_stat.set_defaults(func=cmd_stats)
+    p_stat.set_defaults(func=cmd_stats, needs_token=True)
 
     args = ap.parse_args()
-    token = get_access_token()
-    args.func(token, args)
+    if args.needs_token:
+        args.func(get_access_token(), args)
+    else:
+        args.func(args)
 
 
 if __name__ == "__main__":

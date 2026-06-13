@@ -1,13 +1,13 @@
 # Memory Index
 
 - [Always use op CLI for secrets](feedback_op_cli.md) — Never suggest read -rs, inline flags, or shell vars for credentials; always use `op run` or `op item get`
-- [Ansible SSH to Synology DSM](feedback_ansible_dsm_ssh.md) — How to connect Ansible to a Synology NAS — the specific workarounds required
-- [Synology backup — current status](project_synology_backup_status.md) — First backup is running; key operational facts
-- [Coachlight K3s Cluster Status](project_coachlight_cluster_status.md) — Issues as of 2026-04-21; Velero+NetBox resolved, wkr-3 down, MinIO/Omada/paperless-loop remain; Bitnami Docker Hub deprecation note
-- [Hetzner Observability Stack](project_hetzner_observability.md) — kube-prometheus-stack + Loki + MinIO + Alloy; architecture decisions, namespace layout, known fixes
-- [Hetzner Homepage & Ingress Work](project_hetzner_homepage.md) — Completed: Homepage + Tailscale ingresses for all Hetzner UIs; annotation patterns documented
-- [Hetzner NetBox Deployment](project_hetzner_netbox.md) — Architecture, 1Password field requirements, chart secret mapping; critical notes on operator empty-field behavior
-- [Strava API in 1Password](reference_strava_op.md) — Where Strava creds live (item/section/fields) + the activity:read_all vs activity:write scope gotcha; strava-auth/strava-sessions skills
-- [Fitness & Training Project](project_fitness.md) — Athlete profile, sport priorities (wind/cycling/tri), coaching instructions, tools, and O'Fallon→The Hague location context (move 2026-07-22)
-- [Training Plan Jun–Sept 2026](project_training_plan_2026.md) — Phased plan: full training → travel running block → NL running+kite+road bike return; ERAU 100-mile challenge, projected finish ~Aug 5–12
-- [Gaming & Sim Rigs](project_gaming.md) — Hardware specs (VKB VR rig + Boopidoo laptop rig), per-rig binding constraints, player background for ED/MSFS2024/DCS/Project Wingman
+- [Flag paid tools before recommending](feedback_flag_paid_tools.md) — State the pricing model (free/paid/usage-based) in the same sentence as any tool, API, or service recommendation
+- [Markdownlint on memory files](feedback_markdownlint_memory_files.md) — Ignore markdownlint warnings in memory/; the frontmatter format is required and can't change
+- [Ansible SSH to Synology DSM](feedback_ansible_dsm_ssh.md) — PAM/kbd-interactive auth workarounds, paramiko doesn't work, DSM crontab/ssh-keyscan quirks, direct-SSH key path
+- [Coachlight K3s cluster status](project_coachlight_cluster_status.md) — Live issues as of 2026-04-21 (wkr-3 down, MinIO secret, paperless sync loop); Bitnami→bitnamilegacy pattern; cluster winding down
+- [Synology backup — current status](project_synology_backup_status.md) — Daily per-share restic backups green; C2 restore test still open; NAS packs ~2026-06-20
+- [Hetzner cluster patterns](reference_hetzner_patterns.md) — ArgoCD wave/project conventions, homepage ingress annotation triple, 1P operator empty-field gotcha, NetBox/Loki chart specifics
+- [Strava API in 1Password](reference_strava_op.md) — Where Strava creds live; the fitness-coach skill's strava.py consumes them; kite-uploader shares the refresh token (rotation warning)
+- [MCP server setup](reference_mcp_setup.md) — github/trello via 1P wrappers + fetch; troubleshooting starts with `op signin`
+- [Fitness — current state](project_fitness_state.md) — Run rebuild status, bike-shipping/move timeline, sport balance; coaching persona lives in the fitness-coach skill
+- [Training plan Jun–Sept 2026](project_training_plan_2026.md) — Phase plan through the O'Fallon→The Hague move; ERAU 100-mile challenge, projected finish ~Aug 5–12
