@@ -1,0 +1,76 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: netbox
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  project: coachlight-k3s-infra
+  source:
+    repoURL: https://netbox-community.github.io/netbox-chart
+    chart: netbox
+    targetRevision: "5.0.0-beta.145"
+    helm:
+      valuesObject:
+        # Superuser configuration using existing secret
+        superuser:
+          email: "admin@netbox.local"
+          existingSecret: netbox-superuser
+
+        # Django secret key using existing secret
+        existingSecret: netbox-django-secret
+
+        persistence:
+          enabled: true
+          storageClass: "nfs-synology-retain"
+
+        # Use existing PostgreSQL instance
+        postgresql:
+          enabled: false
+
+        # Use existing Redis/Valkey instance
+        valkey:
+          enabled: false
+
+        # External database configuration
+        externalDatabase:
+          host: postgres-postgresql.db-postgres.svc.cluster.local
+          port: 5432
+          database: netbox
+          username: netbox
+          existingSecretName: netbox-db-credentials
+          existingSecretKey: password
+
+        # External Redis configuration for tasks
+        tasksDatabase:
+          host: redis-master.db-redis.svc.cluster.local
+          port: 6379
+          database: 0
+          existingSecretName: netbox-redis-credentials
+          existingSecretKey: password
+
+        # External Redis configuration for caching
+        cachingDatabase:
+          host: redis-master.db-redis.svc.cluster.local
+          port: 6379
+          database: 1
+          existingSecretName: netbox-redis-credentials
+          existingSecretKey: password
+
+        service:
+          type: ClusterIP
+
+        ingress:
+          enabled: false
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: infra-netbox
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
