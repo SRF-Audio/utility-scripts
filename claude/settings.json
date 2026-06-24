@@ -1,6 +1,4 @@
 {
-  "model": "claude-fable-5[1m]",
-  "theme": "dark",
   "permissions": {
     "allow": [
       "Bash(op account *)",
@@ -9,6 +7,8 @@
       "Bash(python3 *)"
     ]
   },
+  "model": "opus",
+  "theme": "dark",
   "mcpServers": {
     "fetch": {
       "args": [
@@ -27,6 +27,14 @@
       "args": [],
       "command": "/home/sfroeber/.claude/mcp-wrappers/trello.sh",
       "type": "stdio"
+    }
+  },
+  "extraKnownMarketplaces": {
+    "addy-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "addyosmani/agent-skills"
+      }
     }
   }
 }

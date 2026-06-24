@@ -12,13 +12,13 @@
         op_item_edit_items:
           - name: my-login
             url: https://example.com/new
-            tags: [nexgen, ansible_managed, rotated]
+            tags: [example, ansible_managed, rotated]
             generate_password: true
             password_recipe: letters,digits,symbols,32
             fields:
               password[password]: ""
           - name: my-api-key
-            tags: [nexgen, ansible_managed]
+            tags: [example, ansible_managed]
             fields:
               apikey[text]: "new_api_key_value"
 

@@ -14,3 +14,6 @@ ansible/roles/tailscale_operator_deploy/templates/infra-tailscale-operator.yml
 ansible/roles/onepassword_operator_deploy/templates/application.yml
 ansible/roles/paperless_ngx_deploy/templates/application.yml
 ansible/roles/paperless_ngx_deploy/templates/secrets_application.yml
+
+# Work-only SSH hosts — kept local, never committed
+dotfiles/ssh/config.d/50-work.conf

@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Launch Claude Code with Bedrock credentials from 1Password.
+# Intended for work sessions (~/GitLab projects).
+# AWS credentials are injected from 1Password — never stored in ~/.aws/credentials.
+# Auto-detects distrobox (1Password lives on the host there).
+
+if [[ -n "${CONTAINER_ID:-}" ]]; then
+  OP="distrobox-host-exec op"
+else
+  OP="op"
+fi
+
+ITEM_ID="6cyhugp6pxj5irh2qkifnferr4"
+
+export AWS_ACCESS_KEY_ID
+export AWS_SECRET_ACCESS_KEY
+AWS_ACCESS_KEY_ID="$($OP item get "$ITEM_ID" --vault Work --fields "Access Key" --reveal 2>/dev/null)"
+AWS_SECRET_ACCESS_KEY="$($OP item get "$ITEM_ID" --vault Work --fields "Secret Key" --reveal 2>/dev/null)"
+
+if [[ -z "$AWS_ACCESS_KEY_ID" || -z "$AWS_SECRET_ACCESS_KEY" ]]; then
+  echo "ERROR: Failed to retrieve AWS credentials from 1Password" >&2
+  exit 1
+fi
+
+# Claude Code never reads a user-level settings.local.json, so these must be
+# real env vars here rather than living in a settings file — otherwise it
+# silently falls back to the personal OAuth account instead of Bedrock.
+export CLAUDE_CODE_USE_BEDROCK=1
+export AWS_REGION="us-east-1"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="us.anthropic.claude-sonnet-4-6"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="us.anthropic.claude-opus-4-8"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="us.anthropic.claude-haiku-4-5-20251001-v1:0"
+
+exec claude "$@"

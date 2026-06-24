@@ -13,14 +13,14 @@
           - name: my-login
             category: login
             url: https://example.com
-            tags: [nexgen, ansible_managed]
+            tags: [example, ansible_managed]
             generate_password: true
             password_recipe: 20,letters,digits
             fields:
               username[username]: myuser
           - name: my-api-key
             category: api_credential
-            tags: [nexgen, ansible_managed]
+            tags: [example, ansible_managed]
             fields:
               apikey[text]: "secret_api_key_value"
 

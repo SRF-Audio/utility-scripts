@@ -1,0 +1,10 @@
+[user]
+    name = sfroeber
+    email = sfroeber@altitude.cloud
+    signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ6Jw7wWRjOY5QiMtujr1M6Wh189qmrDYoZt331lLKQ+
+
+[gpg]
+    format = ssh
+
+[commit]
+    gpgsign = true

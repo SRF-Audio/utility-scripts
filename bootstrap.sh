@@ -110,6 +110,7 @@ setup_symlinks() {
     "$HOME/.ssh/config.d" \
     "$HOME/.tmux" \
     "$HOME/.local/bin" \
+    "$HOME/.aws" \
     "$HOME/.claude" \
     "$HOME/.claude/projects/-home-sfroeber-GitHub-utility-scripts"
 
@@ -123,6 +124,10 @@ setup_symlinks() {
   _symlink "$repo/dotfiles/tmux/theme-home.conf"     "$HOME/.tmux/theme-home.conf"
   _symlink "$repo/dotfiles/tmux/theme-work.conf"     "$HOME/.tmux/theme-work.conf"
 
+  # Git identities
+  _symlink "$repo/dotfiles/git/gitconfig-github"      "$HOME/.gitconfig-github"
+  _symlink "$repo/dotfiles/git/gitconfig-gitlab"      "$HOME/.gitconfig-gitlab"
+
   # SSH
   _symlink "$repo/dotfiles/ssh/config"               "$HOME/.ssh/config"
   _symlink "$repo/dotfiles/ssh/config.d/10-defaults.conf" "$HOME/.ssh/config.d/10-defaults.conf"
@@ -132,8 +137,13 @@ setup_symlinks() {
   # Local bin scripts
   _symlink "$repo/dotfiles/local-bin/tmux-homelab"   "$HOME/.local/bin/tmux-homelab"
   _symlink "$repo/dotfiles/local-bin/tailscale_tmux_status" "$HOME/.local/bin/tailscale_tmux_status"
+  _symlink "$repo/dotfiles/local-bin/claude-work"    "$HOME/.local/bin/claude-work"
   chmod +x "$repo/dotfiles/local-bin/tmux-homelab" \
-            "$repo/dotfiles/local-bin/tailscale_tmux_status"
+            "$repo/dotfiles/local-bin/tailscale_tmux_status" \
+            "$repo/dotfiles/local-bin/claude-work"
+
+  # AWS
+  _symlink "$repo/dotfiles/aws/config"               "$HOME/.aws/config"
 
   # Claude Code
   _symlink "$repo/claude/CLAUDE.md"                  "$HOME/.claude/CLAUDE.md"
