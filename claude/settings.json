@@ -8,6 +8,14 @@
     ]
   },
   "model": "opus",
+  "extraKnownMarketplaces": {
+    "addy-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "addyosmani/agent-skills"
+      }
+    }
+  },
   "theme": "dark",
   "mcpServers": {
     "fetch": {
@@ -27,14 +35,6 @@
       "args": [],
       "command": "/home/sfroeber/.claude/mcp-wrappers/trello.sh",
       "type": "stdio"
-    }
-  },
-  "extraKnownMarketplaces": {
-    "addy-agent-skills": {
-      "source": {
-        "source": "github",
-        "repo": "addyosmani/agent-skills"
-      }
     }
   }
 }

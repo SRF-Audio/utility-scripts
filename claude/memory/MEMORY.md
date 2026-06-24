@@ -14,3 +14,4 @@
 - [Training plan Jun–Sept 2026](project_training_plan_2026.md) — Phase plan through the O'Fallon→The Hague move; ERAU 100-mile challenge, projected finish ~Aug 5–12
 - [Claude dual-profile setup](project_claude_dual_profile.md) — Home=direct API, Work=Bedrock via `claude-work` exports (user-level settings.local.json is never read!)
 - [Prefer native review skills](feedback_prefer_native_review_skills.md) — agent-skills plugin overlaps code-review/simplify/security-review; suppress its versions, no fine-grained plugin skill disable exists
+- [Workstation migration in-flight](project_workstation_migration.md) — laptop moving Aurora distrobox→native Fedora; roles built on branch `workstation-migration`, cutover/teardown deferred until reinstall confirmed

@@ -6,6 +6,54 @@ This repo is a list of useful setup scripts for different Linux Distros, and var
 
 ---
 
+## Provisioning a new Fedora Workstation
+
+Bare-metal setup for a fresh **native Fedora Workstation** (KDE) — desktop
+(`sfroeber-amd-fedora-desktop`) or laptop (`sfroeber-amd-fedora-laptop`). This
+replaces the previous Aurora-DX + Distrobox setup; everything is codified in
+`ansible/roles/*` and run by `bootstrap.sh`.
+
+> ⚠️ **This provisions config, not data.** Before wiping, push every local git
+> repo (`~/GitHub`, `~/GitLab`) and back up anything not already in the cloud
+> (Obsidian vault, `~/Documents`, Steam saves, VM images, browser profiles).
+> Kubeconfigs are recoverable via the Cluster Connector below. KDE panel/theme
+> layout is **not** captured and returns to defaults.
+
+### Steps
+
+1. **Install Fedora KDE** and set the hostname to match the inventory:
+   ```bash
+   sudo hostnamectl set-hostname sfroeber-amd-fedora-laptop   # or -desktop
+   ```
+2. **Bootstrap** — installs git/ansible, symlinks dotfiles, then runs the
+   workstation + Claude Code playbooks:
+   ```bash
+   git clone https://github.com/SRF-Audio/utility-scripts.git ~/GitHub/utility-scripts
+   ~/GitHub/utility-scripts/bootstrap.sh
+   ```
+   Runs in order: `dotfiles.yml` → `workstations.yml --limit "$(hostname)"` →
+   `claude-code-setup.yml`.
+3. **Sign into 1Password** when prompted (desktop app → enable CLI integration,
+   or `op signin`). Required for `claude-code-setup.yml` and all secret lookups.
+4. **Reboot** — `akmod-nvidia` builds on first boot (laptop only); reboot before
+   relying on the dGPU / `supergfxctl`.
+5. **Connect to clusters** (optional) — see *Cluster Connector* below.
+
+### What `workstations.yml` installs
+
+| Role | Provides |
+| --- | --- |
+| `base_packages` | RPM Fusion + CLI/dev tools + native desktop apps (Steam, OBS, Blender, …) |
+| `repos_services` | 1Password desktop, VS Code, Docker CE |
+| `nvidia_asus_hw` | NVIDIA driver + container toolkit + asusctl/supergfxctl (**laptop only**) |
+| `flatpak_apps` | Flathub apps (browsers, chat, games, utilities) |
+| `audio` | Native PipeWire/JACK stack + DAW flatpaks |
+| `kde` | KDE Work/Homelab Activities |
+
+Per-machine behavior lives in `ansible/inventories/group_vars/{laptops,desktops}.yml`.
+
+---
+
 ## Quick Start: Cluster Connector
 
 Got a fresh machine and need kubectl/k9s access to both clusters? One command sets everything up permanently:
