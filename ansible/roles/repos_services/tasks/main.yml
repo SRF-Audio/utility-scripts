@@ -1,0 +1,18 @@
+---
+# roles/repos_services/tasks/main.yml
+- name: Assert RedHat family
+  ansible.builtin.assert:
+    that: ansible_facts['os_family'] == "RedHat"
+    fail_msg: "repos_services targets native Fedora/RHEL only."
+
+- name: Install 1Password desktop
+  ansible.builtin.import_tasks: onepassword_desktop.yml
+  when: repos_services_install_1password_desktop
+
+- name: Install VS Code
+  ansible.builtin.import_tasks: vscode.yml
+  when: repos_services_install_vscode
+
+- name: Install Docker CE
+  ansible.builtin.import_tasks: docker.yml
+  when: repos_services_container_engine == "docker"

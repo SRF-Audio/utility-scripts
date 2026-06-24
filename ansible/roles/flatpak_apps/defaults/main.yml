@@ -1,0 +1,54 @@
+---
+# roles/flatpak_apps/defaults/main.yml
+#
+# Flatpak-only / sandbox-preferred GUI apps. FOSS apps with good RPMs were
+# moved to dnf (see base_packages_desktop_apps); audio DAWs live in the audio
+# role; distrobox-management apps were dropped (no distrobox on Workstation).
+
+flatpak_apps_flathub_remote_url: https://flathub.org/repo/flathub.flatpakrepo
+
+flatpak_apps_list:
+  # browsers (firefox is the native default)
+  - com.brave.Browser
+  - app.zen_browser.zen
+  # comms
+  - com.slack.Slack
+  - com.discordapp.Discord
+  - org.signal.Signal
+  - org.telegram.desktop
+  # notes / docs
+  - md.obsidian.Obsidian
+  - com.jgraph.drawio.desktop
+  # gaming (Steam is installed natively via base_packages_desktop_apps)
+  - net.lutris.Lutris
+  - com.usebottles.bottles
+  - com.modrinth.ModrinthApp
+  - com.mojang.Minecraft
+  - io.mrarm.mcpelauncher
+  - org.kartkrew.RingRacers
+  - org.srb2.SRB2
+  # peripherals / hardware
+  - com.yubico.yubioath
+  - io.github.pwr_solaar.solaar
+  - app.polychromatic.controller
+  # networking / input sharing
+  - dev.deedles.Trayscale          # GUI for the native tailscaled
+  - io.github.input_leap.input-leap
+  - org.deskflow.deskflow
+  # flatpak management
+  - com.github.tchx84.Flatseal
+  - io.github.flattool.Warehouse
+  # utilities
+  - io.missioncenter.MissionCenter
+  - me.iepure.devtoolbox
+  - com.github.finefindus.eyedropper
+  - nl.hjdskes.gcolor3
+  - nl.emphisia.icon
+  - org.gustavoperedo.FontDownloader
+  - io.github.getnf.embellish
+  - org.fedoraproject.MediaWriter
+  - org.gnome.World.PikaBackup
+  # benchmarking / dev / sim
+  - com.geekbench.Geekbench6
+  - sh.loft.devpod
+  - org.mavlink.qgroundcontrol

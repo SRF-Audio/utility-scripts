@@ -1,0 +1,33 @@
+---
+argument_specs:
+  main:
+    short_description: >-
+      Enable RPM Fusion and install the base CLI/dev package set on native
+      Fedora (RedHat family).
+    options:
+      base_packages_rpmfusion_enable:
+        type: bool
+        required: true
+        description: Whether to enable the RPM Fusion free and nonfree repos.
+      base_packages_rpmfusion_free_url:
+        type: str
+        required: true
+        description: URL to the rpmfusion-free-release RPM for this Fedora release.
+      base_packages_rpmfusion_nonfree_url:
+        type: str
+        required: true
+        description: URL to the rpmfusion-nonfree-release RPM for this Fedora release.
+      base_packages_list:
+        type: list
+        elements: str
+        required: true
+        description: CLI/dev packages to install via dnf.
+      base_packages_install_desktop_apps:
+        type: bool
+        required: true
+        description: Whether to install the native desktop GUI app set.
+      base_packages_desktop_apps:
+        type: list
+        elements: str
+        required: true
+        description: Native (dnf) desktop GUI applications.

@@ -1,0 +1,38 @@
+---
+# roles/nvidia_asus_hw/tasks/main.yml
+- name: Assert RedHat family
+  ansible.builtin.assert:
+    that: ansible_facts['os_family'] == "RedHat"
+    fail_msg: "nvidia_asus_hw targets native Fedora/RHEL only."
+
+- name: Install NVIDIA driver stack
+  ansible.builtin.import_tasks: nvidia.yml
+  when: nvidia_asus_hw_enable_nvidia
+
+- name: Install NVIDIA Container Toolkit
+  ansible.builtin.import_tasks: nvidia_container_toolkit.yml
+  when: nvidia_asus_hw_enable_container_toolkit
+
+- name: Install ASUS ROG tooling
+  ansible.builtin.import_tasks: asus.yml
+  when: nvidia_asus_hw_enable_asusctl or nvidia_asus_hw_enable_supergfxctl
+
+- name: Configure power-profiles-daemon backend
+  when: nvidia_asus_hw_power_backend == "power-profiles-daemon"
+  block:
+    - name: Install power-profiles-daemon
+      become: true
+      ansible.builtin.dnf:
+        name: power-profiles-daemon
+        state: present
+    - name: Remove tuned-ppd (conflicts with PPD)
+      become: true
+      ansible.builtin.dnf:
+        name: tuned-ppd
+        state: absent
+    - name: Enable power-profiles-daemon
+      become: true
+      ansible.builtin.systemd_service:
+        name: power-profiles-daemon
+        enabled: true
+        state: started

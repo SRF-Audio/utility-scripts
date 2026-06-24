@@ -1,0 +1,23 @@
+---
+# roles/flatpak_apps/tasks/main.yml
+- name: Ensure flatpak is installed
+  become: true
+  ansible.builtin.dnf:
+    name: flatpak
+    state: present
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Add the Flathub remote (system-wide)
+  become: true
+  community.general.flatpak_remote:
+    name: flathub
+    flatpakrepo_url: "{{ flatpak_apps_flathub_remote_url }}"
+    method: system
+    state: present
+
+- name: Install flatpak applications
+  community.general.flatpak:
+    name: "{{ flatpak_apps_list }}"
+    state: present
+    remote: flathub
+    method: system

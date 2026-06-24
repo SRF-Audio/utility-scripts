@@ -1,0 +1,27 @@
+---
+# Official VS Code RPM instructions:
+# https://code.visualstudio.com/docs/setup/linux  (RHEL/Fedora section)
+- name: Import Microsoft GPG key
+  become: true
+  ansible.builtin.rpm_key:
+    state: present
+    key: https://packages.microsoft.com/keys/microsoft.asc
+
+- name: Configure VS Code repository
+  become: true
+  ansible.builtin.yum_repository:
+    name: code
+    description: Visual Studio Code
+    baseurl: https://packages.microsoft.com/yumrepos/vscode
+    enabled: true
+    autorefresh: true
+    gpgcheck: true
+    gpgkey: https://packages.microsoft.com/keys/microsoft.asc
+    state: present
+
+- name: Install VS Code
+  become: true
+  ansible.builtin.dnf:
+    name: code
+    state: present
+    update_cache: true

@@ -1,0 +1,29 @@
+---
+# Official NVIDIA Container Toolkit instructions:
+# https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
+- name: Add NVIDIA Container Toolkit repository
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ nvidia_asus_hw_container_toolkit_repo_url }}"
+    dest: /etc/yum.repos.d/nvidia-container-toolkit.repo
+    mode: "0644"
+
+- name: Install nvidia-container-toolkit
+  become: true
+  ansible.builtin.dnf:
+    name: nvidia-container-toolkit
+    state: present
+
+- name: Check whether Docker already has the NVIDIA runtime configured
+  become: true
+  ansible.builtin.command: grep -q nvidia /etc/docker/daemon.json
+  register: nvidia_asus_hw_runtime_check
+  failed_when: false
+  changed_when: false
+
+- name: Configure the Docker runtime for NVIDIA
+  become: true
+  ansible.builtin.command: nvidia-ctk runtime configure --runtime=docker
+  when: nvidia_asus_hw_runtime_check.rc != 0
+  changed_when: true
+  notify: restart docker

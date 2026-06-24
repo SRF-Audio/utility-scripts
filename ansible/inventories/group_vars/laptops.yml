@@ -1,0 +1,31 @@
+---
+# ansible/inventories/group_vars/laptops.yml
+#
+# Host: sfroeber-amd-fedora-laptop
+# Hardware: ASUS ROG Zephyrus G16 (GA605WI) — Ryzen AI 9 HX 370 (Radeon 890M iGPU)
+#           + NVIDIA RTX 4070 Laptop dGPU (Optimus-style hybrid).
+#
+# Target: NATIVE Fedora Workstation (replaces the prior Aurora-DX + distrobox
+# split setup). These vars drive the per-host hardware/service roles; the
+# desktop (7700X, Radeon-only) leaves the NVIDIA/ASUS toggles off.
+
+# ── NVIDIA dGPU (nvidia_asus_hw role) ────────────────────────────────────────
+nvidia_asus_hw_enable_nvidia: true            # akmod-nvidia + nvidia-powerd via RPM Fusion
+nvidia_asus_hw_enable_container_toolkit: true # nvidia-container-toolkit + docker runtime hook
+
+# ── ASUS ROG tooling (nvidia_asus_hw role) ──────────────────────────────────
+# Official source is now the Terra repo (Fyra Labs); the old lukenukem COPR is
+# deprecated. Packages: asusctl + asusctl-rog-gui. supergfxctl handles GPU mode
+# switching (hybrid / integrated / dedicated).
+nvidia_asus_hw_enable_asusctl: true
+nvidia_asus_hw_enable_supergfxctl: true
+nvidia_asus_hw_restore_asusd_config: true     # restore orphaned /etc/asusd/*.ron
+
+# Power backend: the official asusd guide recommends power-profiles-daemon
+# (swap out tuned-ppd). Aurora currently used tuned/tuned-ppd; PPD is asusd's
+# documented integration path.
+nvidia_asus_hw_power_backend: power-profiles-daemon
+
+# ── Container engine (repos_services role) ──────────────────────────────────
+# docker-ce chosen over podman to reduce rootless/userns/SELinux friction.
+repos_services_container_engine: docker

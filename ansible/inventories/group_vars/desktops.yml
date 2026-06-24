@@ -1,0 +1,14 @@
+---
+# ansible/inventories/group_vars/desktops.yml
+#
+# Host: sfroeber-amd-fedora-desktop
+# Hardware: Ryzen 7 7700X + Radeon 7800XT (AMD-only) — no NVIDIA, no ASUS ROG
+# tooling. Native Fedora Workstation.
+
+nvidia_asus_hw_enable_nvidia: false
+nvidia_asus_hw_enable_container_toolkit: false
+nvidia_asus_hw_enable_asusctl: false
+nvidia_asus_hw_enable_supergfxctl: false
+nvidia_asus_hw_restore_asusd_config: false
+
+repos_services_container_engine: docker

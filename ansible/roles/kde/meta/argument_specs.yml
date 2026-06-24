@@ -1,0 +1,10 @@
+---
+argument_specs:
+  main:
+    short_description: Configure KDE Plasma (Activities) for the workstation.
+    options:
+      kde_activities:
+        type: list
+        elements: str
+        required: true
+        description: KDE Activity names to ensure exist (created if missing).

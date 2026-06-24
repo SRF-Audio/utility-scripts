@@ -13,13 +13,13 @@
 # correct even if Ansible later fails or is run incrementally.
 #
 # Usage (run from anywhere, even before cloning):
-#   curl -fsSL https://raw.githubusercontent.com/sfroeber/utility-scripts/main/bootstrap.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/SRF-Audio/utility-scripts/main/bootstrap.sh | bash
 #   -- or --
 #   bash ~/GitHub/utility-scripts/bootstrap.sh
 
 set -euo pipefail
 
-REPO_URL="git@github.com:sfroeber/utility-scripts.git"
+REPO_URL="git@github.com:SRF-Audio/utility-scripts.git"
 REPO_DIR="$HOME/GitHub/utility-scripts"
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -195,4 +195,5 @@ fi
 info "Running Ansible workstation playbook…"
 cd "$REPO_DIR/ansible" || die "'ansible' directory not found in repo"
 ansible-playbook playbooks/dotfiles.yml
+ansible-playbook playbooks/workstations.yml --limit "$(hostname)"
 ansible-playbook playbooks/claude-code-setup.yml

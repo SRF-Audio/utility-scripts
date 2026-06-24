@@ -1,0 +1,32 @@
+---
+# roles/base_packages/tasks/main.yml
+- name: Assert RedHat family
+  ansible.builtin.assert:
+    that: ansible_facts['os_family'] == "RedHat"
+    fail_msg: "base_packages targets native Fedora/RHEL only."
+
+- name: Enable RPM Fusion free + nonfree
+  become: true
+  ansible.builtin.dnf:
+    name:
+      - "{{ base_packages_rpmfusion_free_url }}"
+      - "{{ base_packages_rpmfusion_nonfree_url }}"
+    state: present
+    disable_gpg_check: true
+  when: base_packages_rpmfusion_enable
+
+- name: Install base CLI / dev packages
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ base_packages_list }}"
+    state: present
+    # ffmpeg (RPM Fusion) supersedes ffmpeg-free shipped in the base install.
+    allowerasing: true
+
+- name: Install native desktop GUI applications
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ base_packages_desktop_apps }}"
+    state: present
+    allowerasing: true
+  when: base_packages_install_desktop_apps

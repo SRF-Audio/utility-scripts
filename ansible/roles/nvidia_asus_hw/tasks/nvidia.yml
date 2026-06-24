@@ -1,0 +1,15 @@
+---
+# RPM Fusion NVIDIA driver. Requires rpmfusion-nonfree, enabled by the
+# base_packages role (run base_packages first). The akmod builds the kernel
+# module on first install; a reboot is required before the dGPU is usable.
+- name: Install NVIDIA driver stack (RPM Fusion)
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ nvidia_asus_hw_nvidia_packages }}"
+    state: present
+
+- name: Note that a reboot is required to finish the akmod build
+  ansible.builtin.debug:
+    msg: >-
+      NVIDIA akmod installed. Reboot before relying on the dGPU / nvidia-powerd
+      (akmods builds and signs the module against the running kernel on boot).

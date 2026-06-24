@@ -1,0 +1,33 @@
+---
+# roles/kde/tasks/main.yml
+# Runs as the logged-in user (per-user session D-Bus), not root.
+- name: Resolve a qdbus binary (Plasma 6 ships qdbus6)
+  ansible.builtin.command: "bash -lc 'command -v qdbus6 || command -v qdbus'"
+  register: kde_qdbus
+  changed_when: false
+  failed_when: false
+
+- name: Configure KDE Activities
+  when:
+    - "'KDE' in lookup('env', 'XDG_CURRENT_DESKTOP')"
+    - kde_qdbus.rc == 0
+  block:
+    - name: Get existing KDE activity names
+      ansible.builtin.shell: |
+        set -e
+        for id in $({{ kde_qdbus.stdout }} org.kde.ActivityManager \
+                    /ActivityManager/Activities ListActivities); do
+          {{ kde_qdbus.stdout }} org.kde.ActivityManager \
+            /ActivityManager/Activities ActivityName "$id"
+        done
+      register: kde_existing_activities
+      changed_when: false
+
+    - name: Create missing KDE activities
+      ansible.builtin.command:
+        cmd: >-
+          {{ kde_qdbus.stdout }} org.kde.ActivityManager
+          /ActivityManager/Activities AddActivity "{{ item }}"
+      loop: "{{ kde_activities }}"
+      when: item not in (kde_existing_activities.stdout_lines | default([]))
+      changed_when: true

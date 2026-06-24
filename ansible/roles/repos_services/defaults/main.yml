@@ -1,0 +1,19 @@
+---
+# roles/repos_services/defaults/main.yml
+#
+# Repo-backed installs that the immutable host previously handled out-of-band
+# (rpm-ostree LocalPackages / flatpak / distrobox passthrough). All steps follow
+# the current official upstream instructions.
+
+repos_services_install_1password_desktop: true
+repos_services_install_vscode: true
+
+# Container engine: 'docker' (docker-ce official repo) or 'none'.
+repos_services_container_engine: docker
+repos_services_docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+repos_services_docker_user: "{{ ansible_user_id }}"

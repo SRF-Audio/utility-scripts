@@ -1,0 +1,100 @@
+---
+# roles/base_packages/defaults/main.yml
+
+# Enable RPM Fusion free + nonfree (needed for full media codecs, and a
+# prerequisite for the NVIDIA stack in the nvidia_asus_hw role).
+base_packages_rpmfusion_enable: true
+base_packages_rpmfusion_free_url: >-
+  https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ ansible_distribution_major_version }}.noarch.rpm
+base_packages_rpmfusion_nonfree_url: >-
+  https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ ansible_distribution_major_version }}.noarch.rpm
+
+# Intent-filtered set distilled from the Aurora distrobox's user-installed dnf
+# packages (base-image deps excluded). Tools owned by dedicated roles are NOT
+# listed here: k9s (k9s_install), op CLI (op_install), VS Code + docker
+# (repos_services), the PipeWire stack (audio), NVIDIA (nvidia_asus_hw).
+base_packages_list:
+  # shells & terminal
+  - zsh
+  - tmux
+  # editors
+  - vim-enhanced
+  - nano
+  # core CLI utilities
+  - git
+  - jq
+  - tree
+  - htop
+  - btop
+  - bc
+  - rsync
+  - wget
+  - curl
+  - unzip
+  - zip
+  - xz
+  - bzip2
+  - pigz
+  - zstd
+  # network / diagnostics
+  - nmap
+  - nmap-ncat
+  - mtr
+  - traceroute
+  - tcpdump
+  - net-tools
+  - iproute
+  - lsof
+  - whois
+  - bind-utils
+  - wol
+  - wireshark
+  - mosquitto
+  # secrets helpers
+  - gnupg2
+  - pinentry
+  # python
+  - python3
+  - python3-pip
+  # languages / runtimes
+  - golang
+  - nodejs
+  - nodejs-npm
+  # automation
+  - ansible
+  - ansible-lint
+  # cloud / k8s / infra CLIs
+  - awscli2
+  - helm
+  - kubernetes-client
+  - butane
+  - coreos-installer
+  # media (full ffmpeg comes from RPM Fusion)
+  - ffmpeg
+
+# Native GUI applications (maximize dnf/native): FOSS apps with good RPMs that
+# were previously flatpaks on the immutable host. Proprietary/sandbox-preferred
+# apps stay on Flatpak (flatpak_apps role); audio DAWs live in the audio role.
+base_packages_install_desktop_apps: true
+base_packages_desktop_apps:
+  # browsers / mail
+  - firefox
+  - thunderbird
+  # creative / media
+  - obs-studio
+  - blender
+  - krita
+  - inkscape
+  - darktable
+  - kdenlive
+  - vlc
+  - libreoffice
+  # gaming (RPM Fusion nonfree)
+  - steam
+  # KDE apps
+  - okular
+  - gwenview
+  - filelight
+  - kcalc
+  - haruna
+  - kstars

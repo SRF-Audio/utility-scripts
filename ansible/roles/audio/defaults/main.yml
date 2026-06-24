@@ -1,0 +1,24 @@
+---
+# roles/audio/defaults/main.yml
+#
+# Native PipeWire stack — this is the system audio layer (hardware-interfacing),
+# so it is dnf/native, never flatpak. Only the DAW *applications* are flatpak.
+
+audio_system_packages:
+  - pipewire
+  - pipewire-alsa
+  - pipewire-pulseaudio
+  - pipewire-utils
+  - pipewire-jack-audio-connection-kit  # JACK shim for pro-audio apps
+  - wireplumber                          # session/policy manager
+  - alsa-utils
+  - pulseaudio-utils                     # pactl/pacmd for troubleshooting
+  - rtkit                                # realtime scheduling broker
+  - qpwgraph                             # PipeWire patchbay
+
+# DAWs / audio applications stay on Flatpak (Flathub).
+audio_flatpak_apps:
+  - com.bitwig.BitwigStudio
+  - org.ardour.Ardour
+  - org.audacityteam.Audacity
+  - org.musescore.MuseScore

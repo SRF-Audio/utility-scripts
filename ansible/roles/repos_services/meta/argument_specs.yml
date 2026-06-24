@@ -1,0 +1,29 @@
+---
+argument_specs:
+  main:
+    short_description: >-
+      Install repo-backed apps/services from official upstream repos:
+      1Password desktop, VS Code, and the Docker CE engine.
+    options:
+      repos_services_install_1password_desktop:
+        type: bool
+        required: true
+        description: Install the 1Password desktop app (1password RPM).
+      repos_services_install_vscode:
+        type: bool
+        required: true
+        description: Install Visual Studio Code (code RPM) from the Microsoft repo.
+      repos_services_container_engine:
+        type: str
+        required: true
+        choices: [docker, none]
+        description: Which container engine to install. 'docker' uses docker-ce.
+      repos_services_docker_packages:
+        type: list
+        elements: str
+        required: true
+        description: Docker CE package set to install.
+      repos_services_docker_user:
+        type: str
+        required: true
+        description: User added to the 'docker' group for rootful socket access.

@@ -1,0 +1,5 @@
+---
+# roles/kde/defaults/main.yml
+kde_activities:
+  - Work
+  - Homelab

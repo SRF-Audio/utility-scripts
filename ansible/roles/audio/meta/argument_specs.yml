@@ -1,0 +1,17 @@
+---
+argument_specs:
+  main:
+    short_description: >-
+      Install the native PipeWire audio stack (dnf) plus DAW applications
+      (Flatpak) on native Fedora.
+    options:
+      audio_system_packages:
+        type: list
+        elements: str
+        required: true
+        description: Native PipeWire/ALSA system packages installed via dnf.
+      audio_flatpak_apps:
+        type: list
+        elements: str
+        required: true
+        description: Audio application flatpak IDs installed from Flathub.

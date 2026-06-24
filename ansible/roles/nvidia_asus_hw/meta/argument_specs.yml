@@ -1,0 +1,55 @@
+---
+argument_specs:
+  main:
+    short_description: >-
+      Install NVIDIA driver stack + container toolkit and ASUS ROG platform
+      tooling (asusctl/supergfxctl) on native Fedora.
+    options:
+      nvidia_asus_hw_enable_nvidia:
+        type: bool
+        required: true
+        description: Install the RPM Fusion NVIDIA driver stack.
+      nvidia_asus_hw_nvidia_packages:
+        type: list
+        elements: str
+        required: true
+        description: NVIDIA driver packages.
+      nvidia_asus_hw_enable_container_toolkit:
+        type: bool
+        required: true
+        description: Install + configure the NVIDIA Container Toolkit for Docker.
+      nvidia_asus_hw_container_toolkit_repo_url:
+        type: str
+        required: true
+        description: URL of the nvidia-container-toolkit.repo file.
+      nvidia_asus_hw_enable_asusctl:
+        type: bool
+        required: true
+        description: Install asusctl + GUI and enable asusd.
+      nvidia_asus_hw_enable_supergfxctl:
+        type: bool
+        required: true
+        description: Install supergfxctl and enable supergfxd (GPU mode switching).
+      nvidia_asus_hw_asus_packages:
+        type: list
+        elements: str
+        required: true
+        description: ASUS ROG packages from the Terra repo.
+      nvidia_asus_hw_terra_release_url:
+        type: str
+        required: true
+        description: Terra repofrompath URL used to bootstrap terra-release.
+      nvidia_asus_hw_power_backend:
+        type: str
+        required: true
+        choices: [power-profiles-daemon, tuned-ppd]
+        description: Power-profile backend. PPD is asusd's documented path.
+      nvidia_asus_hw_restore_asusd_config:
+        type: bool
+        required: true
+        description: Restore captured /etc/asusd/*.ron config files.
+      nvidia_asus_hw_asusd_config_files:
+        type: list
+        elements: str
+        required: true
+        description: .ron files (in files/asusd/) to restore into /etc/asusd.

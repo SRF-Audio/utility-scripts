@@ -1,0 +1,14 @@
+---
+argument_specs:
+  main:
+    short_description: Add the Flathub remote and install flatpak applications.
+    options:
+      flatpak_apps_flathub_remote_url:
+        type: str
+        required: true
+        description: URL of the Flathub .flatpakrepo file.
+      flatpak_apps_list:
+        type: list
+        elements: str
+        required: true
+        description: Flatpak application IDs to install from Flathub.

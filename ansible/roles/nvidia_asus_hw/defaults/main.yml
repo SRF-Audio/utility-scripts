@@ -1,0 +1,39 @@
+---
+# roles/nvidia_asus_hw/defaults/main.yml
+#
+# ASUS ROG Zephyrus G16 (GA605WI): NVIDIA RTX 4070 Laptop dGPU + ASUS ROG
+# platform tooling on native Fedora. Per-host enablement lives in
+# group_vars/laptops.yml; the desktop leaves these off.
+
+# ── NVIDIA driver (RPM Fusion nonfree; base_packages enables the repo) ───────
+nvidia_asus_hw_enable_nvidia: true
+nvidia_asus_hw_nvidia_packages:
+  - akmod-nvidia               # builds the kmod against the running kernel
+  - xorg-x11-drv-nvidia-cuda   # CUDA libs + nvidia-powerd (dynamic boost)
+
+# ── NVIDIA Container Toolkit (GPU in Docker) ────────────────────────────────
+nvidia_asus_hw_enable_container_toolkit: true
+nvidia_asus_hw_container_toolkit_repo_url: >-
+  https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo
+
+# ── ASUS ROG tooling (Terra repo — official; lukenukem COPR is deprecated) ───
+nvidia_asus_hw_enable_asusctl: true
+nvidia_asus_hw_enable_supergfxctl: true
+nvidia_asus_hw_asus_packages:
+  - asusctl
+  - asusctl-rog-gui
+  - supergfxctl
+nvidia_asus_hw_terra_release_url: "https://repos.fyralabs.com/terra$releasever"
+
+# Power backend: power-profiles-daemon is asusd's documented integration path
+# (the official guide swaps out tuned-ppd).
+nvidia_asus_hw_power_backend: power-profiles-daemon
+
+# Restore the orphaned asusd config captured from the Aurora host
+# (charge limit, AC=Performance/Battery=Quiet, Aura RGB, fan curves, Slash).
+nvidia_asus_hw_restore_asusd_config: true
+nvidia_asus_hw_asusd_config_files:
+  - asusd.ron
+  - aura_19b6.ron
+  - fan_curves.ron
+  - slash.ron

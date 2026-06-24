@@ -1,0 +1,14 @@
+---
+# roles/audio/tasks/main.yml
+- name: Install native PipeWire / ALSA audio stack
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ audio_system_packages }}"
+    state: present
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Install DAW / audio applications from Flathub
+  community.general.flatpak:
+    name: "{{ audio_flatpak_apps }}"
+    state: present
+    remote: flathub
