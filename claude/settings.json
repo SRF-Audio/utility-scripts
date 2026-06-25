@@ -7,7 +7,6 @@
       "Bash(python3 *)"
     ]
   },
-  "model": "opus",
   "extraKnownMarketplaces": {
     "addy-agent-skills": {
       "source": {
@@ -36,5 +35,6 @@
       "command": "/home/sfroeber/.claude/mcp-wrappers/trello.sh",
       "type": "stdio"
     }
-  }
+  },
+  "model": "sonnet[1m]"
 }

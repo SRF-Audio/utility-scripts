@@ -1,0 +1,12 @@
+---
+# roles/yubikey_setup/defaults/main.yml
+#
+# YubiKey Bio: FIDO2 (SSH/login resident keys, needs libfido2 + pcscd) and
+# OpenPGP/PIV smartcard (GPG signing/auth, needs pcscd + opensc + ykman for
+# management). gnupg2's bundled scdaemon talks to the card via pcscd.
+yubikey_setup_packages:
+  - pcsc-lite
+  - pcsc-lite-ccid
+  - libfido2
+  - yubikey-manager
+  - opensc

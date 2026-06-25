@@ -15,6 +15,14 @@
     disable_gpg_check: true
   when: base_packages_rpmfusion_enable
 
+- name: Full dnf upgrade (update + upgrade all packages)
+  become: true
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+    update_cache: true
+  when: base_packages_full_upgrade
+
 - name: Install base CLI / dev packages
   become: true
   ansible.builtin.dnf:

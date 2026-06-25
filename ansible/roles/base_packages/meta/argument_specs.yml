@@ -17,6 +17,10 @@ argument_specs:
         type: str
         required: true
         description: URL to the rpmfusion-nonfree-release RPM for this Fedora release.
+      base_packages_full_upgrade:
+        type: bool
+        required: true
+        description: Whether to run a full dnf upgrade (update + upgrade all packages).
       base_packages_list:
         type: list
         elements: str

@@ -12,15 +12,32 @@
 # the NVIDIA + ASUS hardware role only engages on the laptop.
 #
 # Role order matters:
-#   base_packages   → enables RPM Fusion (prereq for NVIDIA) + core packages
+#   nextdns_resolver → pins DNS to our NextDNS profile before anything else
+#                      hits the network, so per-network DHCP DNS can't filter
+#                      package/flatpak downloads unexpectedly
+#   base_packages   → enables RPM Fusion (prereq for NVIDIA), full dnf upgrade,
+#                      + core packages
 #   repos_services  → installs docker-ce (prereq for the NVIDIA runtime hook)
 #   nvidia_asus_hw  → driver + container toolkit + ASUS tooling (laptop only)
+#   op_install      → installs the 1Password CLI (prereq for op_validator/git_identity)
+#   yubikey_setup   → hardware key tooling
+#   op_validator    → fails fast with a clear message if OP_SERVICE_ACCOUNT_TOKEN
+#                      isn't exported, instead of a cryptic error deep in op_read
+#   git_identity    → writes ~/.gitconfig (includeIf routing), .gitconfig-github/
+#                      -gitlab, and allowed_signers from 1Password — requires
+#                      OP_SERVICE_ACCOUNT_TOKEN exported before running this playbook
+#   oh_my_zsh_install → installs oh-my-zsh + Powerlevel10k (framework only)
+#   dotfiles        → symlinks our version-controlled .zshrc/.tmux.conf/etc.
+#                      over the stock files oh_my_zsh_install generated
 
 - name: Provision native Fedora workstation
   hosts: desktops:laptops
   gather_facts: true
   connection: local
   roles:
+    - role: nextdns_resolver
+      tags: [nextdns_resolver, dns]
+
     - role: base_packages
       tags: [base_packages, packages]
 
@@ -39,6 +56,31 @@
       vars:
         op_install_artifacts_path: "{{ artifacts_path }}/op_install"
 
+    - role: yubikey_setup
+      tags: [yubikey_setup, yubikey]
+
+    - role: op_validator
+      tags: [op_validator, git_identity, git]
+      when: lookup('env', 'OP_SERVICE_ACCOUNT_TOKEN') | length > 0
+      vars:
+        op_validator_artifacts_path: "{{ artifacts_path }}/op_validator"
+        op_validator_op_account_type: SERVICE_ACCOUNT
+        op_validator_op_service_account_token: "{{ lookup('env', 'OP_SERVICE_ACCOUNT_TOKEN') }}"
+
+    - role: git_identity
+      tags: [git_identity, git]
+      vars:
+        git_identity_artifacts_path: "{{ artifacts_path }}/git_identity"
+        git_identity_op_service_account_token: "{{ lookup('env', 'OP_SERVICE_ACCOUNT_TOKEN') }}"
+        git_identity_user_name: SRF-Audio
+        git_identity_user_name_gitlab: sfroeber
+        git_identity_user_email_github: stephen.froeber@gmail.com
+        git_identity_user_email_gitlab: sfroeber@altitude.cloud
+        git_identity_github_signing_pubkey_item: HomeLab/github-ssh
+        git_identity_enable_gitlab_signing: true
+        git_identity_gitlab_signing_pubkey_item: "Work/GitLab CACI SSH Key"
+        git_identity_run_validation_tests: false
+
     - role: tailscale_install
       tags: [tailscale]
 
@@ -47,6 +89,9 @@
 
     - role: oh_my_zsh_install
       tags: [oh_my_zsh, shell]
+
+    - role: dotfiles
+      tags: [dotfiles]
 
     - role: flatpak_apps
       tags: [flatpak_apps, flatpak]

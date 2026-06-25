@@ -124,10 +124,6 @@ setup_symlinks() {
   _symlink "$repo/dotfiles/tmux/theme-home.conf"     "$HOME/.tmux/theme-home.conf"
   _symlink "$repo/dotfiles/tmux/theme-work.conf"     "$HOME/.tmux/theme-work.conf"
 
-  # Git identities
-  _symlink "$repo/dotfiles/git/gitconfig-github"      "$HOME/.gitconfig-github"
-  _symlink "$repo/dotfiles/git/gitconfig-gitlab"      "$HOME/.gitconfig-gitlab"
-
   # SSH
   _symlink "$repo/dotfiles/ssh/config"               "$HOME/.ssh/config"
   _symlink "$repo/dotfiles/ssh/config.d/10-defaults.conf" "$HOME/.ssh/config.d/10-defaults.conf"

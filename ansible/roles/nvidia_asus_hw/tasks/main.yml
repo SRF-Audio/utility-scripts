@@ -20,16 +20,16 @@
 - name: Configure power-profiles-daemon backend
   when: nvidia_asus_hw_power_backend == "power-profiles-daemon"
   block:
-    - name: Install power-profiles-daemon
-      become: true
-      ansible.builtin.dnf:
-        name: power-profiles-daemon
-        state: present
     - name: Remove tuned-ppd (conflicts with PPD)
       become: true
       ansible.builtin.dnf:
         name: tuned-ppd
         state: absent
+    - name: Install power-profiles-daemon
+      become: true
+      ansible.builtin.dnf:
+        name: power-profiles-daemon
+        state: present
     - name: Enable power-profiles-daemon
       become: true
       ansible.builtin.systemd_service:

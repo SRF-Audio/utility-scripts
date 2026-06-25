@@ -109,3 +109,15 @@
     regexp: '^\[\[ ! -f ~/.p10k.zsh \]\] \|\| source ~/.p10k.zsh'
     line: "[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh"
     insertafter: "^ZSH_THEME="  # or wherever you like
+
+- name: Determine zsh binary path
+  ansible.builtin.command:
+    cmd: which zsh
+  register: oh_my_zsh_zsh_binary_check
+  changed_when: false
+
+- name: Set zsh as the default login shell
+  become: true
+  ansible.builtin.user:
+    name: "{{ ansible_user_id }}"
+    shell: "{{ oh_my_zsh_zsh_binary_check.stdout }}"

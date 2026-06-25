@@ -1,0 +1,5 @@
+[Resolve]
+{% for server in nextdns_resolver_servers %}
+DNS={{ server }}
+{% endfor %}
+DNSOverTLS={{ nextdns_resolver_dns_over_tls | ternary('yes', 'no') }}

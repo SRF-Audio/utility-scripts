@@ -1,10 +1,53 @@
 ---
 argument_specs:
   main:
-    short_description: Configure KDE Plasma (Activities) for the workstation.
+    short_description: >-
+      Configure KDE Plasma (Activities, hot corners, touchpad, Global Theme)
+      for the workstation.
     options:
       kde_activities:
         type: list
         elements: str
         required: true
         description: KDE Activity names to ensure exist (created if missing).
+      kde_kwin_effect_overview_border_activate:
+        type: str
+        required: true
+        description: Raw kwinrc [Effect-overview] BorderActivate value.
+      kde_electric_borders:
+        type: dict
+        required: true
+        description: >-
+          Map of screen corner (TopLeft/TopRight/BottomLeft/BottomRight) to
+          the KWin action triggered there.
+      kde_touchpad_settings:
+        type: dict
+        required: false
+        description: >-
+          Optional per-host libinput touchpad config: {section: <kcminputrc
+          section name>, values: {key: value}}. Leave as {} on hosts with no
+          touchpad.
+      kde_theme_enable:
+        type: bool
+        required: true
+        description: Whether to install/apply the vendored Global Theme.
+      kde_theme_lookandfeel:
+        type: str
+        required: true
+        description: Plasma/LookAndFeel package ID (vendored under files/look-and-feel/).
+      kde_theme_colorscheme:
+        type: str
+        required: true
+        description: Color scheme name (vendored under files/color-schemes/).
+      kde_theme_plasma_theme:
+        type: str
+        required: true
+        description: Plasma desktop theme name (vendored under files/desktoptheme/).
+      kde_theme_icon_theme:
+        type: str
+        required: true
+        description: Icon theme name to set as active (fetched from the KDE Store, not vendored).
+      kde_theme_icon_store_id:
+        type: int
+        required: true
+        description: kde-look.org/store.kde.org OCS content ID for the icon theme resource.

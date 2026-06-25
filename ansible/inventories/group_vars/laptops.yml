@@ -29,3 +29,13 @@ nvidia_asus_hw_power_backend: power-profiles-daemon
 # ── Container engine (repos_services role) ──────────────────────────────────
 # docker-ce chosen over podman to reduce rootless/userns/SELinux friction.
 repos_services_container_engine: docker
+
+# ── Touchpad (kde role) ──────────────────────────────────────────────────────
+# Built-in touchpad: "ASUF1209:00 2808:0219 Touchpad" (vendor:product 2808:0219
+# hex = 10248:537 decimal, which is how kcminputrc encodes the section name).
+# The desktop has no touchpad, so this stays empty there (role default).
+kde_touchpad_settings:
+  section: "Libinput][10248][537][ASUF1209:00 2808:0219 Touchpad"
+  values:
+    NaturalScroll: "true"
+    ScrollFactor: "3"

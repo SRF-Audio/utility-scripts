@@ -8,7 +8,11 @@ argument_specs:
       git_identity_user_name:
         type: str
         required: true
-        description: Git user name for commits.
+        description: Git user name for commits. Used for GitHub, and as the GitLab default when git_identity_user_name_gitlab is unset.
+      git_identity_user_name_gitlab:
+        type: str
+        required: false
+        description: Git user name for GitLab commits, when it differs from git_identity_user_name (e.g. a separate work identity).
       git_identity_user_email_github:
         type: str
         required: true
@@ -23,8 +27,10 @@ argument_specs:
         description: 1Password item reference for GitHub SSH signing public key.
       git_identity_op_service_account_token:
         type: str
-        required: true
-        description: 1Password service account token for op CLI authentication.
+        required: false
+        description: >-
+          1Password service account token for op CLI authentication. If empty or
+          unset, the existing interactive op session is used instead.
       git_identity_github_root:
         type: str
         required: false

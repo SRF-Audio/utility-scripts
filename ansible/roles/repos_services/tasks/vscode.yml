@@ -14,7 +14,6 @@
     description: Visual Studio Code
     baseurl: https://packages.microsoft.com/yumrepos/vscode
     enabled: true
-    autorefresh: true
     gpgcheck: true
     gpgkey: https://packages.microsoft.com/keys/microsoft.asc
     state: present

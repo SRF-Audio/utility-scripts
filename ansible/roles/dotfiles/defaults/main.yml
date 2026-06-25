@@ -38,8 +38,6 @@ dotfiles_ssh_config_d_symlinks:
     dest: .ssh/config.d/10-defaults.conf
   - src: dotfiles/ssh/config.d/20-personal.conf
     dest: .ssh/config.d/20-personal.conf
-  - src: dotfiles/ssh/config.d/50-work.conf
-    dest: .ssh/config.d/50-work.conf
 
 # Claude Code config symlinks.
 dotfiles_claude_symlinks:

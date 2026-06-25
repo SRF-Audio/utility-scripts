@@ -8,6 +8,7 @@
     force: true
 
 - name: Run Tailscale install script
+  become: true
   ansible.builtin.command:
     cmd: /tmp/tailscale-install.sh
   register: tailscale_install_result

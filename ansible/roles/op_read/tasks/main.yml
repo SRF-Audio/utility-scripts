@@ -63,8 +63,12 @@
             if item.out_file_ssh_format | default(false) else '')
           ]
       }}
-  environment:
-    OP_SERVICE_ACCOUNT_TOKEN: "{{ op_read_op_service_account_token }}"
+  environment: >-
+    {{
+      ({'OP_SERVICE_ACCOUNT_TOKEN': op_read_op_service_account_token}
+       if (op_read_op_service_account_token | default('') | length > 0)
+       else {})
+    }}
   register: op_read_command_results
   loop: "{{ op_read_items }}"
   loop_control:

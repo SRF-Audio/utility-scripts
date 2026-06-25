@@ -3,3 +3,29 @@
 kde_activities:
   - Work
   - Homelab
+
+# Screen Edges / hot corners (kwinrc). Mirrors the current desktop config
+# verbatim so a fresh install reproduces it.
+kde_kwin_effect_overview_border_activate: "1"
+kde_electric_borders:
+  TopLeft: KRunner
+  BottomRight: ShowDesktop
+
+# Per-host libinput touchpad settings (kcminputrc). The ini section name is
+# hardware-specific (encodes the touchpad's vendor:product ID), so it's empty
+# here and supplied per-host in inventories/group_vars/ (only laptops have a
+# touchpad).
+kde_touchpad_settings: {}
+
+# Global Theme: "Ars Dark Global 6" by l4k1 (kde-look.org). The Global Theme
+# package, color scheme, and Plasma (desktop) theme are tiny and vendored
+# under files/ (no KDE Store dependency at provision time). The icon theme is
+# ~150MB so it's fetched on demand from the KDE Store OCS API instead of
+# committed to the repo (gated by `creates`, so this only happens once).
+kde_theme_enable: true
+kde_theme_lookandfeel: Ars-Dark-Global-6
+kde_theme_colorscheme: ArsDarkColor
+kde_theme_plasma_theme: Ars-Dark-Plasma
+kde_theme_icon_theme: Ars-Dark-Icons
+# kde-look.org content ID for the "Ars Dark Icons" resource.
+kde_theme_icon_store_id: 2192428

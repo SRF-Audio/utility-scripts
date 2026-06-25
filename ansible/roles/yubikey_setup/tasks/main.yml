@@ -1,0 +1,14 @@
+---
+# roles/yubikey_setup/tasks/main.yml
+- name: Install YubiKey support packages
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ yubikey_setup_packages }}"
+    state: present
+
+- name: Enable and start pcscd (smartcard daemon)
+  become: true
+  ansible.builtin.systemd_service:
+    name: pcscd
+    enabled: true
+    state: started

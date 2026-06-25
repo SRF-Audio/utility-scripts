@@ -38,6 +38,7 @@ flatpak_apps_list:
   # flatpak management
   - com.github.tchx84.Flatseal
   - io.github.flattool.Warehouse
+  - io.github.kolunmi.Bazaar
   # utilities
   - io.missioncenter.MissionCenter
   - me.iepure.devtoolbox

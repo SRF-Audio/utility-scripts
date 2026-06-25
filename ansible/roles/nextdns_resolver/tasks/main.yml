@@ -1,0 +1,36 @@
+---
+# roles/nextdns_resolver/tasks/main.yml
+#
+# Pins this machine to its own NextDNS profile via DNS-over-TLS, instead of
+# whatever NextDNS profile (or plain DNS) the local network's DHCP hands out.
+# Two parts are both required:
+#   1. A systemd-resolved global drop-in with our profile's DoT servers.
+#   2. Telling NetworkManager to ignore DHCP-provided DNS servers — otherwise
+#      per-link DHCP DNS wins over the global resolved.conf servers for the
+#      default-route interface, and this drop-in is silently never used.
+
+- name: Ensure systemd-resolved drop-in directory exists
+  become: true
+  ansible.builtin.file:
+    path: /etc/systemd/resolved.conf.d
+    state: directory
+    mode: "0755"
+
+- name: Configure NextDNS DNS-over-TLS resolver
+  become: true
+  ansible.builtin.template:
+    src: nextdns.conf.j2
+    dest: "{{ nextdns_resolver_dropin_path }}"
+    mode: "0644"
+  notify: restart systemd-resolved
+
+- name: Stop NetworkManager from overriding global DNS with DHCP-provided servers
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/NetworkManager/conf.d/no-auto-dns.conf
+    mode: "0644"
+    content: |
+      [connection]
+      ipv4.ignore-auto-dns=true
+      ipv6.ignore-auto-dns=true
+  notify: restart NetworkManager

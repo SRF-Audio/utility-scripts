@@ -25,19 +25,28 @@ replaces the previous Aurora-DX + Distrobox setup; everything is codified in
    ```bash
    sudo hostnamectl set-hostname sfroeber-amd-fedora-laptop   # or -desktop
    ```
-2. **Bootstrap** — installs git/ansible, symlinks dotfiles, then runs the
+2. **Export a 1Password service account token** before bootstrapping —
+   `workstations.yml` provisions git identity/signing (`git_identity` role)
+   from 1Password partway through its own run, which needs a service account
+   token, not an interactive session:
+   ```bash
+   export OP_SERVICE_ACCOUNT_TOKEN=<token>
+   ```
+3. **Bootstrap** — installs git/ansible, symlinks dotfiles, then runs the
    workstation + Claude Code playbooks:
    ```bash
    git clone https://github.com/SRF-Audio/utility-scripts.git ~/GitHub/utility-scripts
    ~/GitHub/utility-scripts/bootstrap.sh
    ```
    Runs in order: `dotfiles.yml` → `workstations.yml --limit "$(hostname)"` →
-   `claude-code-setup.yml`.
-3. **Sign into 1Password** when prompted (desktop app → enable CLI integration,
-   or `op signin`). Required for `claude-code-setup.yml` and all secret lookups.
-4. **Reboot** — `akmod-nvidia` builds on first boot (laptop only); reboot before
+   `claude-code-setup.yml`. `op_validator` fails fast early in `workstations.yml`
+   if the token above isn't set.
+4. **Sign into 1Password** when prompted (desktop app → enable CLI integration,
+   or `op signin`). Required for `claude-code-setup.yml`, which expects an
+   interactive `op account get` session rather than the service account token.
+5. **Reboot** — `akmod-nvidia` builds on first boot (laptop only); reboot before
    relying on the dGPU / `supergfxctl`.
-5. **Connect to clusters** (optional) — see *Cluster Connector* below.
+6. **Connect to clusters** (optional) — see *Cluster Connector* below.
 
 ### What `workstations.yml` installs
 
@@ -46,6 +55,9 @@ replaces the previous Aurora-DX + Distrobox setup; everything is codified in
 | `base_packages` | RPM Fusion + CLI/dev tools + native desktop apps (Steam, OBS, Blender, …) |
 | `repos_services` | 1Password desktop, VS Code, Docker CE |
 | `nvidia_asus_hw` | NVIDIA driver + container toolkit + asusctl/supergfxctl (**laptop only**) |
+| `op_install` | 1Password CLI (`op`) |
+| `yubikey_setup` | YubiKey tooling |
+| `git_identity` | `~/.gitconfig` includeIf routing + `~/.gitconfig-github`/`-gitlab` + `allowed_signers` from 1Password (requires `OP_SERVICE_ACCOUNT_TOKEN`) |
 | `flatpak_apps` | Flathub apps (browsers, chat, games, utilities) |
 | `audio` | Native PipeWire/JACK stack + DAW flatpaks |
 | `kde` | KDE Work/Homelab Activities |

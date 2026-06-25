@@ -10,8 +10,6 @@
       - git_identity_user_email_gitlab | length > 0
       - git_identity_github_signing_pubkey_item is defined
       - git_identity_github_signing_pubkey_item | length > 0
-      - git_identity_op_service_account_token is defined
-      - git_identity_op_service_account_token | length > 0
     fail_msg: Required git_identity variables must be defined and non-empty.
 
 - name: Parse 1Password item reference for GitHub SSH signing key
@@ -32,7 +30,7 @@
 
 - name: Set GitHub SSH signing public key from 1Password
   ansible.builtin.set_fact:
-    git_identity_github_signing_pubkey: "{{ op_read_artifacts.items[0].value }}"
+    git_identity_github_signing_pubkey: "{{ op_read_artifacts['items'][0].value }}"
 
 - name: Assert GitHub SSH signing key is present
   ansible.builtin.assert:
@@ -69,7 +67,7 @@
 
     - name: Set GitLab SSH signing public key from 1Password
       ansible.builtin.set_fact:
-        git_identity_gitlab_signing_pubkey: "{{ op_read_artifacts.items[0].value }}"
+        git_identity_gitlab_signing_pubkey: "{{ op_read_artifacts['items'][0].value }}"
 
     - name: Assert GitLab SSH signing key is present
       ansible.builtin.assert:
@@ -135,7 +133,7 @@
     mode: "0644"
     content: |
       [user]
-          name = {{ git_identity_user_name }}
+          name = {{ git_identity_user_name_gitlab }}
           email = {{ git_identity_user_email_gitlab }}
       {% if git_identity_enable_gitlab_signing %}
           signingkey = {{ git_identity_gitlab_signing_pubkey }}
@@ -176,7 +174,7 @@
 
 - name: Verify includeIf blocks in global config
   ansible.builtin.command:
-    cmd: git config --global --get-regexp '^includeIf\.'
+    cmd: git config --global --get-regexp '^includeif\.'
   register: git_identity_includeif_check
   changed_when: false
   failed_when: false
@@ -184,7 +182,7 @@
 - name: Assert includeIf blocks are present
   ansible.builtin.assert:
     that:
-      - "'includeIf' in git_identity_includeif_check.stdout"
+      - "'includeif' in git_identity_includeif_check.stdout"
       - "'GitHub' in git_identity_includeif_check.stdout"
       - "'GitLab' in git_identity_includeif_check.stdout"
     fail_msg: includeIf blocks for GitHub and GitLab must be present in .gitconfig
@@ -275,7 +273,10 @@
           - git_identity_test_commit.rc == 0
           - git_identity_test_signature.rc == 0
           - "'signature' in git_identity_test_signature.stdout.lower() or 'signature' in git_identity_test_signature.stderr.lower()"
-        fail_msg: SSH commit signing test failed. Check that the public key is correctly configured.
+        fail_msg: >-
+          SSH commit signing test failed. Commit exit code: {{ git_identity_test_commit.rc }}.
+          stderr: {{ git_identity_test_commit.stderr | default('(none)') }}
+          Ensure the 1Password SSH agent is running and the key is loaded.
 
 - name: Set git_identity artifacts
   ansible.builtin.set_fact:

@@ -1,0 +1,12 @@
+---
+argument_specs:
+  main:
+    short_description: >-
+      Install YubiKey Bio support (FIDO2 SSH/login + OpenPGP/PIV smartcard)
+      and enable the pcscd smartcard daemon.
+    options:
+      yubikey_setup_packages:
+        type: list
+        elements: str
+        required: true
+        description: Packages providing FIDO2/PIV/smartcard support for the YubiKey.

@@ -11,3 +11,6 @@
 # SSH reads entries in order; first match wins per directive.
 
 Include ~/.ssh/config.d/*.conf
+
+Host *
+	IdentityAgent ~/.1password/agent.sock

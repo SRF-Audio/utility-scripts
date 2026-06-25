@@ -36,13 +36,23 @@
   when: nvidia_asus_hw_restore_asusd_config
   notify: restart asusd
 
+- name: Refresh service facts (Terra packages may lag behind a new Fedora release)
+  ansible.builtin.service_facts:
+
 - name: Enable asusd
   become: true
   ansible.builtin.systemd_service:
     name: asusd
     enabled: true
     state: started
-  when: nvidia_asus_hw_enable_asusctl
+  when: nvidia_asus_hw_enable_asusctl and 'asusd.service' in ansible_facts.services
+
+- name: Warn if asusd unit is missing
+  ansible.builtin.debug:
+    msg: >-
+      asusd.service not found — asusctl didn't install a unit (Terra repo build
+      may not exist yet for this Fedora release). Skipping enable.
+  when: nvidia_asus_hw_enable_asusctl and 'asusd.service' not in ansible_facts.services
 
 - name: Enable supergfxd
   become: true
@@ -50,4 +60,12 @@
     name: supergfxd
     enabled: true
     state: started
-  when: nvidia_asus_hw_enable_supergfxctl
+  when: nvidia_asus_hw_enable_supergfxctl and 'supergfxd.service' in ansible_facts.services
+
+- name: Warn if supergfxd unit is missing
+  ansible.builtin.debug:
+    msg: >-
+      supergfxd.service not found — supergfxctl didn't install (Terra repo
+      build may not exist yet for this Fedora release). Skipping enable; rerun
+      the playbook later once Terra publishes an fc{{ ansible_facts['distribution_major_version'] }} build.
+  when: nvidia_asus_hw_enable_supergfxctl and 'supergfxd.service' not in ansible_facts.services

@@ -31,3 +31,131 @@
       loop: "{{ kde_activities }}"
       when: item not in (kde_existing_activities.stdout_lines | default([]))
       changed_when: true
+
+- name: Configure KWin Overview effect border activation
+  community.general.ini_file:
+    path: "{{ ansible_env.HOME }}/.config/kwinrc"
+    section: Effect-overview
+    option: BorderActivate
+    value: "{{ kde_kwin_effect_overview_border_activate }}"
+    no_extra_spaces: true
+    mode: "0644"
+  register: kde_kwinrc_overview_changed
+
+- name: Configure KWin electric border (hot corner) actions
+  community.general.ini_file:
+    path: "{{ ansible_env.HOME }}/.config/kwinrc"
+    section: ElectricBorders
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    no_extra_spaces: true
+    mode: "0644"
+  loop: "{{ kde_electric_borders | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  register: kde_kwinrc_electric_changed
+
+- name: Reload KWin config so hot corner changes apply without logout
+  ansible.builtin.command: "{{ kde_qdbus.stdout }} org.kde.KWin /KWin reconfigure"
+  when:
+    - kde_qdbus.rc == 0
+    - (kde_kwinrc_overview_changed is changed) or (kde_kwinrc_electric_changed is changed)
+  changed_when: false
+  failed_when: false
+
+- name: Configure touchpad (libinput) settings
+  community.general.ini_file:
+    path: "{{ ansible_env.HOME }}/.config/kcminputrc"
+    section: "{{ kde_touchpad_settings.section }}"
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    no_extra_spaces: true
+    mode: "0600"
+  loop: "{{ (kde_touchpad_settings['values'] | default({})) | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  when: (kde_touchpad_settings | default({})) | length > 0
+
+- name: Configure Global Theme (Ars Dark)
+  when: kde_theme_enable
+  block:
+    # ansible.builtin.copy's recursive directory mode is impractically slow on
+    # trees with many small files (this package has 177); cp -a is instant and
+    # the `creates` guard keeps it idempotent (one-time vendoring, not synced
+    # back if the local copy is later hand-edited).
+    - name: Ensure Global Theme package directory exists
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/.local/share/plasma/look-and-feel/{{ kde_theme_lookandfeel }}"
+        state: directory
+        mode: "0755"
+
+    - name: Install vendored Global Theme package
+      ansible.builtin.command:
+        cmd: >-
+          cp -a {{ role_path }}/files/look-and-feel/{{ kde_theme_lookandfeel }}/.
+          {{ ansible_env.HOME }}/.local/share/plasma/look-and-feel/{{ kde_theme_lookandfeel }}/
+        creates: "{{ ansible_env.HOME }}/.local/share/plasma/look-and-feel/{{ kde_theme_lookandfeel }}/metadata.json"
+
+    - name: Ensure Plasma desktop theme directory exists
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/.local/share/plasma/desktoptheme/{{ kde_theme_plasma_theme }}"
+        state: directory
+        mode: "0755"
+
+    - name: Install vendored Plasma desktop theme
+      ansible.builtin.command:
+        cmd: >-
+          cp -a {{ role_path }}/files/desktoptheme/{{ kde_theme_plasma_theme }}/.
+          {{ ansible_env.HOME }}/.local/share/plasma/desktoptheme/{{ kde_theme_plasma_theme }}/
+        creates: "{{ ansible_env.HOME }}/.local/share/plasma/desktoptheme/{{ kde_theme_plasma_theme }}/metadata.json"
+
+    - name: Install vendored color scheme
+      ansible.builtin.copy:
+        src: "color-schemes/{{ kde_theme_colorscheme }}.colors"
+        dest: "{{ ansible_env.HOME }}/.local/share/color-schemes/{{ kde_theme_colorscheme }}.colors"
+        mode: "0600"
+
+    - name: Check if the icon theme is already installed
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.local/share/icons/{{ kde_theme_icon_theme }}"
+      register: kde_icon_theme_stat
+
+    - name: Fetch and install the icon theme from the KDE Store
+      when: not kde_icon_theme_stat.stat.exists
+      block:
+        - name: Look up icon theme download link (KDE Store OCS API)
+          ansible.builtin.uri:
+            url: "https://api.kde-look.org/ocs/v1/content/data/{{ kde_theme_icon_store_id }}?format=json"
+            return_content: true
+          register: kde_icon_theme_store_data
+
+        - name: Download icon theme archive
+          ansible.builtin.get_url:
+            url: "{{ kde_icon_theme_store_data.json.data[0].downloadlink1 }}"
+            dest: "/tmp/{{ kde_icon_theme_store_data.json.data[0].downloadname1 }}"
+            mode: "0644"
+          register: kde_icon_theme_download
+
+        - name: Extract icon theme into ~/.local/share/icons
+          ansible.builtin.unarchive:
+            src: "{{ kde_icon_theme_download.dest }}"
+            dest: "{{ ansible_env.HOME }}/.local/share/icons/"
+            remote_src: true
+
+        - name: Remove downloaded icon theme archive
+          ansible.builtin.file:
+            path: "{{ kde_icon_theme_download.dest }}"
+            state: absent
+
+    - name: Check currently active Global Theme
+      ansible.builtin.command: kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage
+      register: kde_current_lookandfeel
+      changed_when: false
+      failed_when: false
+
+    - name: Apply Global Theme (color scheme, icons, Plasma theme, etc.)
+      ansible.builtin.command: "plasma-apply-lookandfeel -a {{ kde_theme_lookandfeel }}"
+      when:
+        - kde_qdbus.rc == 0
+        - kde_current_lookandfeel.stdout | default('') != kde_theme_lookandfeel
+      changed_when: true

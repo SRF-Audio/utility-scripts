@@ -1,4 +1,6 @@
 git_identity_artifacts_path: "{{ artifacts_base_path | default('/tmp/artifacts') }}/git_identity"
+git_identity_op_service_account_token: ""
+git_identity_user_name_gitlab: "{{ git_identity_user_name }}"
 git_identity_github_root: "{{ ansible_env.HOME }}/GitHub"
 git_identity_gitlab_root: "{{ ansible_env.HOME }}/GitLab"
 git_identity_allowed_signers_path: "{{ ansible_env.HOME }}/.config/git/allowed_signers"

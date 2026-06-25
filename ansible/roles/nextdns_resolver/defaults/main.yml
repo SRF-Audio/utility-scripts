@@ -1,0 +1,13 @@
+---
+# roles/nextdns_resolver/defaults/main.yml
+#
+# NextDNS profile e112b1, DNS-over-TLS endpoints per
+# https://my.nextdns.io setup instructions (Linux / systemd-resolved).
+nextdns_resolver_profile_id: e112b1
+nextdns_resolver_servers:
+  - "45.90.28.0#{{ nextdns_resolver_profile_id }}.dns.nextdns.io"
+  - "2a07:a8c0::#{{ nextdns_resolver_profile_id }}.dns.nextdns.io"
+  - "45.90.30.0#{{ nextdns_resolver_profile_id }}.dns.nextdns.io"
+  - "2a07:a8c1::#{{ nextdns_resolver_profile_id }}.dns.nextdns.io"
+nextdns_resolver_dns_over_tls: true
+nextdns_resolver_dropin_path: /etc/systemd/resolved.conf.d/nextdns.conf
