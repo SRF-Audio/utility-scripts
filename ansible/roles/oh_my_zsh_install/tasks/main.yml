@@ -36,11 +36,19 @@
     - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf
   register: meslo_fonts
 
+- name: Check if fontconfig is installed
+  ansible.builtin.command:
+    cmd: which fc-cache
+  register: oh_my_zsh_fc_cache_check
+  changed_when: false
+  failed_when: false
+
 - name: Install fontconfig package
   ansible.builtin.package:
     name: fontconfig
     state: present
   become: true
+  when: oh_my_zsh_fc_cache_check.rc != 0
 
 - name: Refresh font cache
   ansible.builtin.command:
@@ -64,6 +72,15 @@
   ansible.builtin.file:
     path: "{{ konsole_profile_path }}"
     state: touch
+    mode: "0600"
+
+- name: Set Konsole profile name
+  community.general.ini_file:
+    path: "{{ konsole_profile_path }}"
+    section: "General"
+    option: "Name"
+    value: "{{ konsole_profile_name }}"
+    no_extra_spaces: true
     mode: "0600"
 
 - name: Set Konsole profile font to MesloLGS NF
@@ -97,11 +114,18 @@
     regexp: "^ZSH_THEME="
     line: 'ZSH_THEME="powerlevel10k/powerlevel10k"'
 
-- name: Install Powerlevel10k config
+- name: Stat ~/.p10k.zsh before copying
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.p10k.zsh"
+    follow: false
+  register: oh_my_zsh_p10k_stat
+
+- name: Install Powerlevel10k config (skip if already a symlink managed by dotfiles)
   ansible.builtin.copy:
     src: p10k.zsh
     dest: "{{ ansible_env.HOME }}/.p10k.zsh"
     mode: "0644"
+  when: not (oh_my_zsh_p10k_stat.stat.exists and oh_my_zsh_p10k_stat.stat.islnk)
 
 - name: Ensure Powerlevel10k config is sourced from .zshrc
   ansible.builtin.lineinfile:
@@ -116,8 +140,23 @@
   register: oh_my_zsh_zsh_binary_check
   changed_when: false
 
+- name: Get current login shell
+  ansible.builtin.command:
+    cmd: getent passwd {{ ansible_user_id }}
+  register: oh_my_zsh_passwd_entry
+  changed_when: false
+
 - name: Set zsh as the default login shell
-  become: true
-  ansible.builtin.user:
-    name: "{{ ansible_user_id }}"
-    shell: "{{ oh_my_zsh_zsh_binary_check.stdout }}"
+  ansible.builtin.command:
+    cmd: chsh -s {{ oh_my_zsh_zsh_binary_check.stdout }}
+  when: oh_my_zsh_passwd_entry.stdout.split(':')[-1] != oh_my_zsh_zsh_binary_check.stdout
+  changed_when: true
+
+- name: Set Konsole profile shell to zsh
+  community.general.ini_file:
+    path: "{{ konsole_profile_path }}"
+    section: "General"
+    option: "Command"
+    value: "{{ oh_my_zsh_zsh_binary_check.stdout }}"
+    no_extra_spaces: true
+    mode: "0600"

@@ -76,6 +76,30 @@
           - git_identity_gitlab_signing_pubkey | length > 0
         fail_msg: GitLab SSH signing public key must be retrieved from 1Password.
 
+- name: Ensure 1Password SSH agent config directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.config/1Password/ssh"
+    state: directory
+    mode: "0700"
+
+- name: Configure 1Password SSH agent to load signing keys from non-default vaults
+  ansible.builtin.copy:
+    dest: "{{ ansible_env.HOME }}/.config/1Password/ssh/agent.toml"
+    mode: "0600"
+    content: |
+      # Managed by git_identity Ansible role.
+      # Keys in Personal/Private vaults load automatically; all others need entries here.
+
+      [[ssh-keys]]
+      vault = "{{ git_identity_op_vault_name }}"
+      item = "{{ git_identity_op_item_name }}"
+      {% if git_identity_enable_gitlab_signing %}
+
+      [[ssh-keys]]
+      vault = "{{ git_identity_gitlab_op_vault_name }}"
+      item = "{{ git_identity_gitlab_op_item_name }}"
+      {% endif %}
+
 - name: Create GitHub root directory
   ansible.builtin.file:
     path: "{{ git_identity_github_root }}"
@@ -123,6 +147,7 @@
       [gpg]
           format = ssh
       [gpg "ssh"]
+          program = {{ git_identity_gpg_ssh_program }}
           allowedSignersFile = {{ git_identity_allowed_signers_path }}
       [commit]
           gpgsign = {{ 'true' if git_identity_enable_github_signing else 'false' }}
@@ -140,6 +165,7 @@
       [gpg]
           format = ssh
       [gpg "ssh"]
+          program = {{ git_identity_gpg_ssh_program }}
           allowedSignersFile = {{ git_identity_allowed_signers_path }}
       {% endif %}
       [commit]

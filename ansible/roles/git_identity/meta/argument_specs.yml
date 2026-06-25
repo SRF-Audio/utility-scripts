@@ -55,6 +55,12 @@ argument_specs:
         type: str
         required: false
         description: 1Password item reference for GitLab SSH signing public key.
+      git_identity_gpg_ssh_program:
+        type: str
+        required: false
+        description: >-
+          Path to the SSH signing helper binary passed to gpg.ssh.program.
+          Defaults to /opt/1Password/op-ssh-sign (standard path on Linux).
       git_identity_run_validation_tests:
         type: bool
         required: false
