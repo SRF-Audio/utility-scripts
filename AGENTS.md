@@ -383,6 +383,7 @@ Each persistence layer has a purpose. Use the right one:
 | `synology-backup/` | Restic backup config + Ansible for Synology | `restic`, `ansible-playbook` |
 | `.github/workflows/` | CI pipelines | `act` (local testing), `gh run` |
 | `helm/` | Custom Helm charts | `helm lint`, `helm template` |
+| `movement-snacks/` | KDE Plasma systemd user service — hourly movement reminders with Strava integration via `claude -p`. Install/uninstall via `setup.sh`/`uninstall.sh`. Notifications use `kdialog --warningyesnocancel` (not dbus-send — KDE doesn't surface action buttons on passivepopups). State at `~/.local/share/movement-snacks/state.json`. | `systemctl --user`, `journalctl --user -u movement-snacks.service` |
 | `docs/` | Documentation, ADRs, spikes | Read-only reference |
 
 ### Local Dev (k3d on Aurora-DX)

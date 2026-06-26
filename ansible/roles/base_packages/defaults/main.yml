@@ -13,8 +13,7 @@ base_packages_rpmfusion_nonfree_url: >-
 # after RPM Fusion is enabled so packages from it are included too.
 base_packages_full_upgrade: true
 
-# Intent-filtered set distilled from the Aurora distrobox's user-installed dnf
-# packages (base-image deps excluded). Tools owned by dedicated roles are NOT
+# Core packages for native Fedora Workstation. Tools owned by dedicated roles are NOT
 # listed here: k9s (k9s_install), op CLI (op_install), VS Code + docker
 # (repos_services), the PipeWire stack (audio), NVIDIA (nvidia_asus_hw).
 base_packages_list:

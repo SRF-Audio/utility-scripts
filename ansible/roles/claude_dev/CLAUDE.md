@@ -15,14 +15,14 @@ This folder is an Ansible project that provisions a portable Claude Code develop
 - Full sudo, full systemd, Docker available
 
 **Laptop** (selected with `-e machine_role=laptop`)
-- OS: Aurora-DX (Fedora KDE Atomic)
-- Provisioning target is a **persistent named Distrobox** container (`fedora-dev`) — a full mutable Fedora userspace
-- sudo available inside Distrobox, but no systemd; Docker runs on host, not inside the container
-- Run playbook from inside the Distrobox: `distrobox enter fedora-dev && ansible-playbook playbook.yml --ask-become-pass -e machine_role=laptop`
+- OS: Fedora Workstation (native, mutable — same stack as desktop)
+- ASUS ROG Zephyrus G16, Ryzen AI 9 HX 370, NVIDIA RTX 4070 Laptop dGPU
+- Full sudo, full systemd, Docker available
+- Run playbook locally: `ansible-playbook playbook.yml --ask-become-pass -e machine_role=laptop`
 
 ## Architecture Decisions
 
-- **Ansible, not dev containers.** Both machines are Fedora-based. Distrobox on Aurora already provides a mutable Fedora userspace. A dev container would add abstraction without solving a real portability problem.
+- **Ansible, not dev containers.** Both machines are native Fedora Workstation. A dev container would add abstraction without solving a real portability problem.
 - **1Password CLI (`op`) for all secrets.** No plaintext secrets anywhere — not in vars, not in templates, not in env files. Secrets are resolved at runtime. Use the Ansible op lookup function.
 - **MCP servers that need API keys use wrapper scripts.** The playbook generates a per-server bash wrapper in `~/.claude/mcp-wrappers/<name>.sh` that verifies `op` is authenticated, reads each secret via `op read`, exports them as env vars, then `exec`s the actual MCP server process. Claude Code's config points `"command"` at the wrapper, not the raw binary. Secrets never persist on disk outside 1Password.
 - **MCP servers that need browser-based OAuth (Gmail) are installed but not authenticated by the playbook.** The playbook creates credential directories, installs the npm package, and registers the server. The user runs the auth command once per machine after provisioning.
@@ -59,7 +59,7 @@ claude-env/
 ├── group_vars/
 │   ├── all.yml                        # shared: node version, mcp_servers list, paths
 │   ├── desktop.yml                    # desktop overrides (docker enabled, etc.)
-│   └── laptop.yml                     # aurora-dx overrides (no docker, etc.)
+│   └── laptop.yml                     # laptop overrides (NVIDIA/ASUS hardware, etc.)
 ├── roles/
 │   └── claude_dev/
 │       ├── defaults/main.yml          # lowest-priority defaults
@@ -136,4 +136,4 @@ ls -la ~/.claude/mcp-wrappers/      # wrapper scripts exist, mode 0700
 - Run OAuth flows (Gmail auth is interactive, post-provision).
 - Manage dotfiles beyond Claude-specific config.
 - Install Claude Desktop (no official Linux build).
-- Install or configure Docker (assumed pre-existing on desktop, host-side on Aurora).
+- Install or configure Docker (handled by the repos_services role in the main workstations playbook).

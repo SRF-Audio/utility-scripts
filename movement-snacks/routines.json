@@ -1,0 +1,172 @@
+{
+  "routines": [
+    {
+      "id": 1,
+      "name": "Push + Scapular Control",
+      "focus": "Chest, triceps, serratus — kite bar pushing and shoulder blade stability",
+      "exercises": [
+        {
+          "name": "Push-ups (slow eccentric)",
+          "reps_or_duration": "10 reps",
+          "cue": "3 seconds down, pause, press back up",
+          "description": "Start in a high plank with hands shoulder-width apart. Lower yourself over 3 full seconds, keeping elbows at roughly 45 degrees from your torso — not flared wide. Pause briefly at the bottom, then press back up. The slow descent is the point; don't rush it.",
+          "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Push_up.svg/320px-Push_up.svg.png"
+        },
+        {
+          "name": "Scapular Push-ups",
+          "reps_or_duration": "10 reps",
+          "cue": "Arms stay straight — only shoulder blades move",
+          "description": "Hold the top of a push-up position with arms fully locked. Without bending your elbows, let your chest sink slightly between your shoulder blades (retraction), then push the floor away until your upper back rounds slightly (protraction). Your arms do nothing — this is purely a shoulder blade exercise. Feels small; that's correct.",
+          "image_url": null
+        },
+        {
+          "name": "Wrist CARs",
+          "reps_or_duration": "10 reps each side",
+          "cue": "Full slow circle, keep forearm still",
+          "description": "CARs stands for Controlled Articular Rotations. Extend one arm in front of you, forearm parallel to the floor. Make the largest possible circle with your hand by moving only at the wrist joint — clockwise then counterclockwise. Move slowly and deliberately through the full available range. The forearm should stay completely still.",
+          "image_url": null
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Hip Hinge + Glute",
+      "focus": "Posterior chain — kite harness loading, run power, pedaling efficiency",
+      "exercises": [
+        {
+          "name": "Glute Bridges",
+          "reps_or_duration": "15 reps",
+          "cue": "Drive through heels, 2-second hold at top",
+          "description": "Lie on your back with knees bent and feet flat on the floor, hip-width apart. Drive your heels into the floor and lift your hips until your body forms a straight line from knees to shoulders. Squeeze your glutes hard and hold for 2 seconds at the top before lowering. If you feel it mostly in your hamstrings, walk your feet slightly closer to your hips.",
+          "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Glute_Bridge.jpg/320px-Glute_Bridge.jpg"
+        },
+        {
+          "name": "Single-leg RDL (Romanian Deadlift)",
+          "reps_or_duration": "10 reps each side",
+          "cue": "Hinge at hip, back flat, feel hamstring load",
+          "description": "Stand on one leg with a soft bend in the knee. Push your hips back and hinge forward, letting your torso drop and the free leg extend behind you as a counterweight — you're making a straight line from head to heel. Keep your back flat and core braced throughout. Return to standing by driving the hip forward, not by pulling with your back. Go slow; balance is part of the stimulus.",
+          "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Single_leg_deadlift.jpg/320px-Single_leg_deadlift.jpg"
+        },
+        {
+          "name": "Hip 90/90 Transitions",
+          "reps_or_duration": "10 transitions",
+          "cue": "Sit tall, rotate through both hips each rep",
+          "description": "Sit on the floor with both knees bent at 90 degrees, one knee pointing forward and one to the side. Keeping your torso upright, rotate your pelvis to transition your knees to the opposite configuration — the front knee becomes the side knee and vice versa. Don't use your hands to push off the floor. This is hip internal and external rotation under load; it's harder than it looks and directly relevant to board sports.",
+          "image_url": null
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Pull Simulation + Rotator Cuff",
+      "focus": "Grip, forearm, shoulder complex — primary kite fatigue site",
+      "exercises": [
+        {
+          "name": "Band Pull-aparts",
+          "reps_or_duration": "15 reps",
+          "cue": "Squeeze shoulder blades together at end range",
+          "description": "Hold a light resistance band (or substitute: loop a towel through a door handle and grip each end) at shoulder height with straight arms. Pull the band apart horizontally until your arms are fully extended to each side, squeezing your shoulder blades together at the end. Control the return — don't let it snap back. If you don't have a band, perform isometric doorframe rows: stand in a doorway, grip the frame at shoulder height, and pull for 5-second holds.",
+          "image_url": null
+        },
+        {
+          "name": "External Rotation (band or DB)",
+          "reps_or_duration": "10 reps each arm",
+          "cue": "Elbow pinned to side, rotate outward only",
+          "description": "Hold a light dumbbell or band handle with your elbow bent at 90 degrees and tucked against your side. Keeping the elbow pinned, rotate your forearm outward away from your body as far as it will go comfortably, then return slowly. This targets the infraspinatus and teres minor — the two rotator cuff muscles most responsible for shoulder stability under kite load. Use genuinely light weight; this is not a strength exercise, it's joint health work.",
+          "image_url": null
+        },
+        {
+          "name": "Dead Hang",
+          "reps_or_duration": "3 × 15–20 seconds",
+          "cue": "Relax shoulders down, breathe, don't grip white-knuckle",
+          "description": "Hang from a pull-up bar with an overhand grip, arms fully extended. Let your shoulders decompress — don't shrug or engage your lats, just hang passively. Breathe normally. This is spinal decompression, shoulder capsule stretching, and grip endurance combined. If you don't have a bar, substitute towel rows off a door: loop a towel around a door handle, lean back to roughly 45 degrees, and row yourself up for 10 reps.",
+          "image_url": null
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Core Anti-Rotation + Stability",
+      "focus": "Lateral force resistance — kite transfers load through core rotationally",
+      "exercises": [
+        {
+          "name": "Pallof Press",
+          "reps_or_duration": "10 reps each side",
+          "cue": "Press straight out, resist rotation, return slow",
+          "description": "Attach a band to a door handle at chest height. Stand sideways to the door, feet shoulder-width apart, and hold the band at your sternum with both hands. Press your hands straight out in front of you, hold for a second, then return. The band is pulling you toward the door the whole time — your job is to resist that rotation. Keep your hips square and don't twist. Switch sides. This is the single best exercise for the lateral core loading pattern kiting demands.",
+          "image_url": null
+        },
+        {
+          "name": "Bird-Dog",
+          "reps_or_duration": "10 reps each side",
+          "cue": "Extend opposite arm and leg, hold 3 seconds, don't rotate hips",
+          "description": "Start on hands and knees with a neutral spine. Simultaneously extend your right arm forward and left leg back until both are parallel to the floor. Hold for 3 seconds, keeping your hips level — don't let the raised-leg side drop. Return and switch. If your lower back arches or your hips rotate, reduce the range of motion. The goal is spinal stability under asymmetric load, not how high you can get your limbs.",
+          "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Bird_dog_exercise.jpg/320px-Bird_dog_exercise.jpg"
+        },
+        {
+          "name": "Leg Lifts",
+          "reps_or_duration": "15 reps",
+          "cue": "Lower back stays pressed to floor throughout",
+          "description": "Lie on your back with legs straight. Press your lower back firmly into the floor and keep it there — this is the whole point. Lift both legs to 90 degrees, then lower them slowly toward the floor, stopping before your back peels away from the ground. If your back lifts before your heels reach the floor, that's your current range of motion. Work within it and it will improve.",
+          "image_url": null
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Single-Leg + Ankle",
+      "focus": "Run prep and board sport balance — unilateral strength and proprioception",
+      "exercises": [
+        {
+          "name": "Rear-foot Elevated Split Squat (Bulgarian)",
+          "reps_or_duration": "15 reps each leg",
+          "cue": "Front shin stays vertical, drive through front heel",
+          "description": "Stand a stride's length in front of a chair. Place the top of one foot on the chair seat behind you. Lower your back knee toward the floor by bending your front knee — keep your front shin as vertical as possible and your torso upright. Drive back up through your front heel. This is a legitimate strength exercise even with bodyweight; it will feel like it. If your front knee tracks far over your toes, step your front foot forward.",
+          "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Bulgarian_split_squat.jpg/320px-Bulgarian_split_squat.jpg"
+        },
+        {
+          "name": "Single-leg Calf Raises (slow eccentric)",
+          "reps_or_duration": "20 reps each leg",
+          "cue": "3 seconds down, full range — heel below step if possible",
+          "description": "Stand on one foot on the edge of a step or raised surface (a thick book works). Rise onto your toes fully, then lower your heel below the step level over 3 full seconds. The slow eccentric (lowering) phase is what builds Achilles tendon resilience — the primary adaptation goal here for run injury prevention. Use a wall for balance if needed; that's not cheating.",
+          "image_url": null
+        },
+        {
+          "name": "Single-leg Balance",
+          "reps_or_duration": "30 seconds each side",
+          "cue": "Eyes closed once stable — immediately harder",
+          "description": "Stand on one foot. Once you're stable, close your eyes. Your proprioceptive system — the sensors in your ankle and foot that track position — now has to do all the work without visual input. This is directly relevant to board sport performance and run stability. If 30 seconds is easy with eyes closed, add small head movements or stand on a folded towel for a softer surface.",
+          "image_url": null
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Integrated Full-Body Reset",
+      "focus": "Movement quality and tension clearance — combines patterns from all other slots",
+      "exercises": [
+        {
+          "name": "Inchworms",
+          "reps_or_duration": "10 reps",
+          "cue": "Walk hands out to full plank, walk feet back in — stay slow",
+          "description": "Stand with feet hip-width apart. Hinge forward and place your hands on the floor. Walk your hands forward until you're in a full push-up plank position, hold for a breath, then walk your feet toward your hands while keeping legs as straight as possible. That's one rep. This integrates hamstring flexibility, shoulder stability, and core control in a single flowing movement. Don't rush — the slow transition is where the value is.",
+          "image_url": null
+        },
+        {
+          "name": "World's Greatest Stretch",
+          "reps_or_duration": "10 reps each side",
+          "cue": "Lunge, rotate open, reach tall — hit all three planes",
+          "description": "Step into a deep lunge with your right foot forward. Place your right hand inside your right foot on the floor. Rotate your torso open to the right, reaching your right arm toward the ceiling, and look up at your hand. Hold briefly, return your hand to the floor, then straighten your front leg to stretch the hamstring. Return to standing and repeat on the left. This single movement hits hip flexors, thoracic rotation, hamstrings, and ankle mobility — it earns its name.",
+          "image_url": null
+        },
+        {
+          "name": "Push-up to Downward Dog",
+          "reps_or_duration": "10 reps",
+          "cue": "Push up, then pike hips high and press heels down",
+          "description": "Perform a full push-up. At the top, instead of returning to plank, push your hips up and back into a downward-facing dog position — arms straight, hips high, heels pressing toward the floor. Hold for a breath, feeling the calf and hamstring stretch, then return to plank and repeat. This transitions directly between the pushing pattern from Hour 1 and a posterior chain stretch, making it an ideal session-closer for the full day.",
+          "image_url": null
+        }
+      ]
+    }
+  ]
+}

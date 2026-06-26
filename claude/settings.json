@@ -7,6 +7,7 @@
       "Bash(python3 *)"
     ]
   },
+  "model": "sonnet",
   "extraKnownMarketplaces": {
     "addy-agent-skills": {
       "source": {
@@ -15,6 +16,7 @@
       }
     }
   },
+  "tui": "fullscreen",
   "theme": "dark",
   "mcpServers": {
     "fetch": {
@@ -35,6 +37,5 @@
       "command": "/home/sfroeber/.claude/mcp-wrappers/trello.sh",
       "type": "stdio"
     }
-  },
-  "model": "sonnet[1m]"
+  }
 }

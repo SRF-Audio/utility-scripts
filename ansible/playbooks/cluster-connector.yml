@@ -4,7 +4,7 @@
 # Makes any blank control node permanently ready to manage all k3s clusters:
 #   - coachlight-k3s-cluster (homelab, Proxmox VMs on Tailscale)
 #   - hetzner               (single-node Hetzner Cloud, Tailscale)
-#   - k3d-<name>            (local dev via k3d on Aurora-DX; skipped if k3d absent)
+#   - k3d-<name>            (local dev via k3d; skipped if k3d absent)
 #
 # Idempotent: safe to re-run on machines that are already connected.
 #
@@ -22,8 +22,7 @@
 #   Custom cluster:   ansible-playbook ... --tags cluster_connector_k3d_local -e k3d_cluster_name=mycluster
 #   Via site.yml:     ansible-playbook site.yml --tags cluster_connector
 #
-# Note: k3d play must be run from the Aurora-DX host (not Distrobox) — k3d is host-only.
-#       Distrobox uses --network host, so 127.0.0.1 in the kubeconfig reaches the host.
+# Note: k3d must be installed on the local machine; the play is skipped automatically if absent.
 
 # ─── Play 1: SSH key + k9s ───────────────────────────────────────────────────
 - name: Prepare control node — SSH key and k9s
@@ -263,7 +262,7 @@
         k8s_validator_context: hetzner
         k8s_validator_install_packages: false
 
-# ─── Play 4: k3d local dev cluster (Aurora-DX host) ─────────────────────────
+# ─── Play 4: k3d local dev cluster ──────────────────────────────────────────
 - name: Connect to k3d local dev cluster
   hosts: local
   gather_facts: true

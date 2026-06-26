@@ -30,17 +30,6 @@ if command -v op &>/dev/null; then
   eval "$(op completion zsh 2>/dev/null)"
 fi
 
-# ── Distrobox ─────────────────────────────────────────────────────────────────
-if [[ -n "${CONTAINER_ID:-}" ]]; then
-  alias tailscale='distrobox-host-exec tailscale'
-  # Podman remote passthrough: all podman/docker commands proxy to host Podman.
-  # Distrobox mounts the host's /run under /run/host/run — XDG_RUNTIME_DIR inside
-  # the container is a Distrobox-managed tmpfs, not the host's runtime dir.
-  # Requires: systemctl --user enable --now podman.socket on the Aurora-DX host.
-  export CONTAINER_HOST="unix:///run/host/run/user/${UID}/podman/podman.sock"
-  export DOCKER_HOST="unix:///run/host/run/user/${UID}/podman/podman.sock"
-fi
-
 # ── Powerlevel10k ─────────────────────────────────────────────────────────────
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 

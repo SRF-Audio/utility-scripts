@@ -29,8 +29,7 @@ nvidia_asus_hw_terra_release_url: "https://repos.fyralabs.com/terra$releasever"
 # (the official guide swaps out tuned-ppd).
 nvidia_asus_hw_power_backend: power-profiles-daemon
 
-# Restore the orphaned asusd config captured from the Aurora host
-# (charge limit, AC=Performance/Battery=Quiet, Aura RGB, fan curves, Slash).
+# Restore asusd config (charge limit, AC=Performance/Battery=Quiet, Aura RGB, fan curves, Slash).
 nvidia_asus_hw_restore_asusd_config: true
 nvidia_asus_hw_asusd_config_files:
   - asusd.ron

@@ -21,9 +21,8 @@ nvidia_asus_hw_enable_asusctl: true
 nvidia_asus_hw_enable_supergfxctl: true
 nvidia_asus_hw_restore_asusd_config: true     # restore orphaned /etc/asusd/*.ron
 
-# Power backend: the official asusd guide recommends power-profiles-daemon
-# (swap out tuned-ppd). Aurora currently used tuned/tuned-ppd; PPD is asusd's
-# documented integration path.
+# Power backend: PPD is asusd's documented integration path (the official guide
+# recommends swapping out tuned-ppd for power-profiles-daemon).
 nvidia_asus_hw_power_backend: power-profiles-daemon
 
 # ── Container engine (repos_services role) ──────────────────────────────────

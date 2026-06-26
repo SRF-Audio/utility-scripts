@@ -9,7 +9,7 @@
 ## Machines
 **Always know where you are before OS-level/install/system advice:** run `bash ~/.claude/skills/host-env/detect.sh` (host-env skill) — distrobox vs native vs macOS changes package managers, host-tool access, and immutability rules.
 - **Desktop** — ASUS PRIME B650M · Ryzen 7 7700X · Radeon 7800XT · 96GB RAM. Primary: native Fedora Workstation (mutable, dnf).
-- **Laptop** (`sfroeber-amd-aurora-laptop`) — ROG Zephyrus G16 · Ryzen AI 9 HX 370 · RTX 4070 Laptop · 32GB RAM. Primary: **Fedora distrobox inside Aurora-DX** (immutable host — host tools via `distrobox-host-exec`, never dnf on host).
+- **Laptop** (`sfroeber-amd-fedora-laptop`) — ROG Zephyrus G16 · Ryzen AI 9 HX 370 · RTX 4070 Laptop · 32GB RAM. Primary: native Fedora Workstation (mutable, dnf — same stack as desktop).
 - Both Linux machines dual-boot **Windows 11 from a 2nd SSD — gaming only**, not separate machines; Claude Code never runs there.
 - **Mac Mini** — macOS, rare use: brew, launchd, BSD userland.
 
@@ -32,7 +32,6 @@
 - **Memory = state + lookups only.** `project_*` = evolving facts; `reference_*` = where things live; `feedback_*` = behavioral rules. Procedures, personas, and command lines belong in skills — memory points to skills by name only. A memory that's mostly commands is a skill wanting to be born.
 - **MEMORY.md hooks** are one line, "use when" style — they're the entire recall trigger. Prune or update stale state memories on sight; resolved-issue history lives in git, not memory.
 - **Settings layers:** `claude/settings.json` = user-global; `<repo>/.claude/settings.json` = tracked, shared; `settings.local.json` = per-machine, gitignored, never committed.
-- **Distrobox:** when a session is containerized (see Machines / host-env skill), `op` and other host-only tools need `distrobox-host-exec`; skill scripts should auto-detect (`CONTAINER_ID` env), see `fitness-coach/strava.py`.
 
 ## Preferences
 - Terse, direct answers — skip preamble

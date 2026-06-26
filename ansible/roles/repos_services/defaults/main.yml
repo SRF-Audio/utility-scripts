@@ -1,8 +1,7 @@
 ---
 # roles/repos_services/defaults/main.yml
 #
-# Repo-backed installs that the immutable host previously handled out-of-band
-# (rpm-ostree LocalPackages / flatpak / distrobox passthrough). All steps follow
+# Repo-backed installs (docker-ce, VS Code, 1Password desktop). All steps follow
 # the current official upstream instructions.
 
 repos_services_install_1password_desktop: true

@@ -47,10 +47,6 @@ def _op_cmd():
     override = os.environ.get("STRAVA_OP_CMD")
     if override:
         return shlex.split(override)
-    # Inside a distrobox the container's `op` can't reach the host 1Password
-    # session — route through the host instead.
-    if os.environ.get("CONTAINER_ID") and shutil.which("distrobox-host-exec"):
-        return ["distrobox-host-exec", "op"]
     return ["op"]
 
 

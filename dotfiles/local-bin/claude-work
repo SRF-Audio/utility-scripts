@@ -2,13 +2,8 @@
 # Launch Claude Code with Bedrock credentials from 1Password.
 # Intended for work sessions (~/GitLab projects).
 # AWS credentials are injected from 1Password — never stored in ~/.aws/credentials.
-# Auto-detects distrobox (1Password lives on the host there).
 
-if [[ -n "${CONTAINER_ID:-}" ]]; then
-  OP="distrobox-host-exec op"
-else
-  OP="op"
-fi
+OP="op"
 
 ITEM_ID="6cyhugp6pxj5irh2qkifnferr4"
 
