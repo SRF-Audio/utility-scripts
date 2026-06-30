@@ -2,6 +2,10 @@
 # Managed by direnv — loaded automatically when inside ~/GitLab/.
 # Credentials sourced from 1Password; never stored on disk.
 
+# The "Work" vault lives in the PERSONAL 1Password account, not the CACI one.
+# Pin it so `op` never throws the account picker when both accounts are active.
+export OP_ACCOUNT="my.1password.com"
+
 AWS_ACCESS_KEY_ID=$(op item get 6cyhugp6pxj5irh2qkifnferr4 --vault Work --fields "Access Key" --reveal 2>/dev/null)
 AWS_SECRET_ACCESS_KEY=$(op item get 6cyhugp6pxj5irh2qkifnferr4 --vault Work --fields "Secret Key" --reveal 2>/dev/null)
 
