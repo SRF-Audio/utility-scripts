@@ -5,6 +5,11 @@
 
 OP="op"
 
+# The "Work" vault lives in the PERSONAL 1Password account (my.1password.com),
+# not the CACI one. Pin it so `op` never throws the account picker when both
+# accounts are signed in.
+export OP_ACCOUNT="my.1password.com"
+
 ITEM_ID="6cyhugp6pxj5irh2qkifnferr4"
 
 export AWS_ACCESS_KEY_ID

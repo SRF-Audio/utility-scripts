@@ -10,6 +10,7 @@
 - [Hetzner cluster patterns](reference_hetzner_patterns.md) — ArgoCD wave/project conventions, homepage ingress annotation triple, 1P operator empty-field gotcha, NetBox/Loki chart specifics
 - [Strava API in 1Password](reference_strava_op.md) — Where Strava creds live; the fitness-coach skill's strava.py consumes them; kite-uploader shares the refresh token (rotation warning)
 - [MCP server setup](reference_mcp_setup.md) — github/trello via 1P wrappers + fetch; troubleshooting starts with `op signin`
+- [1Password accounts & vaults](reference_1password_accounts_vaults.md) — work SSH key + Bedrock creds live in the PERSONAL account's Work vault; CACI account has no Work vault; `claude-work` pins OP_ACCOUNT
 - [Fitness — current state](project_fitness_state.md) — Run rebuild status, bike-shipping/move timeline, sport balance; coaching persona lives in the fitness-coach skill
 - [Training plan Jun–Sept 2026](project_training_plan_2026.md) — Phase plan through the O'Fallon→The Hague move; ERAU 100-mile challenge, projected finish ~Aug 5–12
 - [Claude dual-profile setup](project_claude_dual_profile.md) — Home=direct API, Work=Bedrock via `claude-work` exports (user-level settings.local.json is never read!)
