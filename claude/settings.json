@@ -7,12 +7,18 @@
       "Bash(python3 *)"
     ]
   },
-  "model": "sonnet",
+  "model": "opus",
   "extraKnownMarketplaces": {
     "addy-agent-skills": {
       "source": {
         "source": "github",
         "repo": "addyosmani/agent-skills"
+      }
+    },
+    "samber": {
+      "source": {
+        "source": "github",
+        "repo": "samber/cc"
       }
     }
   },
@@ -37,5 +43,8 @@
       "command": "/home/sfroeber/.claude/mcp-wrappers/trello.sh",
       "type": "stdio"
     }
+  },
+  "enabledPlugins": {
+    "cc-skills-golang@samber": true
   }
 }
