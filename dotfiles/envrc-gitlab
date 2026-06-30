@@ -1,0 +1,18 @@
+# Work AWS credentials for Claude Code Bedrock and AWS CLI.
+# Managed by direnv — loaded automatically when inside ~/GitLab/.
+# Credentials sourced from 1Password; never stored on disk.
+
+AWS_ACCESS_KEY_ID=$(op item get 6cyhugp6pxj5irh2qkifnferr4 --vault Work --fields "Access Key" --reveal 2>/dev/null)
+AWS_SECRET_ACCESS_KEY=$(op item get 6cyhugp6pxj5irh2qkifnferr4 --vault Work --fields "Secret Key" --reveal 2>/dev/null)
+
+if [[ -z "$AWS_ACCESS_KEY_ID" || -z "$AWS_SECRET_ACCESS_KEY" ]]; then
+  echo "direnv: 1Password unavailable — AWS Bedrock credentials not loaded" >&2
+else
+  export AWS_ACCESS_KEY_ID
+  export AWS_SECRET_ACCESS_KEY
+  export CLAUDE_CODE_USE_BEDROCK=1
+  export AWS_REGION="us-east-1"
+  export ANTHROPIC_DEFAULT_SONNET_MODEL="us.anthropic.claude-sonnet-4-6"
+  export ANTHROPIC_DEFAULT_OPUS_MODEL="us.anthropic.claude-opus-4-8"
+  export ANTHROPIC_DEFAULT_HAIKU_MODEL="us.anthropic.claude-haiku-4-5-20251001-v1:0"
+fi

@@ -31,6 +31,7 @@
     - .local/bin
     - .claude
     - .claude/projects/-home-sfroeber-GitHub-utility-scripts
+    - GitLab
 
 - name: Ensure backup directory exists
   ansible.builtin.file:
@@ -92,6 +93,12 @@
   loop:
     - dotfiles/local-bin/tmux-homelab
     - dotfiles/local-bin/tailscale_tmux_status
+    - dotfiles/local-bin/claude-work
+
+- name: Allow GitLab .envrc with direnv
+  ansible.builtin.command:
+    cmd: direnv allow "{{ ansible_env.HOME }}/GitLab/.envrc"
+  changed_when: false
 
 - name: Ensure MCP wrapper scripts are executable
   ansible.builtin.file:

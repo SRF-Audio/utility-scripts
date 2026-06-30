@@ -10,11 +10,15 @@ metadata:
 Two Claude Code profiles, split by project dir:
 
 - **Home** (`~/GitHub/`): Direct Anthropic API auth via `/login` (OAuth, stored in `~/.claude/.credentials.json`). Plain `claude` command.
-- **Work** (`~/GitLab/`): AWS Bedrock via the `SHIFT - Bedrock` 1Password item. Launch with `claude-work` wrapper script.
+- **Work** (`~/GitLab/`): AWS Bedrock via the `SHIFT - Bedrock` 1Password item. **Primary mechanism: direnv** loads `~/GitLab/.envrc` automatically on `cd`. Fallback: `claude-work` wrapper for ad-hoc use outside `~/GitLab/`.
 
-**claude-work script:** `~/.local/bin/claude-work` (symlinked from `dotfiles/local-bin/claude-work`)
-- Reads `op://Work/6cyhugp6pxj5irh2qkifnferr4/{Access Key,Secret Key}`, auto-detects distrobox (`CONTAINER_ID` env) and routes `op` through `distrobox-host-exec`
-- Exports `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` **and** `CLAUDE_CODE_USE_BEDROCK=1`, `AWS_REGION`, `ANTHROPIC_DEFAULT_{SONNET,OPUS,HAIKU}_MODEL` as real shell env vars, then `exec claude "$@"`
+**direnv (primary):** `~/GitLab/.envrc` symlinked from `dotfiles/envrc-gitlab`. Calls `op item get 6cyhugp6pxj5irh2qkifnferr4 --vault Work` on `cd` into any `~/GitLab/**` path, exports AWS creds + all Bedrock env vars. Allowed with `direnv allow ~/GitLab`. Hook in `.zshrc`: `eval "$(direnv hook zsh)"`. If 1Password is unavailable, prints a warning and skips export (no silent IMDS hang). Variables are automatically **unset** when you `cd` out of `~/GitLab/`, preventing bleed into home sessions.
+
+**claude-work script (fallback):** `~/.local/bin/claude-work` (symlinked from `dotfiles/local-bin/claude-work`)
+- Reads `op://Work/6cyhugp6pxj5irh2qkifnferr4/{Access Key,Secret Key}`, exports AWS creds + Bedrock vars, then `exec claude "$@"`
+- Use when running Bedrock outside `~/GitLab/` or when direnv isn't active
+
+**Root cause of IMDS hang (2026-06-25):** Running bare `claude` in a shell that had inherited `CLAUDE_CODE_USE_BEDROCK=1` from a prior `claude-work` session, but without `AWS_ACCESS_KEY_ID`. The SDK fell back to credential-chain discovery → IMDS. direnv prevents this: env vars are tied to the directory, not the shell session.
 
 **Critical: there is no user-level `settings.local.json`.** Claude Code's settings precedence is enterprise-managed → CLI args → project `.claude/settings.local.json` → project `.claude/settings.json` → user `~/.claude/settings.json`. A file at `~/.claude/settings.local.json` is **never read** — confirmed via `--debug-file`, whose settings-watch log line lists only `~/.claude/settings.json`, the tracked repo `claude/settings.json` it symlinks to, and per-project `.claude/settings*.json`. An earlier session put the Bedrock toggle/model vars there; it silently did nothing, and `claude-work` kept authenticating via the personal OAuth account instead (same `-p "..."` output either way, since both paths return plausible text — output alone doesn't prove which backend served it; check `--debug-file` for `dispatching to bedrock` / `AWS credential resolve` vs `OAuth token check`). **Fix (2026-06-23): moved all Bedrock env vars into the `claude-work` script itself as real exports** — that's the only mechanism guaranteed to apply regardless of cwd. Deleted the dead `~/.claude/settings.local.json` and the `dotfiles/claude/settings.local.json.work-template` it was copied from; that whole file-template approach is gone.
 

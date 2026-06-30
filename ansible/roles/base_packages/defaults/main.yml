@@ -20,6 +20,7 @@ base_packages_list:
   # shells & terminal
   - zsh
   - tmux
+  - direnv
   # editors
   - vim-enhanced
   - nano

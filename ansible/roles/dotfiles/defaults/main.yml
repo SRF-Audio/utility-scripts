@@ -29,6 +29,11 @@ dotfiles_symlinks:
     dest: .local/bin/tmux-homelab
   - src: dotfiles/local-bin/tailscale_tmux_status
     dest: .local/bin/tailscale_tmux_status
+  - src: dotfiles/local-bin/claude-work
+    dest: .local/bin/claude-work
+  # Work environment (direnv loads this when inside ~/GitLab/)
+  - src: dotfiles/envrc-gitlab
+    dest: GitLab/.envrc
 
 # SSH config.d entries to symlink (static, version-controlled).
 # Ansible-generated entries (30-homelab-k3s.conf, 35-hetzner.conf, 40-synology.conf)
