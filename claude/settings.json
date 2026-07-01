@@ -8,6 +8,9 @@
     ]
   },
   "model": "opus",
+  "enabledPlugins": {
+    "cc-skills-golang@samber": true
+  },
   "extraKnownMarketplaces": {
     "addy-agent-skills": {
       "source": {
@@ -43,8 +46,5 @@
       "command": "/home/sfroeber/.claude/mcp-wrappers/trello.sh",
       "type": "stdio"
     }
-  },
-  "enabledPlugins": {
-    "cc-skills-golang@samber": true
   }
 }
